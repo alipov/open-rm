@@ -1,7 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteMonitoring", "RemoteMonitoring\RemoteMonitoring.csproj", "{C99D6B02-8334-4EE8-BB1F-F6146AF5429F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteMonitoring.Server.Host", "RemoteMonitoring\RemoteMonitoring.Server.Host.csproj", "{C99D6B02-8334-4EE8-BB1F-F6146AF5429F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{B74D8C9B-2BEB-428E-98A6-80ED905E0D47}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{C632571C-3F78-4CD3-84A8-A9E76DE9B36A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{51E74356-C2E4-45C2-B826-6EFC4604CE2B}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -9,7 +15,8 @@ Global
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
 		SccLocalPath0 = .
-		SccProjectUniqueName1 = RemoteMonitoring\\RemoteMonitoring.csproj
+		SccProjectUniqueName1 = RemoteMonitoring\\RemoteMonitoring.Server.Host.csproj
+		SccProjectTopLevelParentUniqueName1 = RemoteMonitoring.sln
 		SccProjectName1 = RemoteMonitoring
 		SccLocalPath1 = RemoteMonitoring
 	EndGlobalSection
@@ -25,5 +32,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C99D6B02-8334-4EE8-BB1F-F6146AF5429F} = {C632571C-3F78-4CD3-84A8-A9E76DE9B36A}
 	EndGlobalSection
 EndGlobal
