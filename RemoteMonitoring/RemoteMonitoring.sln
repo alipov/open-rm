@@ -9,9 +9,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{C63257
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{51E74356-C2E4-45C2-B826-6EFC4604CE2B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteMonitoring.Server.GUI", "RemoteMonitoring.Server.GUI\RemoteMonitoring.Server.GUI.csproj", "{DDCF2A9D-7067-4E7D-9F0B-82C313A9D0FD}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 2
+		SccNumberOfProjects = 3
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
 		SccLocalPath0 = .
@@ -19,6 +21,10 @@ Global
 		SccProjectTopLevelParentUniqueName1 = RemoteMonitoring.sln
 		SccProjectName1 = RemoteMonitoring
 		SccLocalPath1 = RemoteMonitoring
+		SccProjectUniqueName2 = RemoteMonitoring.Server.GUI\\RemoteMonitoring.Server.GUI.csproj
+		SccProjectTopLevelParentUniqueName2 = RemoteMonitoring.sln
+		SccProjectName2 = RemoteMonitoring.Server.GUI
+		SccLocalPath2 = RemoteMonitoring.Server.GUI
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -29,11 +35,16 @@ Global
 		{C99D6B02-8334-4EE8-BB1F-F6146AF5429F}.Debug|x86.Build.0 = Debug|x86
 		{C99D6B02-8334-4EE8-BB1F-F6146AF5429F}.Release|x86.ActiveCfg = Release|x86
 		{C99D6B02-8334-4EE8-BB1F-F6146AF5429F}.Release|x86.Build.0 = Release|x86
+		{DDCF2A9D-7067-4E7D-9F0B-82C313A9D0FD}.Debug|x86.ActiveCfg = Debug|x86
+		{DDCF2A9D-7067-4E7D-9F0B-82C313A9D0FD}.Debug|x86.Build.0 = Debug|x86
+		{DDCF2A9D-7067-4E7D-9F0B-82C313A9D0FD}.Release|x86.ActiveCfg = Release|x86
+		{DDCF2A9D-7067-4E7D-9F0B-82C313A9D0FD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C99D6B02-8334-4EE8-BB1F-F6146AF5429F} = {C632571C-3F78-4CD3-84A8-A9E76DE9B36A}
+		{DDCF2A9D-7067-4E7D-9F0B-82C313A9D0FD} = {C632571C-3F78-4CD3-84A8-A9E76DE9B36A}
 	EndGlobalSection
 EndGlobal
