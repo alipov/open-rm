@@ -7,6 +7,7 @@ namespace RemoteMonitoring
         static void Main(string[] args)
         {
             Console.WriteLine();
+            System.Console.Write("lalala");
         }
     }
 }
