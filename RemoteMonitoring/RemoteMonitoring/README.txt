@@ -13,7 +13,8 @@ Structure:
    b. menu
    c. Push deployment (in loop (maybe multicast?))
    d. Tcp/XML
-   e. Reboot, shutdown,... 
+   e. Reboot, shutdown,...
+   f. inter-process communication
    
    
 2. Cleint: 
