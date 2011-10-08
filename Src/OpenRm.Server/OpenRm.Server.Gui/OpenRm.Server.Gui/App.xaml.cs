@@ -11,12 +11,15 @@ namespace OpenRm.Server.Gui
     /// </summary>
     public partial class App : Application
     {
+        public App() : base()
+        {
+            var appDomain = AppDomain.CurrentDomain;
+            appDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveHandler);
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
-            var appDomain = AppDomain.CurrentDomain;
-            appDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveHandler);
 
             // create the bootstrapper
             var bootstrapper = new Bootstrapper();
@@ -49,11 +52,15 @@ namespace OpenRm.Server.Gui
                     break;
                     //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
                 }
-	
             }
             //Load the assembly from the specified path.
-            Assembly myAssembly = Assembly.LoadFrom(assemblyPath);
-	
+            Assembly myAssembly = null;
+
+            // failing to ignore queries for satellite resource assemblies or using [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)] 
+            // in AssemblyInfo.cs will crash the program on non en-US based system cultures.
+            if(!string.IsNullOrWhiteSpace(assemblyPath))
+                myAssembly = Assembly.LoadFrom(assemblyPath);
+            
             //Return the loaded assembly.
             return myAssembly;
         }
