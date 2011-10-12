@@ -17,7 +17,7 @@ Structure:
    f. inter-process communication
    
    
-2. Cleint: 
+2. Client: 
    a. System Tray Icon with menu (update server, check tasks on server, view log, start/stop, exit) and status.
    b. INI file with all settings (server, port)
    c. Ask for servers connection data on first use.

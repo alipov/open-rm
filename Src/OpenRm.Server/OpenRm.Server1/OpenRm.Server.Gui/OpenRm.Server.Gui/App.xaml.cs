@@ -30,13 +30,13 @@ namespace OpenRm.Server.Gui
         Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
         {
             //This handler is called only when the common language runtime tries to bind to the assembly and fails.
-	
+    
             //Retrieve the list of referenced assemblies in an array of AssemblyName.
             var assemblyPath = string.Empty;
-	
+    
             Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
             AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
-	
+    
             //Loop through the array of referenced assembly names.
             foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
             {
