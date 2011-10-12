@@ -1,0 +1,11 @@
+﻿<Window x:Class="OpenRm.Server.Gui.Shell"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:prism="http://www.codeplex.com/prism"
+        xmlns:loc="http://www.codeplex.com/remotemonproject"
+        Title="Shell">
+    <DockPanel LastChildFill="True" >
+        <ContentControl DockPanel.Dock="Top" prism:RegionManager.RegionName="{x:Static loc:RegionNames.ToolbarRegion}" />
+        <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.ContentRegion}" />
+    </DockPanel>
+</Window>
