@@ -7,7 +7,6 @@ using System.Text;
 using System.Xml;
 using wox.serial;
 
-
 namespace OpenRm.Server.Host
 {
     class Program
