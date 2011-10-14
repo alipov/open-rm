@@ -61,10 +61,7 @@ namespace OpenRm.Server.Host
 
         }
 
-        /// <summary>
-        /// Starts the server such that it is listening for incoming connection requests.    
-        /// </summary>
-        /// <param name="localEndPoint">The endpoint which the server will listening for conenction requests on</param>
+        // Starts the server such that it is listening for incoming connection requests.    
         public void Start(IPEndPoint localEndPoint)
         {
             // create the socket which listens for incoming connections
@@ -76,9 +73,7 @@ namespace OpenRm.Server.Host
             // post accepts on the listening socket
             StartAccept(null);
 
-            //Console.WriteLine("{0} connected sockets with one outstanding receive posted to each....press any key", m_outstandingReadCount);
-            Console.WriteLine("Press any key to terminate the server process....");
-            Console.ReadKey();
+            
         }
 
 
