@@ -2,13 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net;
+using System.Net.Sockets;
+
 
 namespace OpenRm.Server.Host
 {
     class TCPServerListener
     {
+        BufferManager m_bufferManager;  // represents a large reusable set of buffers for all socket operations
+        const int opsToPreAlloc = 2;    // read, write (don't alloc buffer space for accepts)
+        Socket listenSocket;            // the socket used to listen for incoming connection requests
+        // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
+        SocketAsyncEventArgsPool m_readWritePool;
 
-        public TCPServerListener(port, maxNumConnections, receiveBufferSize, m_bufferManager, m_readWritePool, localEndPoint)
+        public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize)
         {
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
             //write posted to the socket simultaneously  
