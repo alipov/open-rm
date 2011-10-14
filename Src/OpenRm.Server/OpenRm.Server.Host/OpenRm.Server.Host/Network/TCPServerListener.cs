@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 
 
+
 namespace OpenRm.Server.Host
 {
     class TCPServerListener
@@ -31,11 +32,7 @@ namespace OpenRm.Server.Host
             Start(localEndPoint);
         }
 
-        /// <summary>
-        /// Initializes the server by preallocating reusable buffers and context objects.  These objects do not 
-        /// need to be preallocated or reused, by is done this way to illustrate how the API can easily be used
-        /// to create reusable objects to increase server performance.
-        /// </summary>
+        // Initializes the server by preallocating reusable buffers and context objects. 
         public void Init()
         {
             // Allocates one large byte buffer which all I/O operations use a piece of.  This gaurds 
