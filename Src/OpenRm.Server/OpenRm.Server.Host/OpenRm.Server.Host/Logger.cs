@@ -11,19 +11,21 @@ namespace OpenRm.Server.Host
         private string logDirectory = "logs";
         private StreamWriter log;
 
+        private readonly object lck = new object();     // for handeling Writes from many threads
+
         public Logger(string logFilenamePattern)
         {
-
-            string logFilename = logFilenamePattern.Replace("<date>", DateTime.Now.ToString("ddMMyy-HHmmss"));     //replace "<date>" by current date and time
+            //replace "<date>" by current date and time
+            string logFilename = logFilenamePattern.Replace("<date>", DateTime.Now.ToString("ddMMyy-HHmmss"));     
             try
             {
-                CreateLogDirectory();
-                log = new StreamWriter(logDirectory + "\\" + logFilename);        //create and open file for writing
+                CreateLogDirectory();       //check if Logs directory exist (otherwise creates it)
+                this.log = new StreamWriter(logDirectory + "\\" + logFilename);        //create and open file for writing
             }
             catch (IOException err) 
             {
 //TODO:  show popup? ignore?
-                Console.WriteLine(err.Message);
+Console.WriteLine("ERROR while opening log file for writing: " + err.Message);
             }
             
         }
@@ -34,11 +36,12 @@ namespace OpenRm.Server.Host
                 Directory.CreateDirectory(logDirectory);
         }
 
-        public void WriteLine(string str)
+        public void WriteStr(string str)
         {
-            lock (log)
+            lock (this.lck)
             {
-                log.WriteLine(str);
+                log.WriteLine(DateTime.Now.ToString("dd.MM HH:mm:ss") + " | " + str);
+                log.Flush();
             }
         }
 
