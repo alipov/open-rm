@@ -15,7 +15,7 @@ namespace OpenRm.Server.Host
         public static int maxNumConnections = 1000;     //maximum number of connections
         public static int receiveBufferSize = 512;      //recieve buffer size for tcp connection
         
-        static void Main(string[] args)
+        static void Main2(string[] args)
         {
             log = new Logger(logFilenamePattern);
             

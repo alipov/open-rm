@@ -71,8 +71,6 @@
   <ItemGroup>
     <Compile Include="Network\AsyncUserToken.cs" />
     <Compile Include="Network\BufferManager.cs" />
-    <Compile Include="Class1.cs" />
-    <Compile Include="Class22.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
