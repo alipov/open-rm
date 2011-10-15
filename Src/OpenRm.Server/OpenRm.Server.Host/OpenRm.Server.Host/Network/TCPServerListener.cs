@@ -9,6 +9,7 @@ namespace OpenRm.Server.Host
 {
     class TCPServerListener
     {
+        int maxNumConnections;
         BufferManager m_bufferManager;  // represents a large reusable set of buffers for all socket operations
         const int opsToPreAlloc = 2;    // read, write (don't alloc buffer space for accepts)
         Socket listenSocket;            // the socket used to listen for incoming connection requests
@@ -17,6 +18,7 @@ namespace OpenRm.Server.Host
 
         public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize, Logger log)
         {
+            this.maxNumConnections = maxNumConnections;
             this.log = log;
 
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
@@ -28,6 +30,7 @@ namespace OpenRm.Server.Host
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
             Init();
+            log.WriteLine("Init level completed");
             Start(localEndPoint);
         }
 
@@ -41,11 +44,11 @@ namespace OpenRm.Server.Host
             // preallocate pool of SocketAsyncEventArgs objects
             SocketAsyncEventArgs readWriteEventArg;
 
-            for (int i = 0; i < m_numConnections; i++)
+            for (int i = 0; i < maxNumConnections; i++)
             {
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
                 readWriteEventArg = new SocketAsyncEventArgs();
-                readWriteEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
+//                readWriteEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
                 readWriteEventArg.UserToken = new AsyncUserToken();
 
                 // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
@@ -79,7 +82,7 @@ namespace OpenRm.Server.Host
             if (acceptEventArg == null)
             {
                 acceptEventArg = new SocketAsyncEventArgs();
-                acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
+//                acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
             }
             else
             {
@@ -87,11 +90,11 @@ namespace OpenRm.Server.Host
                 acceptEventArg.AcceptSocket = null;
             }
 
-            m_maxNumberAcceptedClients.WaitOne();
+//            m_maxNumberAcceptedClients.WaitOne();
             bool willRaiseEvent = listenSocket.AcceptAsync(acceptEventArg);
             if (!willRaiseEvent)
             {
-                ProcessAccept(acceptEventArg);
+//                ProcessAccept(acceptEventArg);
             }
         }
 
