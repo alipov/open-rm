@@ -22,7 +22,7 @@ namespace OpenRm.Server.Host
             }
             catch (IOException err) 
             {
-                //TODO:  show popup? ignore?
+//TODO:  show popup? ignore?
                 Console.WriteLine(err.Message);
             }
             
@@ -40,10 +40,12 @@ namespace OpenRm.Server.Host
             {
                 log.WriteLine(str);
             }
-
-            
         }
 
+        public void Close()
+        {
+            log.Close();
+        }
 
 
     }
