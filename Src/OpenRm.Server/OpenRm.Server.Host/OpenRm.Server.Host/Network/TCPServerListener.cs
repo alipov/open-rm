@@ -13,9 +13,12 @@ namespace OpenRm.Server.Host
         const int opsToPreAlloc = 2;    // read, write (don't alloc buffer space for accepts)
         Socket listenSocket;            // the socket used to listen for incoming connection requests
         SocketAsyncEventArgsPool m_readWritePool;  // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
+        Logger log;
 
-        public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize)
+        public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize, Logger log)
         {
+            this.log = log;
+
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
             //write posted to the socket simultaneously  
             m_bufferManager = new BufferManager(receiveBufferSize * maxNumConnections * opsToPreAlloc, receiveBufferSize);
