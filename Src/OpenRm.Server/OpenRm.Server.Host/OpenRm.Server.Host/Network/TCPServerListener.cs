@@ -10,13 +10,14 @@ namespace OpenRm.Server.Host
 {
     class TCPServerListener
     {
-        int maxNumConnections;
-        BufferManager m_bufferManager;  // represents a large reusable set of buffers for all socket operations
-        const int opsToPreAlloc = 2;    // read, write (don't alloc buffer space for accepts)
-        Socket listenSocket;            // the socket used to listen for incoming connection requests
-        SocketAsyncEventArgsPool m_readWritePool;  // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
-        Semaphore m_maxNumberAcceptedClients;      // limit number of clients
-        Logger log;
+        int maxNumConnections;              // holds maximum number of connections, defined in program
+        int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
+        const int opsToPreAlloc = 2;        // read, write (don't alloc buffer space for accepts)
+        BufferManager bufferManager;        // represents a large reusable set of buffers for all socket operations
+        Socket listenSocket;                // the socket used to listen for incoming connection requests
+        SocketAsyncEventArgsPool argsReadWritePool;     // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
+        Semaphore maxNumberAcceptedClients;             // limit number of clients
+        Logger log;                                     // log file writer
 
         public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize, Logger log)
         {
@@ -25,10 +26,10 @@ namespace OpenRm.Server.Host
 
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
             //write posted to the socket simultaneously  
-            m_bufferManager = new BufferManager(receiveBufferSize * maxNumConnections * opsToPreAlloc, receiveBufferSize);
+            bufferManager = new BufferManager(receiveBufferSize * maxNumConnections * opsToPreAlloc, receiveBufferSize);
 
-            m_readWritePool = new SocketAsyncEventArgsPool(maxNumConnections);
-            m_maxNumberAcceptedClients = new Semaphore(maxNumConnections, maxNumConnections); 
+            argsReadWritePool = new SocketAsyncEventArgsPool(maxNumConnections);
+            maxNumberAcceptedClients = new Semaphore(maxNumConnections, maxNumConnections); 
 
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
@@ -42,23 +43,23 @@ namespace OpenRm.Server.Host
         {
             // Allocates one large byte buffer which all I/O operations use a piece of.  This gaurds 
             // against memory fragmentation
-            m_bufferManager.InitBuffer();
+            bufferManager.InitBuffer();
 
             // preallocate pool of SocketAsyncEventArgs objects
-            SocketAsyncEventArgs readWriteEventArg;
+            SocketAsyncEventArgs readWriteArg;
 
             for (int i = 0; i < maxNumConnections; i++)
             {
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
-                readWriteEventArg = new SocketAsyncEventArgs();
-                readWriteEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-                readWriteEventArg.UserToken = new AsyncUserToken();
+                readWriteArg = new SocketAsyncEventArgs();
+                readWriteArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
+                readWriteArg.UserToken = new AsyncUserToken();
 
                 // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
-                m_bufferManager.SetBuffer(readWriteEventArg);
+                bufferManager.SetBuffer(readWriteArg);
 
                 // add SocketAsyncEventArg to the pool
-                m_readWritePool.Push(readWriteEventArg);
+                argsReadWritePool.Push(readWriteArg);
             }
 
         }
@@ -76,25 +77,26 @@ namespace OpenRm.Server.Host
             // post accepts on the listening socket
             StartAccept(null);
 
-            // echo: program terminated
+            log.WriteStr("TCP terminated.");
         }
 
         // Begins an operation to accept a connection request from the client 
         // Recieves context object to use when issuing the accept operation on the server's listening socket
         public void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
-            if (acceptEventArg == null)
+            if (acceptEventArg == null)     
             {
+                // We need to create Accept SocketAsyncEventArgs object on first run of StartAccept
                 acceptEventArg = new SocketAsyncEventArgs();
                 acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
             }
             else
             {
-                // socket must be cleared since the context object is being reused
+                // Accept SocketAsyncEventArgs object will be reused so socket must be cleared 
                 acceptEventArg.AcceptSocket = null;
             }
 
-            m_maxNumberAcceptedClients.WaitOne();
+            maxNumberAcceptedClients.WaitOne();
             bool willRaiseEvent = listenSocket.AcceptAsync(acceptEventArg);
             if (!willRaiseEvent)
             {
@@ -110,20 +112,21 @@ namespace OpenRm.Server.Host
 
         private void ProcessAccept(SocketAsyncEventArgs e)
         {
-            log.WriteStr("Client connection accepted.");
+            log.WriteStr("Client connection accepted. Processing Accept...");
 
             // Get the socket for the accepted client connection and put it into the ReadEventArg object user token
-            SocketAsyncEventArgs readEventArgs = m_readWritePool.Pop();
+            SocketAsyncEventArgs readEventArgs = argsReadWritePool.Pop();
             ((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
 
             // As soon as the client is connected, post a receive to the connection
             bool willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArgs);
             if (!willRaiseEvent)
             {
+                // need to be proceeded synchroniously
                 ProcessReceive(readEventArgs);
             }
 
-            // Accept the next connection request
+            // Accept the next connection request. We'll reuse Accept SocketAsyncEventArgs object.
             StartAccept(e);
         }
 
@@ -145,17 +148,53 @@ namespace OpenRm.Server.Host
 
         }
 
-        /// <summary>
-        /// This method is invoked when an asycnhronous receive operation completes. If the 
-        /// remote host closed the connection, then the socket is closed.  If data was received then
-        /// the data is echoed back to the client.
-        /// </summary>
+
+        // Invoked when an asycnhronous receive operation completes.  
+        // If the remote host closed the connection, then the socket is closed.
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
             // check if the remote host closed the connection
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
+                log.WriteStr("Recieved data on socket " + token.socket.LocalEndPoint.ToString());
+
+                // now we need to check if we got complete message.
+                // if not - call recieve method untill we get a whole message
+                // but first, we need to recieve Prefix to know how much bytes are in our message:
+                if (token.recievedPrefixPart == 0)
+                    token.prefixData = new Byte[msgPrefixLength];
+                if (token.recievedPrefixPart < msgPrefixLength)
+                {
+                    int bytesToCopyToPrefix;
+                    if (e.BytesTransferred >= msgPrefixLength)
+                    {
+                        bytesToCopyToPrefix = msgPrefixLength - token.recievedPrefixPart;
+                    }
+                    else
+                    {
+                        bytesToCopyToPrefix = e.BytesTransferred - token.recievedPrefixPart;
+                    }
+                    // 0??????
+                    Buffer.BlockCopy(e.Buffer, 0, token.prefixData, token.recievedPrefixPart, bytesToCopyToPrefix);
+                    //now copy remainig message data 
+
+                        
+
+                }
+                else
+                {
+                    //...
+
+
+                    token.recievedPrefixPart = 0; //reset for next message
+                }
+
+
+
+
+
+
                 //echo the data received back to the client
                 bool willRaiseEvent = token.Socket.SendAsync(e);
                 if (!willRaiseEvent)
@@ -166,9 +205,11 @@ namespace OpenRm.Server.Host
             }
             else
             {
+                log.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + ". Closing this connection.");
                 CloseClientSocket(e);
             }
         }
+
 
         // This method is invoked when an asynchronous send operation completes.
         // The method issues another receive on the socket to read any additional data sent from the client.
@@ -204,12 +245,12 @@ namespace OpenRm.Server.Host
             // throws if client process has already closed
             catch (Exception) { }
             token.Socket.Close();
-            m_maxNumberAcceptedClients.Release();
+            maxNumberAcceptedClients.Release();
 
             log.WriteStr("A client " + clientEP + " has been disconnected from the server.");
 
             // Free the SocketAsyncEventArg so they can be reused by another client
-            m_readWritePool.Push(e);
+            argsReadWritePool.Push(e);
         }
 
     }

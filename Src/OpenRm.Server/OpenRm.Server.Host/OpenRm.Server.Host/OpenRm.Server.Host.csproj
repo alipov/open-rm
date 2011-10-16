@@ -76,6 +76,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientData.cs" />
     <Compile Include="Network\AsyncUserToken.cs" />
     <Compile Include="Network\BufferManager.cs" />
     <Compile Include="Logger.cs" />
