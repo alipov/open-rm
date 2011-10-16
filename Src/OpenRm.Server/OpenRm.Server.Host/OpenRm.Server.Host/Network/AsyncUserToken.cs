@@ -8,19 +8,28 @@ namespace OpenRm.Server.Host
 {
     class AsyncUserToken
     {
-        Socket m_socket;
+        public Socket socket { get; set; }
+        public ClientData data { get; set; }
 
-        public AsyncUserToken() : this(null) { }
+        // holds recieved prefix for cases when we get only a part of prefix, and need to call Receive method one more time
+        //----public int[] 
+        public int recievedPrefixPart = 0;
+        public byte[] prefixData { get; set; }
 
-        public AsyncUserToken(Socket socket)
+
+        public AsyncUserToken() : this(null, null) { }
+
+        public AsyncUserToken(Socket socket, ClientData data)
         {
-            m_socket = socket;
+            this.socket = socket;
+            this.data = data;
         }
 
+//TODO: can we remove it?
         public Socket Socket
         {
-            get { return m_socket; }
-            set { m_socket = value; }
+            get { return socket; }
+            set { socket = value; }
         }
     }
 }
