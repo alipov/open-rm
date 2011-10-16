@@ -1,4 +1,6 @@
-﻿namespace OpenRm.Common.Entities
+﻿using System.Net;
+
+namespace OpenRm.Common.Entities
 {
     public class Message
     {
@@ -13,8 +15,10 @@
         public string Info;
     }
 
-    public class IpConfigCommand : CommandBase
+    public class IpConfigData : CommandBase
     {
-        public string IpAddress;
+        public IPAddress IpAddress;
+        public IPAddress netMask;
+        public IPAddress defaultGateway;
     }
 }
