@@ -10,9 +10,10 @@ namespace OpenRm.Server.Host
 {
     class TCPServerListener
     {
-        int maxNumConnections;              // holds maximum number of connections, defined in program
-        int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
-        const int opsToPreAlloc = 2;        // read, write (don't alloc buffer space for accepts)
+        public const int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
+        public int maxNumConnections;              // holds maximum number of connections, defined in program
+        public int receiveBufferSize;
+        public const int opsToPreAlloc = 2;        // read, write (don't alloc buffer space for accepts)
         BufferManager bufferManager;        // represents a large reusable set of buffers for all socket operations
         Socket listenSocket;                // the socket used to listen for incoming connection requests
         SocketAsyncEventArgsPool argsReadWritePool;     // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
@@ -22,6 +23,7 @@ namespace OpenRm.Server.Host
         public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize, Logger log)
         {
             this.maxNumConnections = maxNumConnections;
+            this.receiveBufferSize = receiveBufferSize;
             this.log = log;
 
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
@@ -157,50 +159,141 @@ namespace OpenRm.Server.Host
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
+                // got message. need to handle it
                 log.WriteStr("Recieved data on socket " + token.socket.LocalEndPoint.ToString());
 
-                // now we need to check if we got complete message.
-                // if not - call recieve method untill we get a whole message
-                // but first, we need to recieve Prefix to know how much bytes are in our message:
-                if (token.recievedPrefixPart == 0)
-                    token.prefixData = new Byte[msgPrefixLength];
-                if (token.recievedPrefixPart < msgPrefixLength)
+                // now we need to check if we have complete message in our recieved data.
+                // if yes - process it
+                // but few messages can be combined into one send/recieve operation,
+                //  or we can get only half message or just part of Prefix 
+                //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
+
+//TODO: adopt the code below
+                int i = 0;      // go through buffer of currently received data 
+                while (i != e.BytesTransferred)
                 {
-                    int bytesToCopyToPrefix;
-                    if (e.BytesTransferred >= msgPrefixLength)
+                    // Determine how many bytes we want to transfer to the buffer and transfer them 
+                    int bytesAvailable = e.BytesTransferred - i;
+                    if (token.msgData == null)
                     {
-                        bytesToCopyToPrefix = msgPrefixLength - token.recievedPrefixPart;
+                        // We're reading into the length prefix buffer 
+                        int bytesRequested = msgPrefixLength - token.recievedPrefixPartLength;
+
+                        // Copy the incoming bytes into the buffer 
+                        int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
+                        Array.Copy(e.Buffer, i, token.prefixData, token.recievedPrefixPartLength, bytesTransferred);
+                        i += bytesTransferred;
+
+                        token.recievedPrefixPartLength += bytesTransferred;
+
+                        if (token.recievedPrefixPartLength != msgPrefixLength)
+                        {
+                            // We haven't gotten all the length buffer yet: just wait for more data to arrive
+// TODO:  maybe need to call ProcessReceive() again
+                        }
+                        else
+                        {
+                            // We've gotten the length buffer 
+                            int length = BitConverter.ToInt32(token.prefixData, 0);
+
+                            if (length < 0)
+                                throw new System.Net.ProtocolViolationException("Invalid message prefix");
+
+                            // Create the data buffer and start reading into it 
+                            token.msgData = new byte[length];
+                            
+                            // zero counter
+                            token.recievedPrefixPartLength = 0;
+                        }
+
                     }
                     else
                     {
-                        bytesToCopyToPrefix = e.BytesTransferred - token.recievedPrefixPart;
+                        // We're reading into the data buffer 
+                        int bytesRequested = msgPrefixLength - token.recievedMsgPartLength;
+
+                        // Copy the incoming bytes into the buffer 
+                        int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
+                        Array.Copy(e.Buffer, i, token.msgData, token.recievedMsgPartLength, bytesTransferred);
+                        i += bytesTransferred;
+
+                        token.recievedMsgPartLength += bytesTransferred;
+                        if (token.recievedMsgPartLength != token.msgData.Length)
+                        {
+                            // We haven't gotten all the data buffer yet: just wait for more data to arrive
+// TODO:  maybe need to call ProcessReceive() again
+                        }
+                        else
+                        {
+                            // we've gotten an entire packet
+// TODO:  get token.msgData data and convert to XML
+                            log.WriteStr("Got message from " + token.socket.ToString() + ": " + System.Text.Encoding.ASCII.GetString(token.msgData));
+
+
+
+
+
+                            // empty buffer and counter
+                            token.msgData = null;
+                            token.recievedMsgPartLength = 0;
+                        } 
+
                     }
-                    // 0??????
-                    Buffer.BlockCopy(e.Buffer, 0, token.prefixData, token.recievedPrefixPart, bytesToCopyToPrefix);
-                    //now copy remainig message data 
+
+                } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+                // first, we need to recieve Prefix to know how much bytes are in our message
+                //if (token.recievedPrefixPartLength == 0)
+                //    token.prefixData = new Byte[msgPrefixLength];   //initialize byte array for holding Prefix
+
+                //if (token.recievedPrefixPartLength < msgPrefixLength)
+                //{
+                //    int bytesToCopyToPrefix;    //number of bytes that we should get to complete Prefix
+                //    if (e.BytesTransferred >= msgPrefixLength)
+                //    {
+                //        bytesToCopyToPrefix = msgPrefixLength - token.recievedPrefixPartLength;
+                //    }
+                //    else
+                //    {
+                //        bytesToCopyToPrefix = e.BytesTransferred - token.recievedPrefixPartLength;
+                //    }
+                //    // copy it to token.prefixData byte array
+                //    Buffer.BlockCopy(e.Buffer, token.msgStartOffset + token.recievedPrefixPartLength, token.prefixData, token.recievedPrefixPartLength, bytesToCopyToPrefix);
+
+                //    //now copy remainig message data 
 
                         
 
-                }
-                else
-                {
-                    //...
+                //}
+                //else
+                //{
+                //    //...
 
 
-                    token.recievedPrefixPart = 0; //reset for next message
-                }
-
-
+                //    token.recievedPrefixPart = 0; //reset for next message
+                //}
 
 
 
 
                 //echo the data received back to the client
-                bool willRaiseEvent = token.Socket.SendAsync(e);
-                if (!willRaiseEvent)
-                {
-                    ProcessSend(e);
-                }
+                //bool willRaiseEvent = token.Socket.SendAsync(e);
+                //if (!willRaiseEvent)
+                //{
+                //    ProcessSend(e);
+                //}
 
             }
             else
