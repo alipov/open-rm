@@ -120,13 +120,18 @@ namespace OpenRm.Server.Host
             SocketAsyncEventArgs readEventArgs = argsReadWritePool.Pop();
             ((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
 
-            // As soon as the client is connected, post a receive to the connection
-            bool willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArgs);
-            if (!willRaiseEvent)
-            {
-                // need to be proceeded synchroniously
-                ProcessReceive(readEventArgs);
-            }
+            // As soon as the client is connected, send greeting
+            SendMessage(readEventArgs, "hello");
+
+
+//TODO: delete
+            //// As soon as the client is connected, post a receive to the connection
+            ////bool willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArgs);
+            ////if (!willRaiseEvent)
+            ////{
+            ////     need to be proceeded synchroniously
+            ////    ProcessReceive(readEventArgs);
+            ////}
 
             // Accept the next connection request. We'll reuse Accept SocketAsyncEventArgs object.
             StartAccept(e);
@@ -155,8 +160,8 @@ namespace OpenRm.Server.Host
         // If the remote host closed the connection, then the socket is closed.
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
-            // check if the remote host closed the connection
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            // check if the remote host closed the connection
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
                 // got message. need to handle it
@@ -168,7 +173,6 @@ namespace OpenRm.Server.Host
                 //  or we can get only half message or just part of Prefix 
                 //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
 
-//TODO: adopt the code below
                 int i = 0;      // go through buffer of currently received data 
                 while (i != e.BytesTransferred)
                 {
@@ -243,21 +247,10 @@ namespace OpenRm.Server.Host
                 } 
 
 
-
-
-
-
-
-
-
-
-
-
-
+                //  TO DELETE:
                 // first, we need to recieve Prefix to know how much bytes are in our message
                 //if (token.recievedPrefixPartLength == 0)
                 //    token.prefixData = new Byte[msgPrefixLength];   //initialize byte array for holding Prefix
-
                 //if (token.recievedPrefixPartLength < msgPrefixLength)
                 //{
                 //    int bytesToCopyToPrefix;    //number of bytes that we should get to complete Prefix
@@ -271,29 +264,16 @@ namespace OpenRm.Server.Host
                 //    }
                 //    // copy it to token.prefixData byte array
                 //    Buffer.BlockCopy(e.Buffer, token.msgStartOffset + token.recievedPrefixPartLength, token.prefixData, token.recievedPrefixPartLength, bytesToCopyToPrefix);
-
                 //    //now copy remainig message data 
-
-                        
-
                 //}
                 //else
                 //{
                 //    //...
-
-
                 //    token.recievedPrefixPart = 0; //reset for next message
                 //}
-
-
-
-
+                //...
                 //echo the data received back to the client
-                //bool willRaiseEvent = token.Socket.SendAsync(e);
-                //if (!willRaiseEvent)
-                //{
-                //    ProcessSend(e);
-                //}
+                //
 
             }
             else
@@ -303,21 +283,59 @@ namespace OpenRm.Server.Host
             }
         }
 
+        // Performs sending messages. 
+        // It can process large messages by cutting them into small ones.
+        // The method issues another receive on the socket to read any additional data sent from the client.
+        private void SendMessage(SocketAsyncEventArgs e, String msg)
+        {
+            log.WriteStr("Starting to send message: " + msg);
+
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+
+            // prepare data to send: add prefix that holds length of message:
+            Byte[] msgToSend = Encoding.ASCII.GetBytes(msg);
+            Byte[] prefixToAdd = BitConverter.GetBytes((Int32)msgToSend.Length);
+            if (prefixToAdd.Length != msgPrefixLength )
+            {
+                log.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength!");
+            }
+            Byte[] dataToSend = new Byte[msgPrefixLength + msgToSend.Length];
+            prefixToAdd.CopyTo(dataToSend, 0);
+            msgToSend.CopyTo(dataToSend, msgPrefixLength);
+
+            // our message may be bigger then token.Buffer, so we need to split it and perform few sends
+            int i = 0;
+            while (i != dataToSend.Length)
+            {
+                // copy the data into the buffer 
+                int bytesTransferred = Math.Min(e.Buffer.Length, dataToSend.Length - i);
+                Array.Copy(dataToSend, i, e.Buffer, 0, bytesTransferred);
+
+                bool willRaiseEvent = token.socket.SendAsync(e);
+                if (!willRaiseEvent)
+                {
+                    ProcessSend(e);
+                }
+
+                i += bytesTransferred;
+            }
+
+            // read the answer send from the client
+            bool willRaiseRecieveEvent = token.Socket.ReceiveAsync(e);
+            if (!willRaiseRecieveEvent)
+            {
+                ProcessReceive(e);
+            }
+ 
+        }
+
 
         // This method is invoked when an asynchronous send operation completes.
-        // The method issues another receive on the socket to read any additional data sent from the client.
         private void ProcessSend(SocketAsyncEventArgs e)
         {
             if (e.SocketError == SocketError.Success)
             {
-                // done echoing data back to the client
-                AsyncUserToken token = (AsyncUserToken)e.UserToken;
-                // read the next block of data send from the client
-                bool willRaiseEvent = token.Socket.ReceiveAsync(e);
-                if (!willRaiseEvent)
-                {
-                    ProcessReceive(e);
-                }
+                log.WriteStr(" Message " + e.Buffer.ToString() + " has been sent.");
             }
             else
             {
