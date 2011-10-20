@@ -98,11 +98,73 @@ namespace OpenRm.Server.Host
             //Return the loaded assembly.
             return myAssembly;
         }
-    }
 
-    public class Emp
-    {
-        public string Name;
-        public int Age;
+        //static void Main(string[] args)
+        //{
+        //    int numConnections;
+        //    int receiveSize;
+        //    IPEndPoint localEndPoint;
+        //    int port;
+
+        //    // parse command line parameters
+        //    //format: #connections, receive size per connection, address family, port num
+        //    if (args.Length < 4)
+        //    {
+        //        Console.WriteLine("Usage: AsyncSocketServer.exe <#connections> <receiveSizeInBytes> <address family: ipv4 | ipv6> <Local Port Number>");
+        //        return;
+        //    }
+
+        //    try
+        //    {
+        //        numConnections = int.Parse(args[0]);
+        //        receiveSize = int.Parse(args[1]);
+        //        string addressFamily = args[2].ToLower();
+        //        port = int.Parse(args[3]);
+
+
+        //        if (numConnections <= 0)
+        //        {
+        //            throw new ArgumentException("The number of connections specified must be greater than 0");
+        //        }
+        //        if (receiveSize <= 0)
+        //        {
+        //            throw new ArgumentException("The receive size specified must be greater than 0");
+        //        }
+        //        if (port <= 0)
+        //        {
+        //            throw new ArgumentException("The port specified must be greater than 0");
+        //        }
+
+        //        // This sample supports two address family types: ipv4 and ipv6 
+        //        if (addressFamily.Equals("ipv4"))
+        //        {
+        //            localEndPoint = new IPEndPoint(IPAddress.Any, port);
+        //        }
+        //        else if (addressFamily.Equals("ipv6"))
+        //        {
+        //            localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+        //        }
+        //        else
+        //        {
+        //            throw new ArgumentException("Invalid address family specified");
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine(e.Message);
+        //        Console.WriteLine("Usage: AsyncSocketServer.exe <#connections> <receiveSizeInBytes> <address family: ipv4 | ipv6> <Local Port Number>");
+        //        return;
+        //    }
+
+        //    Console.WriteLine("Press any key to start the server ...");
+        //    Console.ReadKey();
+
+        //    // Start the server listening for incoming connection requests
+        //    MicrosoftExample.Server server = new MicrosoftExample.Server(numConnections, receiveSize);
+        //    server.Init();
+        //    server.Start(localEndPoint);
+
+
+        //}
     }
 }

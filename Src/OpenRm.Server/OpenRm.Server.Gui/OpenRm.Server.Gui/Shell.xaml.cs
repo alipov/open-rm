@@ -38,7 +38,7 @@ namespace OpenRm.Server.Gui
             //var emp = new Emp() { Age = 5, Name = "Alex" };
             var msg = new Message()
                           {
-                              Command = new IpConfigCommand() {Info = "someInfo", IpAddress = "IpAdd"},
+                              Command = new IpConfigData() {},
                               Id = 55
 
                           };
