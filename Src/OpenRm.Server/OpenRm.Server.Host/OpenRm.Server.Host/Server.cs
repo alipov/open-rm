@@ -13,7 +13,7 @@ namespace OpenRm.Server.Host
 
         public static int port = 3777;
         public static int maxNumConnections = 1000;     //maximum number of connections
-        public static int receiveBufferSize = 512;      //recieve buffer size for tcp connection
+        public static int receiveBufferSize = 16;      //recieve buffer size for tcp connection
         
         static void Main(string[] args)
         {
