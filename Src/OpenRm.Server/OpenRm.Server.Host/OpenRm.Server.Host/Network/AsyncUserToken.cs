@@ -20,7 +20,10 @@ namespace OpenRm.Server.Host
         public int recievedPrefixPartLength { get; set; }   // last enteres byte index
         public int messageLength { get; set; }              // holds recieved prefix as Integer
 
-        public int i;
+        // hold message to be sent
+        public byte[] sendingMsg { get; set; }
+        public int sendingMsgBytesSent { get; set; }    //last sent byte sequence number
+
 
         public AsyncUserToken() : this(null, null) { }
 
@@ -31,18 +34,18 @@ namespace OpenRm.Server.Host
             prefixData = new Byte[TCPServerListener.msgPrefixLength];       // 4 bytes prefix
             this.recievedPrefixPartLength = 0;
             this.recievedMsgPartLength = 0;
-            this.i = 0;
         }
 
         // Prepare token for reuse
         public void Clean()
         {
             msgData = null;
+            sendingMsg = null;
             prefixData = new Byte[TCPServerListener.msgPrefixLength];
             recievedMsgPartLength = 0;
             recievedPrefixPartLength = 0;
             messageLength = 0;
-            i = 0;
+            sendingMsgBytesSent = 0;
         }
 
 
