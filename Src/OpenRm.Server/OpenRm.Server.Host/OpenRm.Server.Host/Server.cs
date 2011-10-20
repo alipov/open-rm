@@ -19,8 +19,15 @@ namespace OpenRm.Server.Host
         {
             log = new Logger(logFilenamePattern);
             log.WriteStr("Started");
-            
-            //TCPServerListener srv = new TCPServerListener(port, maxNumConnections, receiveBufferSize, log);
+
+            try
+            {
+                TCPServerListener srv = new TCPServerListener(port, maxNumConnections, receiveBufferSize, log);
+            }
+            catch (Exception ex)
+            {
+                log.WriteStr("ERROR: Exception: " + ex.Message + ". Trace: " + ex.StackTrace);
+            }
 
 
 
