@@ -3,7 +3,9 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows;
+using System.Windows.Forms;
 using OpenRm.Agent.CustomControls.Views;
+using Application = System.Windows.Application;
 
 namespace OpenRm.Agent.CustomControls
 {
@@ -13,6 +15,8 @@ namespace OpenRm.Agent.CustomControls
         private SettingsView _settingsView;
         private Icon _greenIcon;
         private Icon _redIcon;
+
+        
 
         public NotifyIconWrapper()
         {
@@ -62,11 +66,21 @@ namespace OpenRm.Agent.CustomControls
             return result;
         }
 
+        private EventHandler _startAgentClick;
+
+        public event EventHandler StartAgentClick
+        {
+            add { _startAgentClick += value; }
+            remove { _startAgentClick -= value; }
+        }
+
         private void StartAgentMenuItemClickEventHandler(object sender, EventArgs e)
         {
             startAgentMenuItem.Enabled = false;
             stopAgentMenuItem.Enabled = true;
             OpenRmNotifyIcon.Icon = _greenIcon;
+
+            _startAgentClick.Invoke(sender, e);
         }
 
         private void StopAgentMenuItemClickEventHandler(object sender, EventArgs e)
