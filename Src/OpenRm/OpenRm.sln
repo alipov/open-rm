@@ -1,0 +1,136 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenRm.Agent", "OpenRm.Agent", "{0AC66CFF-CD91-4311-BCC4-B25D696BECF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Agent", "OpenRm.Agent\OpenRm.Agent\OpenRm.Agent.csproj", "{B1EF00AD-4696-40EC-8393-6458D31EC746}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Agent.CustomControls", "OpenRm.Agent\OpenRm.Agent.CustomControls\OpenRm.Agent.CustomControls.csproj", "{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenRm.Common", "OpenRm.Common", "{C2B50087-82F7-4CEB-87B1-E3FC559D75CC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenRm.Server", "OpenRm.Server", "{74D8FBC2-02E8-44BF-8FC7-ACDFF41C0788}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Common.Entities", "OpenRm.Common\OpenRm.Common.Entities\OpenRm.Common.Entities.csproj", "{37332D34-F657-4B35-89E1-27717296E7FE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenRm.Server.Gui", "OpenRm.Server.Gui", "{A92A264C-5DD6-415F-8027-8C98806BC7A4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenRm.Server.Host", "OpenRm.Server.Host", "{5EAE69D7-58A2-4A0D-9D77-982AC812ECED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenRm.Server.Gui.Modules", "OpenRm.Server.Gui.Modules", "{6EB3D892-7EFE-4530-8D34-9AA2F49AACE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Gui.Modules.Monitor", "OpenRm.Server\OpenRm.Server.Gui\OpenRm.Server.Gui.Modules\OpenRm.Server.Gui.Modules.Monitor\OpenRm.Server.Gui.Modules.Monitor.csproj", "{EC7ED0D0-9682-493B-BDEF-2F3086A897F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Host", "OpenRm.Server\OpenRm.Server.Host\OpenRm.Server.Host\OpenRm.Server.Host.csproj", "{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Gui.Inf", "OpenRm.Server\OpenRm.Server.Gui\OpenRm.Server.Gui.Inf\OpenRm.Server.Gui.Inf.csproj", "{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Gui", "OpenRm.Server\OpenRm.Server.Gui\OpenRm.Server.Gui\OpenRm.Server.Gui.csproj", "{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 8
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = OpenRm.Agent\\OpenRm.Agent\\OpenRm.Agent.csproj
+		SccProjectTopLevelParentUniqueName1 = OpenRm.sln
+		SccProjectName1 = OpenRm.Agent/OpenRm.Agent
+		SccLocalPath1 = OpenRm.Agent\\OpenRm.Agent
+		SccProjectUniqueName2 = OpenRm.Agent\\OpenRm.Agent.CustomControls\\OpenRm.Agent.CustomControls.csproj
+		SccProjectTopLevelParentUniqueName2 = OpenRm.sln
+		SccProjectName2 = OpenRm.Agent/OpenRm.Agent.CustomControls
+		SccLocalPath2 = OpenRm.Agent\\OpenRm.Agent.CustomControls
+		SccProjectUniqueName3 = OpenRm.Common\\OpenRm.Common.Entities\\OpenRm.Common.Entities.csproj
+		SccProjectTopLevelParentUniqueName3 = OpenRm.sln
+		SccProjectName3 = OpenRm.Common/OpenRm.Common.Entities
+		SccLocalPath3 = OpenRm.Common\\OpenRm.Common.Entities
+		SccProjectUniqueName4 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.Modules\\OpenRm.Server.Gui.Modules.Monitor\\OpenRm.Server.Gui.Modules.Monitor.csproj
+		SccProjectTopLevelParentUniqueName4 = OpenRm.sln
+		SccProjectName4 = OpenRm.Server/OpenRm.Server.Gui/OpenRm.Server.Gui.Modules/OpenRm.Server.Gui.Modules.Monitor
+		SccLocalPath4 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.Modules\\OpenRm.Server.Gui.Modules.Monitor
+		SccProjectUniqueName5 = OpenRm.Server\\OpenRm.Server.Host\\OpenRm.Server.Host\\OpenRm.Server.Host.csproj
+		SccProjectTopLevelParentUniqueName5 = OpenRm.sln
+		SccProjectName5 = OpenRm.Server/OpenRm.Server.Host/OpenRm.Server.Host
+		SccLocalPath5 = OpenRm.Server\\OpenRm.Server.Host\\OpenRm.Server.Host
+		SccProjectUniqueName6 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.Inf\\OpenRm.Server.Gui.Inf.csproj
+		SccProjectTopLevelParentUniqueName6 = OpenRm.sln
+		SccProjectName6 = OpenRm.Server/OpenRm.Server.Gui/OpenRm.Server.Gui.Inf
+		SccLocalPath6 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.Inf
+		SccProjectUniqueName7 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui\\OpenRm.Server.Gui.csproj
+		SccProjectTopLevelParentUniqueName7 = OpenRm.sln
+		SccProjectName7 = OpenRm.Server/OpenRm.Server.Gui/OpenRm.Server.Gui
+		SccLocalPath7 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Debug|x86.ActiveCfg = Debug|x86
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Debug|x86.Build.0 = Debug|x86
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Release|x86.ActiveCfg = Release|x86
+		{B1EF00AD-4696-40EC-8393-6458D31EC746}.Release|x86.Build.0 = Release|x86
+		{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}.Release|x86.ActiveCfg = Release|Any CPU
+		{37332D34-F657-4B35-89E1-27717296E7FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37332D34-F657-4B35-89E1-27717296E7FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37332D34-F657-4B35-89E1-27717296E7FE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{37332D34-F657-4B35-89E1-27717296E7FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37332D34-F657-4B35-89E1-27717296E7FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37332D34-F657-4B35-89E1-27717296E7FE}.Release|x86.ActiveCfg = Release|Any CPU
+		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2}.Release|x86.ActiveCfg = Release|Any CPU
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Debug|x86.ActiveCfg = Debug|x86
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Debug|x86.Build.0 = Debug|x86
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Release|x86.ActiveCfg = Release|x86
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5}.Release|x86.Build.0 = Release|x86
+		{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}.Release|x86.ActiveCfg = Release|Any CPU
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Debug|x86.ActiveCfg = Debug|x86
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Debug|x86.Build.0 = Debug|x86
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Release|x86.ActiveCfg = Release|x86
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B1EF00AD-4696-40EC-8393-6458D31EC746} = {0AC66CFF-CD91-4311-BCC4-B25D696BECF4}
+		{0CCDEBF3-740C-47AF-B001-A88639F6AE5A} = {0AC66CFF-CD91-4311-BCC4-B25D696BECF4}
+		{37332D34-F657-4B35-89E1-27717296E7FE} = {C2B50087-82F7-4CEB-87B1-E3FC559D75CC}
+		{A92A264C-5DD6-415F-8027-8C98806BC7A4} = {74D8FBC2-02E8-44BF-8FC7-ACDFF41C0788}
+		{5EAE69D7-58A2-4A0D-9D77-982AC812ECED} = {74D8FBC2-02E8-44BF-8FC7-ACDFF41C0788}
+		{6EB3D892-7EFE-4530-8D34-9AA2F49AACE2} = {A92A264C-5DD6-415F-8027-8C98806BC7A4}
+		{8488DE26-2A84-4DB2-9421-7F181CA7AA5F} = {A92A264C-5DD6-415F-8027-8C98806BC7A4}
+		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322} = {A92A264C-5DD6-415F-8027-8C98806BC7A4}
+		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5} = {5EAE69D7-58A2-4A0D-9D77-982AC812ECED}
+		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2} = {6EB3D892-7EFE-4530-8D34-9AA2F49AACE2}
+	EndGlobalSection
+EndGlobal
