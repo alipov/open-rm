@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace OpenRm.Common.Entities
+﻿namespace OpenRm.Common.Entities
 {
     public class Message
     {
@@ -17,8 +15,8 @@ namespace OpenRm.Common.Entities
 
     public class IpConfigData : CommandBase
     {
-        public IPAddress IpAddress;
-        public IPAddress netMask;
-        public IPAddress defaultGateway;
+        public string IpAddress;
+        public string netMask;
+        public string defaultGateway;
     }
 }

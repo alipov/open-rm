@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Xml;
+using OpenRm.Common.Entities;
+using Woxalizer;
 
 namespace OpenRm.Server.Host
 {
@@ -18,13 +23,13 @@ namespace OpenRm.Server.Host
         Socket listenSocket;                // the socket used to listen for incoming connection requests
         SocketAsyncEventArgsPool argsReadWritePool;     // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
         Semaphore maxNumberAcceptedClients;             // limit number of clients
-        Logger log;                                     // log file writer
+        //Logger log;                                     // log file writer
 
-        public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize, Logger log)
+        public TCPServerListener(int port, int maxNumConnections, int receiveBufferSize)
         {
             this.maxNumConnections = maxNumConnections;
             this.receiveBufferSize = receiveBufferSize;
-            this.log = log;
+            //this.log = log;
 
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
             //write posted to the socket simultaneously  
@@ -36,7 +41,7 @@ namespace OpenRm.Server.Host
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
             Init();
-            log.WriteStr("Init level completed");
+            Logger.WriteStr("Init level completed");
             Start(localEndPoint);
         }
 
@@ -74,7 +79,7 @@ namespace OpenRm.Server.Host
             listenSocket.Bind(localEndPoint);
             // start the server with a listen backlog of 100 connections
             listenSocket.Listen(100);
-            log.WriteStr("TCP server started. Listening on " + localEndPoint.Address + ":" + localEndPoint.Port);
+            Logger.WriteStr("TCP server started. Listening on " + localEndPoint.Address + ":" + localEndPoint.Port);
 
             // post accepts on the listening socket
             StartAccept(null);
@@ -82,7 +87,7 @@ namespace OpenRm.Server.Host
             // Pause here 
             Console.WriteLine("Press any key to terminate the server process....");
             Console.ReadKey();
-            log.WriteStr("TCP terminated.");
+            Logger.WriteStr("TCP terminated.");
         }
 
         // Begins an operation to accept a connection request from the client 
@@ -120,7 +125,7 @@ namespace OpenRm.Server.Host
         {
             if (e.SocketError != SocketError.Success)
             {
-                log.WriteStr("Error while processing accept.");
+                Logger.WriteStr("Error while processing accept.");
                 StartAccept(null);      //start new Accept socket
                 return;
             }
@@ -128,7 +133,7 @@ namespace OpenRm.Server.Host
             //TODO: deleteme
             //StartAccept(null);
 
-            log.WriteStr("Client connection accepted. Processing Accept from client " + e.AcceptSocket.RemoteEndPoint.ToString());
+            Logger.WriteStr("Client connection accepted. Processing Accept from client " + e.AcceptSocket.RemoteEndPoint.ToString());
 
             // Get the socket for the accepted client connection and put it into the ReadEventArg object user token
             SocketAsyncEventArgs readEventArgs = argsReadWritePool.Pop();
@@ -149,7 +154,7 @@ namespace OpenRm.Server.Host
             }
             else
             {
-                log.WriteStr("There is no more SocketAsyncEventArgs available in r/w pool");
+                Logger.WriteStr("There is no more SocketAsyncEventArgs available in r/w pool");
             }
 
             // Accept the next connection request. We'll reuse Accept SocketAsyncEventArgs object.
@@ -185,7 +190,7 @@ namespace OpenRm.Server.Host
                 // need to be proceeded synchroniously
                 ProcessReceive(readEventArgs);
             }
-            log.WriteStr("StartReceive has been run");
+            Logger.WriteStr("StartReceive has been run");
         }
 
         // Invoked when an asycnhronous receive operation completes.  
@@ -198,7 +203,7 @@ namespace OpenRm.Server.Host
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)         
             {
                 // got message. need to handle it
-                log.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
+                Logger.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
 
                 // now we need to check if we have complete message in our recieved data.
                 // if yes - process it
@@ -226,7 +231,7 @@ namespace OpenRm.Server.Host
                         if (token.recievedPrefixPartLength != msgPrefixLength)
                         {
                             // We haven't gotten all the prefix buffer yet: just wait for more data to arrive
-                            log.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
+                            Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
 // TODO:  maybe need to call Receive() again or just wait?
                             StartReceive(e);
                             return;
@@ -235,7 +240,7 @@ namespace OpenRm.Server.Host
                         {
                             // We've gotten the length buffer 
                             int length = BitConverter.ToInt32(token.prefixData, 0);
-                            log.WriteStr(" Got prefix representing value: " + length);
+                            Logger.WriteStr(" Got prefix representing value: " + length);
 
                             if (length < 0)
                                 throw new System.Net.ProtocolViolationException("Invalid message prefix");
@@ -257,7 +262,7 @@ namespace OpenRm.Server.Host
                         int bytesRequested = token.messageLength - token.recievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
                         Array.Copy(e.Buffer, e.Offset + i, token.msgData, token.recievedMsgPartLength, bytesTransferred);
-                        log.WriteStr("message till now: " + Encoding.ASCII.GetString(token.msgData));
+                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.msgData));
                         i += bytesTransferred;
 
                         token.recievedMsgPartLength += bytesTransferred;
@@ -271,14 +276,14 @@ namespace OpenRm.Server.Host
                         else
                         {
                             // we've gotten an entire packet
-                            log.WriteStr("Got complete message from " + token.socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.msgData));
+                            Logger.WriteStr("Got complete message from " + token.socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.msgData));
 // TODO:  get token.msgData data and convert to XML, .... . . . ..
 
                             // empty Token's buffers and counters
                             token.Clean();
 
                             //TODO:  remove sending this data (it's for testing here)
-                            SendMessage(e, "l1l2l3l4l5i6i7i8i9i0j1j2j3j4j5j6j7j8j9");
+                            SendMessage(e, new IpConfigData());
 
                         } 
                     }
@@ -286,7 +291,7 @@ namespace OpenRm.Server.Host
             }
             else
             {
-                log.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + ". Closing this connection.");
+                Logger.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + ". Closing this connection.");
                 CloseClientSocket(e);
             }
         }
@@ -295,18 +300,27 @@ namespace OpenRm.Server.Host
         // Prepares data to be sent and calls sending method. 
         // It can process large messages by cutting them into small ones.
         // The method issues another receive on the socket to read client's answer.
-        private void SendMessage(SocketAsyncEventArgs e, String msg)
+        private void SendMessage(SocketAsyncEventArgs e, IpConfigData msg)
         {
-            log.WriteStr("Going to send message: " + msg);
-
+            var some = new MemoryStream();
+            
+            //var ns = client.GetStream();
+            var writer = XmlWriter.Create(some);
+            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+            {
+                woxalizer.Save(msg, writer);
+            }
+            
+            Logger.WriteStr("Going to send message: " + some);
+            
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
             // prepare data to send: add prefix that holds length of message:
-            Byte[] msgToSend = Encoding.ASCII.GetBytes(msg);
-            Byte[] prefixToAdd = BitConverter.GetBytes((Int32)msgToSend.Length);
+            Byte[] msgToSend = some.ToArray();
+            Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
             if (prefixToAdd.Length != msgPrefixLength )
             {
-                log.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
+                Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
                 return;
             }
 
@@ -372,12 +386,12 @@ namespace OpenRm.Server.Host
                 if (token.sendingMsgBytesSent < token.sendingMsg.Length)
                 {
                     // Not all message has been sent, so send next part
-                    log.WriteStr(token.sendingMsgBytesSent + " of " + token.sendingMsg.Length + " have been sent. Calling additional Send...");
+                    Logger.WriteStr(token.sendingMsgBytesSent + " of " + token.sendingMsg.Length + " have been sent. Calling additional Send...");
                     StartSend(e);
                     return;
                 }
 
-                log.WriteStr(" Message has been sent.");
+                Logger.WriteStr(" Message has been sent.");
 
                 // reset token's buffers and counters before reusing the token
                 token.Clean();
@@ -388,7 +402,7 @@ namespace OpenRm.Server.Host
             }
             else
             {
-                log.WriteStr(" Message has failed to be sent.");
+                Logger.WriteStr(" Message has failed to be sent.");
                 token.Clean();
                 CloseClientSocket(e);
             }
@@ -411,10 +425,49 @@ namespace OpenRm.Server.Host
             maxNumberAcceptedClients.Release();
             token.Clean();
 
-            log.WriteStr("A client " + clientEP + " has been disconnected from the server.");
+            Logger.WriteStr("A client " + clientEP + " has been disconnected from the server.");
 
             // Free the SocketAsyncEventArg so they can be reused by another client
             argsReadWritePool.Push(e);
+        }
+
+
+        static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
+        {
+            //This handler is called only when the common language runtime tries to bind to the assembly and fails.
+
+            //Retrieve the list of referenced assemblies in an array of AssemblyName.
+            var assemblyPath = string.Empty;
+
+            Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
+            AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
+
+            //Loop through the array of referenced assembly names.
+            foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
+            {
+                var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
+
+                //Check for the assembly names that have raised the "AssemblyResolve" event.
+                if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == requestedAssembly)
+                {
+                    //Build the path of the assembly from where it has to be loaded.
+                    var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
+                    assemblyPath = Directory.GetFiles
+                                    (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).Single();
+                    break;
+                    //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
+                }
+            }
+            //Load the assembly from the specified path.
+            Assembly myAssembly = null;
+
+            // failing to ignore queries for satellite resource assemblies or using [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)] 
+            // in AssemblyInfo.cs will crash the program on non en-US based system cultures.
+            if (!string.IsNullOrWhiteSpace(assemblyPath))
+                myAssembly = Assembly.LoadFrom(assemblyPath);
+
+            //Return the loaded assembly.
+            return myAssembly;
         }
 
     }
