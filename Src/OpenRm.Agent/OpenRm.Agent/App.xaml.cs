@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Net.Sockets;
+using System.Windows;
 using OpenRm.Agent.CustomControls;
 
 namespace OpenRm.Agent
@@ -15,6 +17,13 @@ namespace OpenRm.Agent
             base.OnStartup(e);
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             _notifyIconComponent = new NotifyIconWrapper();
+            _notifyIconComponent.StartAgentClick += DoSomething;
+        }
+
+        private void DoSomething(object sender, EventArgs e)
+        {
+
+            var tcpClient = new TcpClient();
         }
 
         protected override void OnExit(ExitEventArgs e)

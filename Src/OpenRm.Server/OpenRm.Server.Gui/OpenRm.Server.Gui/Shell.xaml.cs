@@ -33,7 +33,7 @@ namespace OpenRm.Server.Gui
             {
                 return;
             }
-            client.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9050));
+            client.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3777));
 
             //var emp = new Emp() { Age = 5, Name = "Alex" };
             var msg = new Message()

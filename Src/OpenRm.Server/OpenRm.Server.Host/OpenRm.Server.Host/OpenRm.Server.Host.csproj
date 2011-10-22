@@ -83,7 +83,6 @@
     <Compile Include="MicrosoftExample\SocketAsyncEventArgPool.cs" />
     <Compile Include="Network\AsyncUserToken.cs" />
     <Compile Include="Network\BufferManager.cs" />
-    <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
