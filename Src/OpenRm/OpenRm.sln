@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Host", "OpenR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Gui.Inf", "OpenRm.Server\OpenRm.Server.Gui\OpenRm.Server.Gui.Inf\OpenRm.Server.Gui.Inf.csproj", "{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Gui", "OpenRm.Server\OpenRm.Server.Gui\OpenRm.Server.Gui\OpenRm.Server.Gui.csproj", "{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Gui.App", "OpenRm.Server\OpenRm.Server.Gui\OpenRm.Server.Gui.App\OpenRm.Server.Gui.App.csproj", "{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -57,10 +57,10 @@ Global
 		SccProjectTopLevelParentUniqueName6 = OpenRm.sln
 		SccProjectName6 = OpenRm.Server/OpenRm.Server.Gui/OpenRm.Server.Gui.Inf
 		SccLocalPath6 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.Inf
-		SccProjectUniqueName7 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui\\OpenRm.Server.Gui.csproj
+		SccProjectUniqueName7 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.App\\OpenRm.Server.Gui.App.csproj
 		SccProjectTopLevelParentUniqueName7 = OpenRm.sln
-		SccProjectName7 = OpenRm.Server/OpenRm.Server.Gui/OpenRm.Server.Gui
-		SccLocalPath7 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui
+		SccProjectName7 = OpenRm.Server/OpenRm.Server.Gui/OpenRm.Server.Gui.App
+		SccLocalPath7 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.App
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
