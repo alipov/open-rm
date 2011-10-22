@@ -41,7 +41,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\..\..\Bin\Server\</OutputPath>
+    <OutputPath>..\..\..\..\..\Bin\Server\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -51,7 +51,7 @@
     <CodeAnalysisFailOnMissingRules>true</CodeAnalysisFailOnMissingRules>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>..\..\..\..\Bin\Server\</OutputPath>
+    <OutputPath>..\..\..\..\..\Bin\Server\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -63,19 +63,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Practices.Prism">
-      <HintPath>..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Prism.dll</HintPath>
+      <HintPath>..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Prism.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Practices.Prism.UnityExtensions">
-      <HintPath>..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Prism.UnityExtensions.dll</HintPath>
+      <HintPath>..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Prism.UnityExtensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Practices.Unity">
-      <HintPath>..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Unity.dll</HintPath>
+      <HintPath>..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Unity.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="OpenRm.Common.Entities">
-      <HintPath>..\..\..\..\Bin\Common\OpenRm.Common.Entities.dll</HintPath>
+      <HintPath>..\..\..\..\..\Bin\Common\OpenRm.Common.Entities.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -92,7 +92,7 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Woxalizer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Bin\Common\ThirdParty\Woxalizer\Woxalizer.dll</HintPath>
+      <HintPath>..\..\..\..\..\Bin\Common\ThirdParty\Woxalizer\Woxalizer.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
