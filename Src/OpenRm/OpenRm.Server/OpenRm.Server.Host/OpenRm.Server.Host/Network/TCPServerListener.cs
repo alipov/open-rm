@@ -32,7 +32,7 @@ namespace OpenRm.Server.Host
             //this.log = log;
 
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
-            //write posted to the socket simultaneously  
+            // write posted to the socket simultaneously  
             bufferManager = new BufferManager(receiveBufferSize * maxNumConnections * opsToPreAlloc, receiveBufferSize);
 
             argsReadWritePool = new SocketAsyncEventArgsPool(maxNumConnections);
@@ -120,7 +120,7 @@ namespace OpenRm.Server.Host
             ProcessAccept(e);
         }
 
-        // Transfers Accept to another SocketAsyncEventArgs object from the pool, and begins to receive data.
+        // Transfers AcceptArgs to another SocketAsyncEventArgs object from the pool, and begins to receive data.
         private void ProcessAccept(SocketAsyncEventArgs e)
         {
             if (e.SocketError != SocketError.Success)
