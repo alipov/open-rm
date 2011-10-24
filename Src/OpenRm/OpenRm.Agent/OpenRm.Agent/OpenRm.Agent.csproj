@@ -84,8 +84,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TCPclient.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncUserToken.cs" />
+    <Compile Include="ClientData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -111,6 +114,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\OpenRm.Common\OpenRm.Common.Entities\OpenRm.Common.Entities.csproj">
+      <Project>{37332D34-F657-4B35-89E1-27717296E7FE}</Project>
+      <Name>OpenRm.Common.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OpenRm.Agent.CustomControls\OpenRm.Agent.CustomControls.csproj">
       <Project>{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}</Project>
       <Name>OpenRm.Agent.CustomControls</Name>

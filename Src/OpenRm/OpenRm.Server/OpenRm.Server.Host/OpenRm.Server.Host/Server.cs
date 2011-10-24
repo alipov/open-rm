@@ -4,18 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.IO;
+using OpenRm.Common.Entities;
 
 
 namespace OpenRm.Server.Host
 {
     class Server
     {
-        private const string LogFilenamePattern = "server-<date>.log";
-        //private static Logger log;
-
         public static int Port = 3777;
         public static int MaxNumConnections = 1000;     //maximum number of connections
         public static int ReceiveBufferSize = 16;      //recieve buffer size for tcp connection
+        private const string LogFilenamePattern = "server-<date>.log";
         
         static void Main(string[] args)
         {
@@ -27,11 +26,13 @@ namespace OpenRm.Server.Host
 
             //Main code
             StartHost();
+
+            // End Of program
         }
 
 
-        private static void StartHost(){
-
+        private static void StartHost()
+        {
             //TODO: get directory from app.config
             //System.Configuration.
             Logger.CreateLogFile("logs", LogFilenamePattern);
@@ -39,7 +40,6 @@ namespace OpenRm.Server.Host
 
             TCPServerListener srv = new TCPServerListener(Port, MaxNumConnections, ReceiveBufferSize);
 
-            //End of program
         }
 
 

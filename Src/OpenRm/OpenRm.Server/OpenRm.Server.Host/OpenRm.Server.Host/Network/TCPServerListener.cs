@@ -212,7 +212,7 @@ namespace OpenRm.Server.Host
                 //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
 
                 int i = 0;      // go through buffer of currently received data 
-                while (i != e.BytesTransferred)
+                while (i < e.BytesTransferred)
                 {
                     // Determine how many bytes we want to transfer to the buffer and transfer them 
                     int bytesAvailable = e.BytesTransferred - i;
@@ -230,9 +230,8 @@ namespace OpenRm.Server.Host
 
                         if (token.recievedPrefixPartLength != msgPrefixLength)
                         {
-                            // We haven't gotten all the prefix buffer yet: just wait for more data to arrive
+                            // We haven't gotten all the prefix buffer yet: call Receive again.
                             Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
-// TODO:  maybe need to call Receive() again or just wait?
                             StartReceive(e);
                             return;
                         }
@@ -268,8 +267,7 @@ namespace OpenRm.Server.Host
                         token.recievedMsgPartLength += bytesTransferred;
                         if (token.recievedMsgPartLength != token.msgData.Length)
                         {
-                            // We haven't gotten all the data buffer yet: just wait for more data to arrive
-// TODO:  maybe need to call Receive() again
+                            // We haven't gotten all the data buffer yet: call Receive again to get more data
                             StartReceive(e);
                             return;
                         }
@@ -291,7 +289,9 @@ namespace OpenRm.Server.Host
             }
             else
             {
-                Logger.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + ". Closing this connection.");
+                Logger.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + " due to exception:\n"
+                    + new SocketException((int)e.SocketError).ToString() + "\n"
+                    + "Closing this connection....");
                 CloseClientSocket(e);
             }
         }
@@ -311,15 +311,20 @@ namespace OpenRm.Server.Host
                 woxalizer.Save(msg, writer);
             }
             
-            Logger.WriteStr("Going to send message: " + some);
+            
             
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
             // prepare data to send: add prefix that holds length of message:
             Byte[] msgToSend = some.ToArray();
+            //TODO:  Remove 3-byte descriptor from beginning of array
+            Logger.WriteStr("Going to send message: " + Encoding.ASCII.GetString(msgToSend));
+            //TODO: remove:
+            Console.WriteLine(Encoding.ASCII.GetString(msgToSend));         
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
             if (prefixToAdd.Length != msgPrefixLength )
             {
+                //TODO:  Do we need this check???
                 Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
                 return;
             }
@@ -328,31 +333,6 @@ namespace OpenRm.Server.Host
             token.sendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
             prefixToAdd.CopyTo(token.sendingMsg, 0);
             msgToSend.CopyTo(token.sendingMsg, msgPrefixLength);
-
-            // TODO:  delete this block
-            ////// our message may be bigger then token.Buffer, so we need to split it and perform few sends
-            ////int i = 0;
-            ////while (i != token.sendingMsg.Length)
-            ////{
-            ////    // copy the data into the buffer 
-            ////    int bytesToTransfer = Math.Min(receiveBufferSize, token.sendingMsg.Length - i);
-            ////    Array.Copy(token.sendingMsg, i, e.Buffer, e.Offset, bytesToTransfer);
-            ////    e.SetBuffer(e.Offset, bytesToTransfer);
-
-            ////    bool willRaiseEvent = token.socket.SendAsync(e);
-            ////    if (!willRaiseEvent)
-            ////    {
-            ////        ProcessSend(e);
-            ////    }
-
-            ////    i += bytesToTransfer;
-            ////}
-
-            ////// reset token's buffers and counters before reusing the token
-            ////token.Clean();
-
-            ////// read the answer send from the client
-            ////StartReceive(e);
 
             StartSend(e);
  
