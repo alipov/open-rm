@@ -2,7 +2,7 @@
 using System.IO;
 using OpenRm.Common.Entities;
 
-namespace OpenRm.Server.Host
+namespace OpenRm.Common.Entities
 {
     public static class Logger
     {
@@ -26,9 +26,16 @@ namespace OpenRm.Server.Host
         {
             lock (lck)
             {
-                using (var log = new StreamWriter(_logDirectory + "\\" + _logFile, true))
+                try     // probably Antivirus can cause an error...
                 {
-                    log.WriteLine(DateTime.Now.ToString("dd.MM HH:mm:ss") + " | " + str);
+                    using (var log = new StreamWriter(_logDirectory + "\\" + _logFile, true))
+                    {
+                        log.WriteLine(DateTime.Now.ToString("dd.MM HH:mm:ss") + " | " + str);
+                    }
+                }
+                catch (Exception ex) 
+                {
+                    Console.WriteLine("Error while writing to log: " + str + ". Exception: " + ex.ToString() + ". But we have to continue...");
                 }
             }
         }
