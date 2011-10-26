@@ -5,16 +5,19 @@ using System.Text;
 using System.Reflection;
 using System.IO;
 using OpenRm.Common.Entities;
+using System.Configuration;
 
 
 namespace OpenRm.Server.Host
 {
     class Server
     {
-        public static int Port = 3777;
-        public static int MaxNumConnections = 1000;     //maximum number of connections
-        public static int ReceiveBufferSize = 16;      //recieve buffer size for tcp connection
-        private const string LogFilenamePattern = "server-<date>.log";
+        // these variables will be read from app.config
+        public static int ListenPort;
+        public static int MaxNumConnections;     //maximum number of connections
+        private static string LogFilenamePattern;
+
+        public static int ReceiveBufferSize = 64;      //recieve buffer size for tcp connection
         
         static void Main(string[] args)
         {
@@ -33,16 +36,34 @@ namespace OpenRm.Server.Host
 
         private static void StartHost()
         {
-            //TODO: get directory from app.config
-            //System.Configuration.
-            Logger.CreateLogFile("logs", LogFilenamePattern);
-            Logger.WriteStr("Started");
+            if (ReadConfigFile())
+            {
+                Logger.CreateLogFile("logs", LogFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
+                Logger.WriteStr("Started");
 
-            TCPServerListener srv = new TCPServerListener(Port, MaxNumConnections, ReceiveBufferSize);
+                TCPServerListener srv = new TCPServerListener(ListenPort, MaxNumConnections, ReceiveBufferSize);
 
+                Logger.WriteStr("Server terminated");
+            }
         }
 
 
+        // read configuration from config file 
+        private static bool ReadConfigFile()
+        {
+            try {
+                ListenPort = Int32.Parse(ConfigurationManager.AppSettings["ListenOnPort"]);
+                MaxNumConnections = Int32.Parse(ConfigurationManager.AppSettings["MaxConnections"]);
+                LogFilenamePattern = ConfigurationManager.AppSettings["LogFilePattern"];
+            }
+            catch (Exception ex) 
+            {
+                Logger.CriticalToEventLog("Error while reading config file: \n " + ex.Message);
+                return false;
+            }
+
+            return true;   
+        }
 
         // took from http://www.chilkatsoft.com/p/p_502.asp
         static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
