@@ -13,6 +13,12 @@
         public string Info;
     }
 
+    public class IntoData : CommandBase
+    {
+        public string computerName;
+        public string id;
+    }
+
     public class IpConfigData : CommandBase
     {
         public string IpAddress;
