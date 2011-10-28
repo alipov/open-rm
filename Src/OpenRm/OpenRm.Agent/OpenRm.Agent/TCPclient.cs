@@ -6,6 +6,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using OpenRm.Common.Entities;
+using Woxalizer;
+using System.Reflection;
+using System.IO;
+using System.Xml;
 
 
 namespace OpenRm.Agent
@@ -43,7 +47,7 @@ namespace OpenRm.Agent
 
 
         // Create a socket and connect to the server
-        private static void EstablishConnection()
+        private void EstablishConnection()
         {
             Socket socket = new Socket((IPAddress.Parse(_serverIP)).AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             SocketAsyncEventArgs sockArgs = new SocketAsyncEventArgs();
@@ -60,7 +64,7 @@ namespace OpenRm.Agent
 
         // A single callback is used for all socket operations. This method forwards execution on to the correct handler 
         // based on the type of completed operation.
-        private static void SocketEventArg_Completed(object sender, SocketAsyncEventArgs e)
+        private void SocketEventArg_Completed(object sender, SocketAsyncEventArgs e)
         {
             switch (e.LastOperation)
             {
@@ -81,7 +85,7 @@ namespace OpenRm.Agent
 
 
         // Called when a ConnectAsync operation completes
-        private static void ProcessConnect(SocketAsyncEventArgs e)
+        private void ProcessConnect(SocketAsyncEventArgs e)
         {
             if (e.SocketError == SocketError.Success)
             {
@@ -89,8 +93,14 @@ namespace OpenRm.Agent
                 retryIntervalCurrent = retryIntervalInitial;          // set it to initial value
 
                 //Send authorization info about this client
-                SendMessage(e, "a1a2a3a4a5a6a7a8a9a0b1b2b3b4b5b6b7b8b9b0c1c2c3c4c5c6c7c8c9c0");
-
+                //IdentificationData idata = new IdentificationData();
+                //DataRetriever.GetInfo(idata);       // fill required data
+                //SendMessage(e, SerializeToXML(idata));
+                IpConfigData ipconf = new IpConfigData();
+                ipconf.IpAddress = ((IPEndPoint)((AsyncUserToken)e.UserToken).socket.LocalEndPoint).Address.ToString();
+                DataRetriever.GetInfo(ipconf);
+                SendMessage(e, SerializeToXML(ipconf));
+                
             }
             else
             {
@@ -114,28 +124,18 @@ namespace OpenRm.Agent
         // Prepares data to be sent and calls sending method. 
         // It can process large messages by cutting them into small ones.
         // The method issues another receive on the socket to read client's answer.
-        private static void SendMessage(SocketAsyncEventArgs e, string msg)
+        private void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
         {
-            //var some = new MemoryStream();
-            //var writer = XmlWriter.Create(some);
-            //using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
-            //{
-            //    woxalizer.Save(msg, writer);
-            //}
-
-            Logger.WriteStr("Going to send message: " + msg);
+            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
 
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
-            // prepare data to send: add prefix that holds length of message:
-            // Byte[] msgToSend = some.ToArray();
-            Byte[] msgToSend = Encoding.ASCII.GetBytes(msg);
+            // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
             if (prefixToAdd.Length != msgPrefixLength)
             {
-                // TODO: is this check is really needed??
+                //TODO:  Do we need this check??? if yes - throw Exception
                 Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
-                // TODO throw exception
                 return;
             }
 
@@ -150,7 +150,7 @@ namespace OpenRm.Agent
         }
 
 
-        private static void StartSend(SocketAsyncEventArgs e)
+        private void StartSend(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
@@ -167,7 +167,7 @@ namespace OpenRm.Agent
 
 
         // This method is invoked when an asynchronous send operation completes.
-        private static void ProcessSend(SocketAsyncEventArgs e)
+        private void ProcessSend(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
@@ -200,7 +200,7 @@ namespace OpenRm.Agent
 
 
 
-        private static void StartReceive(SocketAsyncEventArgs readEventArgs)
+        private void StartReceive(SocketAsyncEventArgs readEventArgs)
         {
             readEventArgs.SetBuffer(readEventArgs.Offset, sendReceiveBuffer.Length);
             bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
@@ -214,7 +214,7 @@ namespace OpenRm.Agent
 
         // Invoked when an asycnhronous receive operation completes.  
         // If the remote host closed the connection, then the socket is closed.
-        private static void ProcessReceive(SocketAsyncEventArgs e)
+        private void ProcessReceive(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
             // Check if the remote host closed the connection
@@ -309,7 +309,7 @@ namespace OpenRm.Agent
                             //token.Clean();
 
                             //TODO:  remove sending this data (it's for testing here)
-                            SendMessage(e, "0i9i8i7i6i5i4i3i2i1u0u9u8u7u6u5u4u3u2u1");
+                            //SendMessage(e, "0i9i8i7i6i5i4i3i2i1u0u9u8u7u6u5u4u3u2u1");
 
                         }
                     }
@@ -325,7 +325,7 @@ namespace OpenRm.Agent
         }
 
 
-        private static void CloseServerConnection(SocketAsyncEventArgs e)
+        private void CloseServerConnection(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = e.UserToken as AsyncUserToken;
 
@@ -359,9 +359,87 @@ namespace OpenRm.Agent
 
 
 
+        // TODO:  move to another class?
+        private Byte[] SerializeToXML(CommandBase msg)
+        {
+            var mem = new MemoryStream();
+            var writer = XmlWriter.Create(mem);
+
+            //TODO:   change this code to generic
+            if (msg is IpConfigData)
+            {
+                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+                {
+                    woxalizer.Save((IpConfigData)msg, writer);
+                }
+            }
+            else if (msg is IdentificationData)
+            {
+                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+                {
+                    woxalizer.Save((IdentificationData)msg, writer);
+                }
+            }
+            else
+            {
+                Console.WriteLine("ERROR in serialization method: cannot determinate instance...");
+                Logger.WriteStr("ERROR in serialization method: cannot determinate instance...");
+            }
+
+            return mem.ToArray();
+        }
+
+        private CommandBase DeserializeFromXML(Byte[] msg)
+        {
+            CommandBase data;
+            var mem = new MemoryStream();
+            var reader = XmlReader.Create(mem);
+
+            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+            {
+                data = (CommandBase)woxalizer.Load(reader);
+            }
+            return data;
+        }
 
 
+        static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
+        {
+            //This handler is called only when the common language runtime tries to bind to the assembly and fails.
 
+            //Retrieve the list of referenced assemblies in an array of AssemblyName.
+            var assemblyPath = string.Empty;
+
+            Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
+            AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
+
+            //Loop through the array of referenced assembly names.
+            foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
+            {
+                var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
+
+                //Check for the assembly names that have raised the "AssemblyResolve" event.
+                if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == requestedAssembly)
+                {
+                    //Build the path of the assembly from where it has to be loaded.
+                    var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
+                    assemblyPath = Directory.GetFiles
+                                    (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).Single();
+                    break;
+                    //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
+                }
+            }
+            //Load the assembly from the specified path.
+            Assembly myAssembly = null;
+
+            // failing to ignore queries for satellite resource assemblies or using [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)] 
+            // in AssemblyInfo.cs will crash the program on non en-US based system cultures.
+            if (!string.IsNullOrWhiteSpace(assemblyPath))
+                myAssembly = Assembly.LoadFrom(assemblyPath);
+
+            //Return the loaded assembly.
+            return myAssembly;
+        }
 
 
         

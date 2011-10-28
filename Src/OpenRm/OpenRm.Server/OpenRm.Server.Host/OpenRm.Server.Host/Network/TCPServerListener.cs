@@ -143,12 +143,7 @@ namespace OpenRm.Server.Host
                 readEventArgs.AcceptSocket = e.AcceptSocket;
                 e.AcceptSocket = null;                          // We'll reuse Accept SocketAsyncEventArgs object
 
-                //TODO: delete??
-                // As soon as the client is connected, ask him to authorize
-                //SendMessage(readEventArgs, "hello!");
-
-
-                // As soon as the client is connected, post a receive to the connection, to get client's info
+                // As soon as the client is connected, post a receive to the connection, to get client's identification info
                 StartReceive(readEventArgs);
 
             }
@@ -281,7 +276,7 @@ namespace OpenRm.Server.Host
                             token.Clean();
 
                             //TODO:  remove sending this data (it's for testing here)
-                            SendMessage(e, new IpConfigData());
+                            SendMessage(e, SerializeToXML(new IpConfigData()));
 
                         } 
                     }
@@ -300,31 +295,18 @@ namespace OpenRm.Server.Host
         // Prepares data to be sent and calls sending method. 
         // It can process large messages by cutting them into small ones.
         // The method issues another receive on the socket to read client's answer.
-        private void SendMessage(SocketAsyncEventArgs e, IpConfigData msg)
+        private void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
         {
-            var some = new MemoryStream();
-            
-            //var ns = client.GetStream();
-            var writer = XmlWriter.Create(some);
-            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
-            {
-                woxalizer.Save(msg, writer);
-            }
-            
-            
-            
+            //TODO:  maybe remove 3-byte descriptor from beginning of array?
+            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
+
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
-            // prepare data to send: add prefix that holds length of message:
-            Byte[] msgToSend = some.ToArray();
-            //TODO:  Remove 3-byte descriptor from beginning of array
-            Logger.WriteStr("Going to send message: " + Encoding.ASCII.GetString(msgToSend));
-            //TODO: remove:
-            Console.WriteLine(Encoding.ASCII.GetString(msgToSend));         
+            // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
             if (prefixToAdd.Length != msgPrefixLength )
             {
-                //TODO:  Do we need this check???
+                //TODO:  Do we need this check??? if yes - throw Exception
                 Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
                 return;
             }
@@ -410,6 +392,47 @@ namespace OpenRm.Server.Host
             // Free the SocketAsyncEventArg so they can be reused by another client
             argsReadWritePool.Push(e);
         }
+
+
+        // TODO:  move to another class?
+        private Byte[] SerializeToXML(CommandBase msg)
+        {
+            var mem = new MemoryStream();
+            var writer = XmlWriter.Create(mem);
+
+            //TODO:   change this code to generic
+            if (msg is IpConfigData)
+            {
+                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+                {
+                    woxalizer.Save((IpConfigData)msg, writer);
+                }
+            }
+            else if (msg is IdentificationData)
+            {
+                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+                {
+                    woxalizer.Save((IdentificationData)msg, writer);
+                }
+            }
+
+            return mem.ToArray();
+        }
+
+        private CommandBase DeserializeFromXML(Byte[] msg)
+        {
+            CommandBase data;
+            var mem = new MemoryStream();
+            var reader = XmlReader.Create(mem);
+
+            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+            {
+                data = (CommandBase)woxalizer.Load(reader);
+            }
+            return data;
+        }
+
+
 
 
         static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)

@@ -13,10 +13,10 @@
         public string Info;
     }
 
-    public class IntoData : CommandBase
+    public class IdentificationData : CommandBase
     {
-        public string computerName;
-        public string id;
+        public string deviceName;       // computer name for Windows OS, or IMEI for mobile devices
+        public string sn;               // serial number (for Windows OS only)
     }
 
     public class IpConfigData : CommandBase
