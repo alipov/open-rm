@@ -276,7 +276,10 @@ namespace OpenRm.Server.Host
                             token.Clean();
 
                             //TODO:  remove sending this data (it's for testing here)
-                            SendMessage(e, SerializeToXML(new IpConfigData()));
+                            Message msg = new Message();
+                            msg.Command = new IpConfigData();
+                            msg.Id = 333;
+                            SendMessage(e, SerializeToXML(new Message()));
 
                         } 
                     }
@@ -395,26 +398,26 @@ namespace OpenRm.Server.Host
 
 
         // TODO:  move to another class?
-        private Byte[] SerializeToXML(CommandBase msg)
+        private Byte[] SerializeToXML(Message msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
 
             //TODO:   change this code to generic
-            if (msg is IpConfigData)
-            {
+            //if (msg.Command is IpConfigData)
+            //{
                 using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
                 {
-                    woxalizer.Save((IpConfigData)msg, writer);
+                    woxalizer.Save(msg, writer);
                 }
-            }
-            else if (msg is IdentificationData)
-            {
-                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
-                {
-                    woxalizer.Save((IdentificationData)msg, writer);
-                }
-            }
+            //}
+            //else if (msg is IdentificationData)
+            //{
+            //    using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+            //    {
+            //        woxalizer.Save((IdentificationData)msg, writer);
+            //    }
+            //}
 
             return mem.ToArray();
         }
