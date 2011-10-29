@@ -36,12 +36,13 @@ namespace OpenRm.Server.Gui
             client.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3777));
 
             //var emp = new Emp() { Age = 5, Name = "Alex" };
-            var msg = new Message()
+            var msg = new RequestMessage()
                           {
-                              Command = new IpConfigData() {},
-                              Id = 55
-
+                              MessageType = (int)EMessageType.Request,
+                              Request = new ConnectionEstablishmentRequest() { Something = "Please let me in"},
+                              OperationType = 55
                           };
+
             var ns = client.GetStream();
             var writer = XmlWriter.Create(ns);
             using (var woxalizer = new WoxalizerUtil(TypeResolveHandler))

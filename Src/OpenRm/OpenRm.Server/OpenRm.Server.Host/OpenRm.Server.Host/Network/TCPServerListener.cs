@@ -272,14 +272,17 @@ namespace OpenRm.Server.Host
                             Logger.WriteStr("Got complete message from " + token.socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.msgData));
 // TODO:  get token.msgData data and convert to XML, .... . . . ..
 
+                            var message = DeserializeFromXML(token.msgData);
+                            ProcessReceivedMessage(message);
+
                             // empty Token's buffers and counters
                             token.Clean();
 
                             //TODO:  remove sending this data (it's for testing here)
-                            Message msg = new Message();
-                            msg.Command = new IpConfigData();
-                            msg.Id = 333;
-                            SendMessage(e, SerializeToXML(new Message()));
+                            var msg = new ResponseMessage();
+                            msg.Response = new IpConfigData();
+                            msg.OperationType = 333;
+                            SendMessage(e, SerializeToXML(msg));
 
                         } 
                     }
@@ -398,7 +401,7 @@ namespace OpenRm.Server.Host
 
 
         // TODO:  move to another class?
-        private Byte[] SerializeToXML(Message msg)
+        private Byte[] SerializeToXML(ResponseMessage msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
@@ -422,21 +425,44 @@ namespace OpenRm.Server.Host
             return mem.ToArray();
         }
 
-        private CommandBase DeserializeFromXML(Byte[] msg)
+        private Message DeserializeFromXML(Byte[] msg)
         {
-            CommandBase data;
-            var mem = new MemoryStream();
+            Message message;
+            var mem = new MemoryStream(msg);
             var reader = XmlReader.Create(mem);
 
             using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
             {
-                data = (CommandBase)woxalizer.Load(reader);
+                message = (Message)woxalizer.Load(reader);
             }
-            return data;
+            return message;
         }
 
 
+        private void ProcessReceivedMessage(Message message)
+        {
+            switch ((EMessageType)message.OperationType)
+            {
+                case EMessageType.Request:
+                    ProcessReceivedMessageRequest((RequestMessage)message);
+                    break;
+                case EMessageType.Response:
+                    ProcessReceivedMessageResponse((ResponseMessage)message);
+                    break;
+                default:
+                    throw new ApplicationException();
+            }
+        }
 
+        private void ProcessReceivedMessageRequest(RequestMessage message)
+        {
+            
+        }
+
+        private void ProcessReceivedMessageResponse(ResponseMessage message)
+        {
+
+        }
 
         static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
         {
