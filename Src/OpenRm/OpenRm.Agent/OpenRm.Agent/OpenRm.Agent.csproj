@@ -78,6 +78,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="Woxalizer">
       <HintPath>..\..\..\..\Bin\Common\ThirdParty\Woxalizer\Woxalizer.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -123,6 +124,7 @@
     <ProjectReference Include="..\..\OpenRm.Common\OpenRm.Common.Entities\OpenRm.Common.Entities.csproj">
       <Project>{37332D34-F657-4B35-89E1-27717296E7FE}</Project>
       <Name>OpenRm.Common.Entities</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\OpenRm.Agent.CustomControls\OpenRm.Agent.CustomControls.csproj">
       <Project>{0CCDEBF3-740C-47AF-B001-A88639F6AE5A}</Project>

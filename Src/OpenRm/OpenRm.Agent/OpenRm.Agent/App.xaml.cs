@@ -28,6 +28,8 @@ namespace OpenRm.Agent
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveHandler);
+            //AppDomain.CurrentDomain.TypeResolve += new ResolveEventHandler(TypeResolveHandler);
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             _notifyIconComponent = new NotifyIconWrapper();
             _notifyIconComponent.StartAgentClick += StartAgent;
@@ -37,9 +39,8 @@ namespace OpenRm.Agent
         {
             // Done because exception was thrown before Main. Solution found here:
             // http://www.codeproject.com/Questions/184743/AssemblyResolve-event-not-hit
-            var appDomain = AppDomain.CurrentDomain;
-            appDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveHandler);
-            AppDomain.CurrentDomain.TypeResolve += new ResolveEventHandler(TypeResolveHandler);
+            
+            
 
             if (ReadConfigFile())
             {
