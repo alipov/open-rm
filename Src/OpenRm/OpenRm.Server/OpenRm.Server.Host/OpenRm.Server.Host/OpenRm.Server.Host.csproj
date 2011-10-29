@@ -93,6 +93,7 @@
     <ProjectReference Include="..\..\..\OpenRm.Common\OpenRm.Common.Entities\OpenRm.Common.Entities.csproj">
       <Project>{37332D34-F657-4B35-89E1-27717296E7FE}</Project>
       <Name>OpenRm.Common.Entities</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
