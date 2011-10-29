@@ -18,17 +18,17 @@ namespace OpenRm.Agent
     class TCPclient
     {
         public const int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
-        private static byte[] sendReceiveBuffer;        // buffer for sending/receiving data by TCP layer. 
+        private byte[] sendReceiveBuffer;        // buffer for sending/receiving data by TCP layer. 
                                                         // Note that it has fixed size (same as for server, but also can be different)
             
-        static private int retryIntervalCurrent;        // Interval between reconnects to server (when was unable to connect / has been disconnected)
-        static private int retryIntervalInitial = 5;    // 5 sec.
-        static private int retryIntervalMaximum = 60;   // 60 sec.
+        private int retryIntervalCurrent;        // Interval between reconnects to server (when was unable to connect / has been disconnected)
+        private int retryIntervalInitial = 5;    // 5 sec.
+        private int retryIntervalMaximum = 60;   // 60 sec.
 
-        static string _serverIP = "";
-        static int _serverPort = 0;
+        private string _serverIP = "";
+        private int _serverPort = 0;
 
-        static ManualResetEvent clientDone = new ManualResetEvent(false);
+        public static ManualResetEvent clientDone = new ManualResetEvent(false);
 
         public TCPclient(string serverIP, int serverPort, int bufferSize)
         {

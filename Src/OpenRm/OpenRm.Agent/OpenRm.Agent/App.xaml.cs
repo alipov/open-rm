@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 using System.Windows;
 using OpenRm.Agent.CustomControls;
 using OpenRm.Common.Entities;
@@ -21,6 +22,9 @@ namespace OpenRm.Agent
         private int serverPort;
         private string logFilenamePattern;
         public static int ReceiveBufferSize = 64;      //recieve buffer size for tcp connection
+        private static Thread starterThread;
+        private TCPclient client;
+
 
 
         private NotifyIconWrapper _notifyIconComponent;
@@ -28,33 +32,54 @@ namespace OpenRm.Agent
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Done because exception was thrown before Main. Solution found here:
+            // http://www.codeproject.com/Questions/184743/AssemblyResolve-event-not-hit
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveHandler);
             //AppDomain.CurrentDomain.TypeResolve += new ResolveEventHandler(TypeResolveHandler);
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
             _notifyIconComponent = new NotifyIconWrapper();
-            _notifyIconComponent.StartAgentClick += StartAgent;
+            _notifyIconComponent.StartAgentClick += StartThread;
         }
 
-        private void StartAgent(object sender, EventArgs e)
+
+        private void StartThread(object sender, EventArgs e)
         {
-            // Done because exception was thrown before Main. Solution found here:
-            // http://www.codeproject.com/Questions/184743/AssemblyResolve-event-not-hit
-            
-            
+            starterThread = new Thread(new ThreadStart(AgentStarterTread));
+            starterThread.Start();
+        }
 
-            if (ReadConfigFile())
+        private void AgentStarterTread()
+        {
+            if (!ReadConfigFile()) return;
+
+            Logger.CreateLogFile("logs", logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
+            Logger.WriteStr("Client started.");
+            agentStarted = true;
+
+            client = new TCPclient(serverIP, serverPort, ReceiveBufferSize);
+
+            Logger.WriteStr("Client terminated");
+
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+
+            if (starterThread != null)
             {
-
-                Logger.CreateLogFile("logs", logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
-                Logger.WriteStr("Client started.");
-                agentStarted = true;
-
-                TCPclient client = new TCPclient(serverIP, serverPort, ReceiveBufferSize);
-
-                Logger.WriteStr("Client terminated");
+                //TODO: close socket, close client
+                //...
+                agentStarted = false;
+                starterThread.Abort();
+                starterThread = null;
             }
 
+            _notifyIconComponent.Dispose();
         }
+
 
 
         // read configuration from config file
@@ -138,10 +163,6 @@ namespace OpenRm.Agent
         }
 
 
-        protected override void OnExit(ExitEventArgs e)
-        {
-            base.OnExit(e);
-            _notifyIconComponent.Dispose();
-        }
+        
     }
 }
