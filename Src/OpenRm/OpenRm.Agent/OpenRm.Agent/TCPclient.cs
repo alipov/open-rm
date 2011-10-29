@@ -96,10 +96,14 @@ namespace OpenRm.Agent
                 //IdentificationData idata = new IdentificationData();
                 //DataRetriever.GetInfo(idata);       // fill required data
                 //SendMessage(e, SerializeToXML(idata));
-                IpConfigData ipconf = new IpConfigData();
-                ipconf.IpAddress = ((IPEndPoint)((AsyncUserToken)e.UserToken).socket.LocalEndPoint).Address.ToString();
-                DataRetriever.GetInfo(ipconf);
-                SendMessage(e, SerializeToXML(ipconf));
+
+                //IpConfigData ipconf = new IpConfigData();
+                //ipconf.IpAddress = ((IPEndPoint)((AsyncUserToken)e.UserToken).socket.LocalEndPoint).Address.ToString();
+                //DataRetriever.GetInfo(ipconf);
+                var message = new RequestMessage();
+                message.MessageType = (int)EMessageType.Request;
+                message.Request = new ConnectionEstablishmentRequest();
+                SendMessage(e, SerializeToXML(message));
                 
             }
             else
@@ -360,24 +364,24 @@ namespace OpenRm.Agent
 
 
         // TODO:  move to another class?
-        private Byte[] SerializeToXML(CommandBase msg)
+        private Byte[] SerializeToXML(Message msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
 
             //TODO:   change this code to generic
-            if (msg is IpConfigData)
+            if (msg is RequestMessage)
             {
                 using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
                 {
-                    woxalizer.Save((IpConfigData)msg, writer);
+                    woxalizer.Save((RequestMessage)msg, writer);
                 }
             }
-            else if (msg is IdentificationData)
+            else if (msg is ResponseMessage)
             {
                 using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
                 {
-                    woxalizer.Save((IdentificationData)msg, writer);
+                    woxalizer.Save((ResponseMessage)msg, writer);
                 }
             }
             else
@@ -389,17 +393,17 @@ namespace OpenRm.Agent
             return mem.ToArray();
         }
 
-        private CommandBase DeserializeFromXML(Byte[] msg)
+        private Message DeserializeFromXML(Byte[] msg)
         {
-            CommandBase data;
+            Message message;
             var mem = new MemoryStream();
             var reader = XmlReader.Create(mem);
 
             using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
             {
-                data = (CommandBase)woxalizer.Load(reader);
+                message = (Message)woxalizer.Load(reader);
             }
-            return data;
+            return message;
         }
 
 
