@@ -3,8 +3,8 @@
 
     public abstract class Message
     {
-        public EMessageType MessageType;
-        public int OperationType;
+        public int MessageType;         // int type (not Enum) because of Serialization //TODO: Why we need it???
+        public int OperationType;       //TODO:  not needed!!!
         //public string 
     }
 
@@ -13,7 +13,7 @@
         public RequestBase Request;
         public RequestMessage ()
         {
-            MessageType = EMessageType.Request;
+            MessageType = (int)EMessageType.Request;
         }
         //public int RequestType;
     }
@@ -23,7 +23,7 @@
         public ResponseBase Response;
         public ResponseMessage()
         {
-            MessageType = EMessageType.Response;
+            MessageType = (int)EMessageType.Response;
         }
         //public int ResponseType;
     }

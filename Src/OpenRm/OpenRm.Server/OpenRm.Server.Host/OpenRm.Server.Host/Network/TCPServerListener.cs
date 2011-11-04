@@ -399,6 +399,54 @@ namespace OpenRm.Server.Host
         }
 
 
+        private void ProcessReceivedMessage(SocketAsyncEventArgs e)
+        {
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            
+            Message message = DeserializeFromXml(token.msgData);
+
+            // TODO: why do not write: "if (message is RequestMessage)" ...  - so we don't need MessageType!
+            switch ((EMessageType)message.MessageType)
+            {
+                case EMessageType.Request:
+                    ProcessReceivedMessageRequest(e, (RequestMessage)message);
+                    break;
+                case EMessageType.Response:
+                    ProcessReceivedMessageResponse(e, (ResponseMessage)message);
+                    break;
+                default:
+                    throw new ApplicationException();
+            }
+        }
+
+        private void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
+        {
+            //server recieves requests only from Console!
+        }
+
+        private void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
+        {
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+
+            if (message.Response is IdentificationData)
+            {
+                IdentificationData idata = (IdentificationData) message.Response;
+                Logger.WriteStr(" * New client has connected: " + idata.deviceName);
+                // ...create ClientData and add to token
+                //...
+            }
+            else if (message.Response is IpConfigData)
+            {
+                //...
+            }
+            else
+            {
+                Logger.WriteStr(" Recieved unkown response! ");
+            }
+                
+        }
+
+
         // TODO:  move to another class?
         private static Byte[] SerializeToXml(ResponseMessage msg)
         {
@@ -427,34 +475,6 @@ namespace OpenRm.Server.Host
         }
 
 
-        private void ProcessReceivedMessage(SocketAsyncEventArgs e)
-        {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
-            
-            Message message = DeserializeFromXml(token.msgData);
-
-            switch ((EMessageType)message.OperationType)
-            {
-                case EMessageType.Request:
-                    ProcessReceivedMessageRequest(e, (RequestMessage)message);
-                    break;
-                case EMessageType.Response:
-                    ProcessReceivedMessageResponse(e, (ResponseMessage)message);
-                    break;
-                default:
-                    throw new ApplicationException();
-            }
-        }
-
-        private void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
-        {
-            
-        }
-
-        private void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
-        {
-
-        }
 
         static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
         {
