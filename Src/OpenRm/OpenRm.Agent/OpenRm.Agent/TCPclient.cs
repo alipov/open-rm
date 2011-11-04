@@ -92,17 +92,10 @@ namespace OpenRm.Agent
                 Logger.WriteStr("Successfully connected to the server on " + ((AsyncUserToken)(e.UserToken)).socket.LocalEndPoint.ToString());
                 retryIntervalCurrent = retryIntervalInitial;          // set it to initial value
 
-                //Send authorization info about this client
-                //IdentificationData idata = new IdentificationData();
-                //DataRetriever.GetInfo(idata);       // fill required data
-                //SendMessage(e, SerializeToXML(idata));
-
-                //IpConfigData ipconf = new IpConfigData();
-                //ipconf.IpAddress = ((IPEndPoint)((AsyncUserToken)e.UserToken).socket.LocalEndPoint).Address.ToString();
-                //DataRetriever.GetInfo(ipconf);
-                var message = new RequestMessage();
-                message.MessageType = (int)EMessageType.Request;
-                message.Request = new ConnectionEstablishmentRequest();
+                //Send authorization info about this client as soon as connection established
+                var idata = new IdentificationData();
+                DataRetriever.GetInfo(idata);       // fill required data
+                var message = new ResponseMessage {Response = idata};
                 SendMessage(e, SerializeToXML(message));
                 
             }

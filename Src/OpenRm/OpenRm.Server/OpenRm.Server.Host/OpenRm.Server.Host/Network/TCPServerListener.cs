@@ -232,7 +232,7 @@ namespace OpenRm.Server.Host
                         }
                         else
                         {
-                            // We've gotten the length buffer 
+                            // We've gotten the prefix buffer 
                             int length = BitConverter.ToInt32(token.prefixData, 0);
                             Logger.WriteStr(" Got prefix representing value: " + length);
 
@@ -272,8 +272,7 @@ namespace OpenRm.Server.Host
                             Logger.WriteStr("Got complete message from " + token.socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.msgData));
 // TODO:  get token.msgData data and convert to XML, .... . . . ..
 
-                            var message = DeserializeFromXML(token.msgData);
-                            ProcessReceivedMessage(message);
+                            ProcessReceivedMessage(e);
 
                             // empty Token's buffers and counters
                             token.Clean();
@@ -282,7 +281,7 @@ namespace OpenRm.Server.Host
                             var msg = new ResponseMessage();
                             msg.Response = new IpConfigData();
                             msg.OperationType = 333;
-                            SendMessage(e, SerializeToXML(msg));
+                            SendMessage(e, SerializeToXml(msg));
 
                         } 
                     }
@@ -310,12 +309,12 @@ namespace OpenRm.Server.Host
 
             // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
-            if (prefixToAdd.Length != msgPrefixLength )
-            {
-                //TODO:  Do we need this check??? if yes - throw Exception
-                Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
-                return;
-            }
+            ////if (prefixToAdd.Length != msgPrefixLength )
+            ////{
+            ////    //TODO:  Do we need this check??? if yes - throw Exception
+            ////    Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
+            ////    return;
+            ////}
 
             // prepare complete data and store it into token
             token.sendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
@@ -401,31 +400,19 @@ namespace OpenRm.Server.Host
 
 
         // TODO:  move to another class?
-        private Byte[] SerializeToXML(ResponseMessage msg)
+        private static Byte[] SerializeToXml(ResponseMessage msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
 
-            //TODO:   change this code to generic
-            //if (msg.Command is IpConfigData)
-            //{
-                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
-                {
-                    woxalizer.Save(msg, writer);
-                }
-            //}
-            //else if (msg is IdentificationData)
-            //{
-            //    using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
-            //    {
-            //        woxalizer.Save((IdentificationData)msg, writer);
-            //    }
-            //}
-
+            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+            {
+                woxalizer.Save(msg, writer);
+            }
             return mem.ToArray();
         }
 
-        private Message DeserializeFromXML(Byte[] msg)
+        private static Message DeserializeFromXml(Byte[] msg)
         {
             Message message;
             var mem = new MemoryStream(msg);
@@ -433,33 +420,38 @@ namespace OpenRm.Server.Host
 
             using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
             {
+                // TODO:  resolve PROBLEM
                 message = (Message)woxalizer.Load(reader);
             }
             return message;
         }
 
 
-        private void ProcessReceivedMessage(Message message)
+        private void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            
+            Message message = DeserializeFromXml(token.msgData);
+
             switch ((EMessageType)message.OperationType)
             {
                 case EMessageType.Request:
-                    ProcessReceivedMessageRequest((RequestMessage)message);
+                    ProcessReceivedMessageRequest(e, (RequestMessage)message);
                     break;
                 case EMessageType.Response:
-                    ProcessReceivedMessageResponse((ResponseMessage)message);
+                    ProcessReceivedMessageResponse(e, (ResponseMessage)message);
                     break;
                 default:
                     throw new ApplicationException();
             }
         }
 
-        private void ProcessReceivedMessageRequest(RequestMessage message)
+        private void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
         {
             
         }
 
-        private void ProcessReceivedMessageResponse(ResponseMessage message)
+        private void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
         {
 
         }
