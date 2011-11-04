@@ -1,23 +1,30 @@
 ﻿namespace OpenRm.Common.Entities
 {
+
     public abstract class Message
     {
-        public int MessageType;
+        public EMessageType MessageType;
         public int OperationType;
-
-
         //public string 
     }
 
     public class RequestMessage : Message
     {
         public RequestBase Request;
+        public RequestMessage ()
+        {
+            MessageType = EMessageType.Request;
+        }
         //public int RequestType;
     }
 
     public class ResponseMessage : Message
     {
         public ResponseBase Response;
+        public ResponseMessage()
+        {
+            MessageType = EMessageType.Response;
+        }
         //public int ResponseType;
     }
 
