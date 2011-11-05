@@ -61,9 +61,17 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ContentView.xaml.cs">
-      <DependentUpon>ContentView.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Api\Controllers\IAgentSummaryRegionController.cs" />
+    <Compile Include="Api\Services\IAgentDataService.cs" />
+    <Compile Include="Api\ViewModels\IAgentDetailsViewModel.cs" />
+    <Compile Include="Api\ViewModels\IAgentsListViewModel.cs" />
+    <Compile Include="Api\ViewModels\IAgentSummaryViewModel.cs" />
+    <Compile Include="Api\Views\IAgentDetailsView.cs" />
+    <Compile Include="Api\Views\IAgentsListView.cs" />
+    <Compile Include="Api\Views\IAgentSummaryView.cs" />
+    <Compile Include="Controllers\AgentSummaryRegionController.cs" />
+    <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
+    <Compile Include="Models\Agent.cs" />
     <Compile Include="MonitorModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -78,7 +86,20 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="ToolbarView.xaml.cs">
+    <Compile Include="Services\AgentDataService.cs" />
+    <Compile Include="ViewModels\AgentDetailsViewModel.cs" />
+    <Compile Include="ViewModels\AgentSummaryViewModel.cs" />
+    <Compile Include="ViewModels\AgentsListViewModel.cs" />
+    <Compile Include="Views\AgentDetailsView.xaml.cs">
+      <DependentUpon>AgentDetailsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AgentsListView.xaml.cs">
+      <DependentUpon>AgentsListView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AgentSummaryView.xaml.cs">
+      <DependentUpon>AgentSummaryView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ToolbarView.xaml.cs">
       <DependentUpon>ToolbarView.xaml</DependentUpon>
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -92,13 +113,21 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ContentView.xaml">
+    <Page Include="Views\AgentDetailsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ToolbarView.xaml">
+    <Page Include="Views\AgentsListView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\AgentSummaryView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ToolbarView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -107,6 +136,7 @@
       <Name>OpenRm.Server.Gui.Inf</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
