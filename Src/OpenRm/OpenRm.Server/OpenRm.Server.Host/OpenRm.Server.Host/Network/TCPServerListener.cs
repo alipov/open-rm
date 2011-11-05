@@ -274,10 +274,11 @@ namespace OpenRm.Server.Host
 
                             ProcessReceivedMessage(e);
 
-                            // empty Token's buffers and counters
-                            token.Clean();
-
-                            //////TODO:  remove sending this data (it's for testing here)
+                            //TODO: delete this block:
+                            //Moved to another place// empty Token's buffers and counters
+                            //token.Clean();
+                            //
+                            ////// it's for testing here:
                             ////var msg = new ResponseMessage();
                             ////msg.Response = new IpConfigData();
                             ////msg.OpCode = (int)EOpCode.IpConfigData;

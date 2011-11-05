@@ -296,8 +296,8 @@ namespace OpenRm.Agent
 
                             ProcessReceivedMessage(e);
 
-                            // empty Token's buffers and counters
-                            token.Clean();
+                            //// empty Token's buffers and counters
+                            //token.Clean();
 
                             //TODO:  remove sending this data (it's for testing here)
                             //SendMessage(e, "0i9i8i7i6i5i4i3i2i1u0u9u8u7u6u5u4u3u2u1");
