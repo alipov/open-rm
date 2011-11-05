@@ -444,8 +444,7 @@ namespace OpenRm.Server.Host
 
                 //TODO: for testing only:
                 //Get IP information
-                var msg = new RequestMessage();
-                msg.OpCode = (int) EOpCode.IpConfigData;
+                var msg = new RequestMessage {OpCode = (int) EOpCode.IpConfigData};
                 SendMessage(e, SerializeToXml(msg));
             }
             else if (message.Response is IpConfigData)
