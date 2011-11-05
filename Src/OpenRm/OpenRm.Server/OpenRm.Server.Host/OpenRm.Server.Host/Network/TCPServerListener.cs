@@ -277,16 +277,16 @@ namespace OpenRm.Server.Host
                             // empty Token's buffers and counters
                             token.Clean();
 
-                            //TODO:  remove sending this data (it's for testing here)
-                            var msg = new ResponseMessage();
-                            msg.Response = new IpConfigData();
-                            msg.OperationType = 333;
-                            SendMessage(e, SerializeToXml(msg));
+                            //////TODO:  remove sending this data (it's for testing here)
+                            ////var msg = new ResponseMessage();
+                            ////msg.Response = new IpConfigData();
+                            ////msg.OpCode = (int)EOpCode.IpConfigData;
+                            ////SendMessage(e, SerializeToXml(msg));
 
                         } 
                     }
                 } 
-            }
+            }               
             else
             {
                 Logger.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + " due to exception:\n"
@@ -405,18 +405,24 @@ namespace OpenRm.Server.Host
             
             Message message = DeserializeFromXml(token.msgData);
 
-            // TODO: why do not write: "if (message is RequestMessage)" ...  - so we don't need MessageType!
-            switch ((EMessageType)message.MessageType)
-            {
-                case EMessageType.Request:
-                    ProcessReceivedMessageRequest(e, (RequestMessage)message);
-                    break;
-                case EMessageType.Response:
-                    ProcessReceivedMessageResponse(e, (ResponseMessage)message);
-                    break;
-                default:
-                    throw new ApplicationException();
-            }
+                //// TODO: why do not write: "if (message is RequestMessage)" ...  - so we don't need MessageType!
+                ////switch ((EMessageType)message.MessageType)
+                ////{
+                ////    case EMessageType.Request:
+                ////        ProcessReceivedMessageRequest(e, (RequestMessage)message);
+                ////        break;
+                ////    case EMessageType.Response:
+                ////        ProcessReceivedMessageResponse(e, (ResponseMessage)message);
+                ////        break;
+                ////    default:
+                ////        throw new ApplicationException();
+                ////}
+            if (message is RequestMessage)
+                ProcessReceivedMessageRequest(e, (RequestMessage)message);
+            else if (message is ResponseMessage)
+                ProcessReceivedMessageResponse(e, (ResponseMessage)message);
+            else
+                throw new ArgumentException("Cannot determinate Message type!");
         }
 
         private void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
@@ -434,6 +440,12 @@ namespace OpenRm.Server.Host
                 Logger.WriteStr(" * New client has connected: " + idata.deviceName);
                 // ...create ClientData and add to token
                 //...
+
+                //TODO: for testing only:
+                //Get IP information
+                var msg = new RequestMessage();
+                msg.OpCode = (int) EOpCode.IpConfigData;
+                SendMessage(e, SerializeToXml(msg));
             }
             else if (message.Response is IpConfigData)
             {
@@ -448,15 +460,28 @@ namespace OpenRm.Server.Host
 
 
         // TODO:  move to another class?
-        private static Byte[] SerializeToXml(ResponseMessage msg)
+        private static Byte[] SerializeToXml(Message msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
 
+            //TODO:  how to change this code to generic?
             using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
             {
-                woxalizer.Save(msg, writer);
+                if (msg is RequestMessage)
+                {
+                    woxalizer.Save((RequestMessage)msg, writer);
+                }
+                else if (msg is ResponseMessage)
+                {
+                    woxalizer.Save((ResponseMessage)msg, writer);
+                }
+                else
+                {
+                    Logger.WriteStr("ERROR in serialization method: cannot determinate message type.");
+                }
             }
+
             return mem.ToArray();
         }
 
@@ -468,7 +493,6 @@ namespace OpenRm.Server.Host
 
             using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
             {
-                // TODO:  resolve PROBLEM
                 message = (Message)woxalizer.Load(reader);
             }
             return message;

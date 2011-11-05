@@ -4,7 +4,7 @@
     public abstract class Message
     {
         public int MessageType;         // int type (not Enum) because of Serialization //TODO: Why we need it???
-        public int OperationType;       //TODO:  not needed!!!
+        public int OpCode;              
         //public string 
     }
 
@@ -51,8 +51,16 @@
         public string defaultGateway;
     }
 
-    public class ConnectionEstablishmentRequest : RequestBase
+    public class RunProcess : RequestBase
     {
-        public string Something;
+        public string Cmd;
+        public string WorkingDirectory;
+        public int Priority;
+        public int TimeOut;     //time-out period before run. in seconds.
     }
+
+    ////public class ConnectionEstablishmentRequest : RequestBase
+    ////{
+    ////    public string Something;
+    ////}
 }

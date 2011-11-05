@@ -96,7 +96,7 @@ namespace OpenRm.Agent
                 var idata = new IdentificationData();
                 DataRetriever.GetInfo(idata);       // fill required data
                 var message = new ResponseMessage {Response = idata};
-                SendMessage(e, SerializeToXML(message));
+                SendMessage(e, SerializeToXml(message));
                 
             }
             else
@@ -293,17 +293,11 @@ namespace OpenRm.Agent
                         {
                             // we've gotten an entire packet
                             Logger.WriteStr("Got complete message from " + e.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.msgData));
-                            // TODO:  get token.msgData data and convert to XML, .... . . . ..
 
+                            ProcessReceivedMessage(e);
 
-                            //simpulate some job processing
-                            Thread.Sleep(2000);
-
-
-
-
-                            //// empty Token's buffers and counters
-                            //token.Clean();
+                            // empty Token's buffers and counters
+                            token.Clean();
 
                             //TODO:  remove sending this data (it's for testing here)
                             //SendMessage(e, "0i9i8i7i6i5i4i3i2i1u0u9u8u7u6u5u4u3u2u1");
@@ -324,7 +318,7 @@ namespace OpenRm.Agent
 
         private void CloseServerConnection(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
             // close the socket
             try
@@ -355,14 +349,63 @@ namespace OpenRm.Agent
         }
 
 
+        private void ProcessReceivedMessage(SocketAsyncEventArgs e)
+        {
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+
+            Message message = DeserializeFromXml(token.msgData);
+
+            if (message is RequestMessage)
+                ProcessReceivedMessageRequest(e, (RequestMessage)message);
+            else if (message is ResponseMessage)
+                ProcessReceivedMessageResponse(e, (ResponseMessage)message);
+            else
+                throw new ArgumentException("Cannot determinate Message type!");
+        }
+
+
+
+        private void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
+        {
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+
+            switch (message.OpCode)
+            {
+                case (int)EOpCode.IpConfigData:
+                    var ipdata = new IpConfigData();
+                    DataRetriever.GetInfo(ipdata);       // fill required data
+                    var responseMsg = new ResponseMessage {Response = ipdata};
+                    SendMessage(e, SerializeToXml(responseMsg));
+
+                    break;
+                case (int)EOpCode.RunProcess:
+                    //TODO:  Add all OpCodes...
+
+
+
+
+
+
+                    break;
+                default:
+                    throw new ArgumentException("WARNING: Got unknown operation code request!");
+
+            }
+        }
+
+        private void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
+        {
+            //TODO: what info client needs from server?
+        }
+
 
         // TODO:  move to another class?
-        private Byte[] SerializeToXML(Message msg)
+        private Byte[] SerializeToXml(Message msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
 
-            //TODO:   change this code to generic
+            //TODO:   change this code to generic?
             if (msg is RequestMessage)
             {
                 using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
@@ -379,17 +422,16 @@ namespace OpenRm.Agent
             }
             else
             {
-                Console.WriteLine("ERROR in serialization method: cannot determinate instance...");
-                Logger.WriteStr("ERROR in serialization method: cannot determinate instance...");
+                Logger.WriteStr("ERROR in serialization method: cannot determinate message type.");
             }
 
             return mem.ToArray();
         }
 
-        private Message DeserializeFromXML(Byte[] msg)
+        private static Message DeserializeFromXml(Byte[] msg)
         {
             Message message;
-            var mem = new MemoryStream();
+            var mem = new MemoryStream(msg);
             var reader = XmlReader.Create(mem);
 
             using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
