@@ -2,13 +2,22 @@
 using Microsoft.Practices.Prism.Regions;
 using Microsoft.Practices.Unity;
 using OpenRm.Server.Gui.Inf;
+using OpenRm.Server.Gui.Modules.Monitor.Api.Controllers;
+using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
+using OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels;
+using OpenRm.Server.Gui.Modules.Monitor.Api.Views;
+using OpenRm.Server.Gui.Modules.Monitor.Controllers;
+using OpenRm.Server.Gui.Modules.Monitor.Services;
+using OpenRm.Server.Gui.Modules.Monitor.ViewModels;
+using OpenRm.Server.Gui.Modules.Monitor.Views;
 
 namespace OpenRm.Server.Gui.Modules.Monitor
 {
     public class MonitorModule : IModule
     {
-        private IUnityContainer _container;
-        private IRegionManager _regionManager;
+        private readonly IUnityContainer _container;
+        private readonly IRegionManager _regionManager;
+        private IAgentSummaryRegionController _summaryRegionController;
 
         public MonitorModule(IUnityContainer container, IRegionManager regionManager)
         {
@@ -18,8 +27,34 @@ namespace OpenRm.Server.Gui.Modules.Monitor
 
         public void Initialize()
         {
+            // Register the AgentDataService concrete type with the container.
+            // ContainerControlledLifetimeManager ensures singleton instance of that class.
+            _container.RegisterType<IAgentDataService, AgentDataService>
+                                                    (new ContainerControlledLifetimeManager());
+
+            // ContainerControlledLifetimeManager ensures singleton instance of that class.
+            _container.RegisterType<IAgentSummaryRegionController, AgentSummaryRegionController>
+                                                    (new ContainerControlledLifetimeManager());
+
+            _container.RegisterType<IAgentsListView, AgentsListView>();
+            _container.RegisterType<IAgentsListViewModel, AgentsListViewModel>();
+            _container.RegisterType<IAgentSummaryView, AgentSummaryView>();
+            _container.RegisterType<IAgentSummaryViewModel, AgentSummaryViewModel>();
+            
+
+            // This is an example of View Discovery which associates the specified view type
+            // with a region so that the view will be automatically added to the region when
+            // the region is first displayed.
+
             _regionManager.RegisterViewWithRegion(RegionNames.ToolbarRegion, typeof (ToolbarView));
-            _regionManager.RegisterViewWithRegion(RegionNames.ContentRegion, typeof (ContentView));
+            // Show the Agent List view in the shell's left hand region.
+            _regionManager.RegisterViewWithRegion(RegionNames.LeftContentRegion,
+                                                    () => _container.Resolve<IAgentsListView>());
+
+            // Create the summary region controller.
+            // This is used to programmatically (using injection) coordinate the view in the summary region 
+            // of the shell.
+            _summaryRegionController = _container.Resolve<IAgentSummaryRegionController>();
         }
     }
 }

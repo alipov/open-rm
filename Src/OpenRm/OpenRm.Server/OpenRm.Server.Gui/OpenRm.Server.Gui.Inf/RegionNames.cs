@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace OpenRm.Server.Gui.Inf
+﻿namespace OpenRm.Server.Gui.Inf
 {
     public class RegionNames
     {
         public static string ToolbarRegion = "ToolbarRegion";
-        public static string ContentRegion = "ContentRegion";
+        public static string LeftContentRegion = "LeftContentRegion";
+        public static string RightContentRegion = "RightContentRegion";
     }
 }

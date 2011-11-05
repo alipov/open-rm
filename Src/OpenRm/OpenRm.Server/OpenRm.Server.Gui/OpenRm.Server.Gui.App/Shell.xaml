@@ -5,7 +5,16 @@
         xmlns:loc="http://www.codeplex.com/remotemonproject"
         Title="Shell">
     <DockPanel LastChildFill="True" >
-        <ContentControl DockPanel.Dock="Top" prism:RegionManager.RegionName="{x:Static loc:RegionNames.ToolbarRegion}" />
-        <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.ContentRegion}" />
+        <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" MaxHeight="150"
+                Margin="8" HorizontalAlignment="Stretch" DockPanel.Dock="Top">
+            <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.ToolbarRegion}" />
+        </Border>
+        <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" MinWidth="100" 
+                Margin="8,2,2,8" DockPanel.Dock="Left">
+            <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.LeftContentRegion}" />
+        </Border>
+        <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" Margin="2,2,8,8">
+            <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.RightContentRegion}" />
+        </Border>
     </DockPanel>
 </Window>

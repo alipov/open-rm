@@ -1,7 +1,6 @@
-﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace OpenRm.Server.Gui.Modules.Monitor
+namespace OpenRm.Server.Gui.Modules.Monitor.Views
 {
     /// <summary>
     /// Interaction logic for Toolbar.xaml
