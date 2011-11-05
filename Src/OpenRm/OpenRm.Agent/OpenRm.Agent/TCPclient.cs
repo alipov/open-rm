@@ -400,29 +400,26 @@ namespace OpenRm.Agent
 
 
         // TODO:  move to another class?
-        private Byte[] SerializeToXml(Message msg)
+        private static Byte[] SerializeToXml(Message msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
 
-            //TODO:   change this code to generic?
-            if (msg is RequestMessage)
+            //TODO:  how to change this code to generic?
+            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
             {
-                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+                if (msg is RequestMessage)
                 {
                     woxalizer.Save((RequestMessage)msg, writer);
                 }
-            }
-            else if (msg is ResponseMessage)
-            {
-                using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
+                else if (msg is ResponseMessage)
                 {
                     woxalizer.Save((ResponseMessage)msg, writer);
                 }
-            }
-            else
-            {
-                Logger.WriteStr("ERROR in serialization method: cannot determinate message type.");
+                else
+                {
+                    Logger.WriteStr("ERROR in serialization method: cannot determinate message type.");
+                }
             }
 
             return mem.ToArray();
