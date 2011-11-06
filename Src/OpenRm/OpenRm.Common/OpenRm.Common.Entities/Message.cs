@@ -54,10 +54,17 @@
 
     public class RunProcess : RequestBase
     {
-        public string Cmd;
-        public string WorkingDirectory;
-        public int Priority;
+        public string Cmd;      // path to program
+        public string WorkDir;  // working directory
+        public int Priority;    // Process priority
         public int TimeOut;     //time-out period before run. in seconds.
+        public RunProcess(string cmd, string workDir, int priority, int timeOut)
+        {
+            Cmd = cmd;
+            WorkDir = workDir;
+            Priority = priority;
+            TimeOut = timeOut;
+        }
     }
 
 

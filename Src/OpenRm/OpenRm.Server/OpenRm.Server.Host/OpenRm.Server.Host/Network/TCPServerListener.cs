@@ -446,10 +446,16 @@ namespace OpenRm.Server.Host
                 //Get IP information
                 var msg = new RequestMessage {OpCode = (int) EOpCode.IpConfigData};
                 SendMessage(e, SerializeToXml(msg));
+                
             }
             else if (message.Response is IpConfigData)
             {
                 //...
+
+                //TODO: delete me
+                var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                msg.Request = new RunProcess("notepad.exe", "c:\\", 2, 0);
+                SendMessage(e, SerializeToXml(msg));
             }
             else
             {

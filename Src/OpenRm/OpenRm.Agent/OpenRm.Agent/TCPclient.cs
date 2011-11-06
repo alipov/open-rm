@@ -94,7 +94,7 @@ namespace OpenRm.Agent
 
                 //Send authorization info about this client as soon as connection established
                 var idata = new IdentificationData();
-                DataRetriever.GetInfo(idata);       // fill required data
+                OpProcessor.GetInfo(idata);       // fill required data
                 var message = new ResponseMessage {Response = idata};
                 SendMessage(e, SerializeToXml(message));
                 
@@ -127,14 +127,17 @@ namespace OpenRm.Agent
 
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
+            // reset token's buffers and counters before reusing the token
+            token.Clean();
+
             // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
-            if (prefixToAdd.Length != msgPrefixLength)
-            {
-                //TODO:  Do we need this check??? if yes - throw Exception
-                Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
-                return;
-            }
+            //if (prefixToAdd.Length != msgPrefixLength)
+            //{
+            //    //TODO:  Do we need this check??? if yes - throw Exception
+            //    Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
+            //    return;
+            //}
 
             // prepare complete data and store it into token
             token.sendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
@@ -248,7 +251,6 @@ namespace OpenRm.Agent
                         {
                             // We haven't got all the prefix buffer yet. Call StartReceive again to receive remaining data from TCP buffer
                             Logger.WriteStr("We've got just a part of prefix. Trying to get more data...");
-                            // TODO:  maybe need to call Receive() again or just wait?
                             StartReceive(e);
                             return;
                         }
@@ -285,7 +287,6 @@ namespace OpenRm.Agent
                         if (token.recievedMsgPartLength != token.msgData.Length)
                         {
                             // We haven't gotten all the data buffer yet: just wait for more data to arrive
-                            // TODO:  maybe need to call Receive() again
                             StartReceive(e);
                             return;
                         }
@@ -298,9 +299,6 @@ namespace OpenRm.Agent
 
                             //// empty Token's buffers and counters
                             //token.Clean();
-
-                            //TODO:  remove sending this data (it's for testing here)
-                            //SendMessage(e, "0i9i8i7i6i5i4i3i2i1u0u9u8u7u6u5u4u3u2u1");
 
                         }
                     }
@@ -373,7 +371,7 @@ namespace OpenRm.Agent
             {
                 case (int)EOpCode.IpConfigData:
                     var ipdata = new IpConfigData();
-                    DataRetriever.GetInfo(ipdata);       // fill required data
+                    OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.socket.LocalEndPoint).Address.ToString());       // fill required data
                     var responseMsg = new ResponseMessage {Response = ipdata};
                     SendMessage(e, SerializeToXml(responseMsg));
 
