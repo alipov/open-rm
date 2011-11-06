@@ -36,7 +36,7 @@ namespace OpenRm.Agent
             // Done because exception was thrown before Main. Solution found here:
             // http://www.codeproject.com/Questions/184743/AssemblyResolve-event-not-hit
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveHandler);
-            //AppDomain.CurrentDomain.TypeResolve += new ResolveEventHandler(TypeResolveHandler);
+            AppDomain.CurrentDomain.TypeResolve += new ResolveEventHandler(TypeResolveHandler);
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             _notifyIconComponent = new NotifyIconWrapper();
@@ -103,7 +103,7 @@ namespace OpenRm.Agent
 
 
         // took from http://www.chilkatsoft.com/p/p_502.asp
-        static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
+        public static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
         {
             //This handler is called only when the common language runtime tries to bind to the assembly and fails.
 
