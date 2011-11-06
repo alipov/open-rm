@@ -8,7 +8,7 @@ using System.Net.NetworkInformation;
 
 namespace OpenRm.Agent
 {
-    public static class DataRetriever
+    public static class OpProcessor
     {
 
         public static void GetInfo(IdentificationData id)
@@ -18,16 +18,19 @@ namespace OpenRm.Agent
         }
 
 
-        public static void GetInfo(IpConfigData ipconf)
-        {
-            string sourceIP = ipconf.IpAddress;     // IP got from socket info
+        public static void GetInfo(IpConfigData ipconf, string sourceIP)
+        {    
+            ipconf.IpAddress = sourceIP;        // IP got from socket info
 
             foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (netInterface.OperationalStatus == OperationalStatus.Up)
                 {
                     foreach (GatewayIPAddressInformation g in netInterface.GetIPProperties().GatewayAddresses)
-                        ipconf.defaultGateway = g.Address.ToString();
+                    {
+                        if (g.Address.ToString() != "0.0.0.0")
+                            ipconf.defaultGateway = g.Address.ToString();
+                    }
 
                     foreach( UnicastIPAddressInformation ip in netInterface.GetIPProperties().UnicastAddresses )
                         if (ip.Address.ToString() == sourceIP)
@@ -64,6 +67,8 @@ namespace OpenRm.Agent
 
             return value;
         }
+
+
 
     }
 }

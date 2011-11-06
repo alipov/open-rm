@@ -90,7 +90,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataRetriever.cs" />
+    <Compile Include="OpProcessor.cs" />
     <Compile Include="TCPclient.cs" />
   </ItemGroup>
   <ItemGroup>
