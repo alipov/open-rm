@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using OpenRm.Common.Entities;
 using System.Management;
 using System.Net.NetworkInformation;
@@ -45,7 +47,42 @@ namespace OpenRm.Agent
             }
         }
 
+        // TODO: maybe to start in new Thread?
+        public static RunCompletedStatus StartProcess(RunProcess proc)
+        {
+            RunCompletedStatus status = new RunCompletedStatus();
+            status.RunId = proc.RunId;
 
+            Thread.Sleep(proc.TimeOut);
+
+            Process newProcess = null;
+
+            try
+            {
+                newProcess = Process.Start(proc.Cmd, proc.Args);
+
+                while (!newProcess.WaitForExit(1000))
+                {
+                    // just wait untill completed
+                }
+
+                status.ExitCode = newProcess.ExitCode;
+                if (status.ExitCode > 0)
+                    status.ErrorMessage = newProcess.StandardError.ToString();
+
+            }
+            catch (Exception)
+            {
+                status.ErrorMessage = "ERROR: Unable to start \"" + proc.Cmd + "\"";
+            }
+            finally
+            {
+                if (newProcess != null)
+                    newProcess.Close();
+            }
+
+            return status;
+        }
 
 
         private static string GetWMIdata(string key, string property)

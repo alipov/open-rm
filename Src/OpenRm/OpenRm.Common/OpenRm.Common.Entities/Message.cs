@@ -54,17 +54,26 @@
 
     public class RunProcess : RequestBase
     {
+        public int RunId;    // sequence number of execution (for response identification only)
         public string Cmd;      // path to program
-        public string WorkDir;  // working directory
+        public string Args;  // arguments
         public int Priority;    // Process priority
         public int TimeOut;     //time-out period before run. in seconds.
-        public RunProcess(string cmd, string workDir, int priority, int timeOut)
+        public RunProcess(int runId, string cmd, string args, int priority, int timeOut)
         {
+            RunId = runId;
             Cmd = cmd;
-            WorkDir = workDir;
+            Args = args;
             Priority = priority;
             TimeOut = timeOut;
         }
+    }
+
+    public class RunCompletedStatus : ResponseBase
+    {
+        public int RunId;
+        public int ExitCode;
+        public string ErrorMessage;
     }
 
 
