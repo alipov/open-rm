@@ -377,6 +377,11 @@ namespace OpenRm.Agent
 
                     break;
                 case (int)EOpCode.RunProcess:
+                    RunCompletedStatus result = OpProcessor.StartProcess((RunProcess)message.Request);
+                    
+
+
+
                     //TODO:  Add all OpCodes...
 
 

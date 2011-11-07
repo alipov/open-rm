@@ -24,6 +24,7 @@ namespace OpenRm.Server.Host
         public byte[] sendingMsg { get; set; }
         public int sendingMsgBytesSent { get; set; }    //last sent byte sequence number
 
+        public int runId = 1;                    
 
         public AsyncUserToken() : this(null, null) { }
 
