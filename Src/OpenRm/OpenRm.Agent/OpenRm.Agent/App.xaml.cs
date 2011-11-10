@@ -25,8 +25,6 @@ namespace OpenRm.Agent
         private static Thread starterThread;
         private TCPclient client;
 
-
-
         private NotifyIconWrapper _notifyIconComponent;
 
         protected override void OnStartup(StartupEventArgs e)

@@ -24,7 +24,7 @@ namespace OpenRm.Server.Host
         public byte[] sendingMsg { get; set; }
         public int sendingMsgBytesSent { get; set; }    //last sent byte sequence number
 
-        public int runId = 1;                    
+        public static int runId = 1;                    //execution identification number: to mark each remote execution with unique id
 
         public AsyncUserToken() : this(null, null) { }
 
@@ -47,6 +47,12 @@ namespace OpenRm.Server.Host
             recievedPrefixPartLength = 0;
             messageLength = 0;
             sendingMsgBytesSent = 0;
+        }
+
+        // returns and increments process identification number
+        public int GetRunId()
+        {
+            return runId++;
         }
 
 

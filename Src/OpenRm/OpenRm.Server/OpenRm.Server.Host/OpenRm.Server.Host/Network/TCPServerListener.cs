@@ -439,7 +439,7 @@ namespace OpenRm.Server.Host
             {
                 IdentificationData idata = (IdentificationData) message.Response;
                 Logger.WriteStr(" * New client has connected: " + idata.deviceName);
-                // ...create ClientData and add to token
+                // ...create ClientData (if does not exist already) and add to token
                 //...
 
                 //TODO: for testing only:
@@ -454,7 +454,7 @@ namespace OpenRm.Server.Host
 
                 //TODO: delete me
                 var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                msg.Request = new RunProcess("notepad.exe", "c:\\", 2, 0);
+                msg.Request = new RunProcess(token.GetRunId(), "notepad.exe", "", "c:\\", 0, 180000, true);
                 SendMessage(e, SerializeToXml(msg));
             }
             else
