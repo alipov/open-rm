@@ -50,26 +50,29 @@ namespace OpenRm.Agent
         // TODO: maybe to start in new Thread?
         public static RunCompletedStatus StartProcess(RunProcess proc)
         {
-            RunCompletedStatus status = new RunCompletedStatus();
+            RunCompletedStatus status = new RunCompletedStatus();   // creates new object to return
             status.RunId = proc.RunId;
 
-            Thread.Sleep(proc.TimeOut);
+            Thread.Sleep(proc.Delay);
 
             Process newProcess = null;
-
+            ProcessStartInfo execInfo = new ProcessStartInfo();
+            execInfo.FileName = proc.Cmd;
+            execInfo.Arguments = proc.Args;
+            execInfo.CreateNoWindow = false;
+            execInfo.UseShellExecute = false;
+            //if (proc.Hidden)
+            //    execInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            
             try
             {
-                newProcess = Process.Start(proc.Cmd, proc.Args);
+                newProcess = Process.Start(execInfo);
 
-                while (!newProcess.WaitForExit(1000))
-                {
-                    // just wait untill completed
-                }
-
+                newProcess.WaitForExit(proc.TimeOut);  // wait for process completion or timeout
+                
                 status.ExitCode = newProcess.ExitCode;
                 if (status.ExitCode > 0)
                     status.ErrorMessage = newProcess.StandardError.ToString();
-
             }
             catch (Exception)
             {

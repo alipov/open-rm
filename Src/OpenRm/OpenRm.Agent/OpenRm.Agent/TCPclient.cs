@@ -367,18 +367,20 @@ namespace OpenRm.Agent
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
+            ResponseMessage responseMsg;
             switch (message.OpCode)
             {
                 case (int)EOpCode.IpConfigData:
                     var ipdata = new IpConfigData();
                     OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.socket.LocalEndPoint).Address.ToString());       // fill required data
-                    var responseMsg = new ResponseMessage {Response = ipdata};
+                    responseMsg = new ResponseMessage {Response = ipdata};
                     SendMessage(e, SerializeToXml(responseMsg));
 
                     break;
                 case (int)EOpCode.RunProcess:
                     RunCompletedStatus result = OpProcessor.StartProcess((RunProcess)message.Request);
-                    
+                    responseMsg = new ResponseMessage { Response = result };
+                    SendMessage(e, SerializeToXml(responseMsg));
 
 
 
