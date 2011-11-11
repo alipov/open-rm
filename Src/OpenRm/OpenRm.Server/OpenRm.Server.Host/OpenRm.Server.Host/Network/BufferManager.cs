@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace OpenRm.Server.Host
+namespace OpenRm.Server.Host.Network
 {
     /// This class creates a single large buffer which can be divided up and assigned to SocketAsyncEventArgs objects for use
     /// with each socket I/O operation.  This enables buffers to be easily reused and gaurds against fragmenting heap memory.
