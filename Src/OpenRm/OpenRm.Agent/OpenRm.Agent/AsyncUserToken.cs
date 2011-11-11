@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using OpenRm.Common.Entities;
 
 namespace OpenRm.Agent
 {
@@ -47,10 +48,10 @@ namespace OpenRm.Agent
 
 
 //TODO: can we remove it?
-        public Socket Socket
-        {
-            get { return socket; }
-            set { socket = value; }
-        }
+        //public Socket Socket
+        //{
+        //    get { return socket; }
+        //    set { socket = value; }
+        //}
     }
 }

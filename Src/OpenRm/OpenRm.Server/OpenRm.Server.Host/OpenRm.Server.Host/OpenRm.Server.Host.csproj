@@ -72,7 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TypeResolving.cs" />
-    <Compile Include="ClientData.cs" />
     <Compile Include="MicrosoftExample\AsyncUserToken.cs" />
     <Compile Include="MicrosoftExample\BufferManager.cs" />
     <Compile Include="MicrosoftExample\Program.cs" />

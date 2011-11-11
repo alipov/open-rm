@@ -403,8 +403,8 @@ namespace OpenRm.Server.Host
         private void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
-            
-            Message message = DeserializeFromXml(token.msgData);
+
+            Message message = WoxalizerAdapter.DeserializeFromXml(token.msgData, TypeResolving.AssemblyResolveHandler);
 
                 //// TODO: why do not write: "if (message is RequestMessage)" ...  - so we don't need MessageType!
                 ////switch ((EMessageType)message.MessageType)
@@ -445,13 +445,13 @@ namespace OpenRm.Server.Host
                 //TODO: for testing only:
                 //Get IP information
                 var msg = new RequestMessage {OpCode = (int) EOpCode.IpConfigData};
-                SendMessage(e, SerializeToXml(msg));
+                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg, TypeResolving.AssemblyResolveHandler));
                 
             }
             else if (message.Response is IpConfigData)
             {
                 var ipConf = (IpConfigData) message.Response;
-                token.data.ipConfig = ipConf;       //store in "database"
+                token.data.IpConfig = ipConf;       //store in "database"
 
 
                 //TODO: move to another place
@@ -467,7 +467,7 @@ namespace OpenRm.Server.Host
                                };
                 
                 msg.Request = exec;
-                SendMessage(e, SerializeToXml(msg));
+                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg, TypeResolving.AssemblyResolveHandler));
             }
             else if (message.Response is RunCompletedStatus)
             {
@@ -498,86 +498,5 @@ namespace OpenRm.Server.Host
             }
                 
         }
-
-
-        // TODO:  move to another class?
-        private static Byte[] SerializeToXml(Message msg)
-        {
-            var mem = new MemoryStream();
-            var writer = XmlWriter.Create(mem);
-
-            //TODO:  how to change this code to generic?
-            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
-            {
-                if (msg is RequestMessage)
-                {
-                    woxalizer.Save((RequestMessage)msg, writer);
-                }
-                else if (msg is ResponseMessage)
-                {
-                    woxalizer.Save((ResponseMessage)msg, writer);
-                }
-                else
-                {
-                    Logger.WriteStr("ERROR in serialization method: cannot determinate message type.");
-                }
-            }
-
-            return mem.ToArray();
-        }
-
-        private static Message DeserializeFromXml(Byte[] msg)
-        {
-            Message message;
-            var mem = new MemoryStream(msg);
-            var reader = XmlReader.Create(mem);
-
-            using (var woxalizer = new WoxalizerUtil(AssemblyResolveHandler))
-            {
-                message = (Message)woxalizer.Load(reader);
-            }
-            return message;
-        }
-
-
-
-        static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
-        {
-            //This handler is called only when the common language runtime tries to bind to the assembly and fails.
-
-            //Retrieve the list of referenced assemblies in an array of AssemblyName.
-            var assemblyPath = string.Empty;
-
-            Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
-            AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
-
-            //Loop through the array of referenced assembly names.
-            foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
-            {
-                var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
-
-                //Check for the assembly names that have raised the "AssemblyResolve" event.
-                if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == requestedAssembly)
-                {
-                    //Build the path of the assembly from where it has to be loaded.
-                    var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
-                    assemblyPath = Directory.GetFiles
-                                    (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).Single();
-                    break;
-                    //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
-                }
-            }
-            //Load the assembly from the specified path.
-            Assembly myAssembly = null;
-
-            // failing to ignore queries for satellite resource assemblies or using [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)] 
-            // in AssemblyInfo.cs will crash the program on non en-US based system cultures.
-            if (!string.IsNullOrWhiteSpace(assemblyPath))
-                myAssembly = Assembly.LoadFrom(assemblyPath);
-
-            //Return the loaded assembly.
-            return myAssembly;
-        }
-
     }
 }

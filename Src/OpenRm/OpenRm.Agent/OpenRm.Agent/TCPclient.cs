@@ -93,7 +93,7 @@ namespace OpenRm.Agent
                 var idata = new IdentificationData();
                 OpProcessor.GetInfo(idata);       // fill required data
                 var message = new ResponseMessage {Response = idata};
-                SendMessage(e, SerializeToXml(message));
+                SendMessage(e, WoxalizerAdapter.SerializeToXml(message, TypeResolving.AssemblyResolveHandler));
                 
             }
             else
@@ -348,7 +348,7 @@ namespace OpenRm.Agent
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
 
-            Message message = DeserializeFromXml(token.msgData);
+            Message message = WoxalizerAdapter.DeserializeFromXml(token.msgData, TypeResolving.AssemblyResolveHandler);
 
             if (message is RequestMessage)
                 ProcessReceivedMessageRequest(e, (RequestMessage)message);
@@ -371,23 +371,22 @@ namespace OpenRm.Agent
                     var ipdata = new IpConfigData();
                     OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.socket.LocalEndPoint).Address.ToString());       // fill required data
                     responseMsg = new ResponseMessage {Response = ipdata};
-                    SendMessage(e, SerializeToXml(responseMsg));
+                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     break;
 
                 case (int)EOpCode.RunProcess:
                     RunCompletedStatus result = OpProcessor.StartProcess((RunProcess)message.Request);
                     responseMsg = new ResponseMessage { Response = result };
-                    SendMessage(e, SerializeToXml(responseMsg));
+                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     break;
 
-                    //TODO: [Alex] commented it because it didn't compiled
-                //case (int)EOpCode.OsInfo:
-                //    var os = new OsInfo();
-                //    OpProcessor.GetInfo(os);
+                case (int)EOpCode.OsInfo:
+                    var os = new OsInfo();
+                    OpProcessor.GetInfo(os);
 
 
 
-                //    break;
+                    break;
 
                 //    //TODO:  Add all OpCodes...
 
@@ -407,89 +406,5 @@ namespace OpenRm.Agent
         {
             //TODO: what info client needs from server?
         }
-
-
-        // TODO:  move to another class?
-        private static Byte[] SerializeToXml(Message msg)
-        {
-            var mem = new MemoryStream();
-            var writer = XmlWriter.Create(mem);
-
-            //TODO:  how to change this code to generic?
-            using (var woxalizer = new WoxalizerUtil(TypeResolving.AssemblyResolveHandler))
-            {
-                if (msg is RequestMessage)
-                {
-                    woxalizer.Save((RequestMessage)msg, writer);
-                }
-                else if (msg is ResponseMessage)
-                {
-                    woxalizer.Save((ResponseMessage)msg, writer);
-                }
-                else
-                {
-                    Logger.WriteStr("ERROR in serialization method: cannot determinate message type.");
-                }
-            }
-
-            return mem.ToArray();
-        }
-
-        private static Message DeserializeFromXml(Byte[] msg)
-        {
-            Message message;
-            var mem = new MemoryStream(msg);
-            var reader = XmlReader.Create(mem);
-
-            using (var woxalizer = new WoxalizerUtil(TypeResolving.AssemblyResolveHandler))
-            {
-                message = (Message)woxalizer.Load(reader);
-            }
-            return message;
-        }
-
-
-        //static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
-        //{
-        //    //This handler is called only when the common language runtime tries to bind to the assembly and fails.
-
-        //    //Retrieve the list of referenced assemblies in an array of AssemblyName.
-        //    var assemblyPath = string.Empty;
-
-        //    Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
-        //    AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
-
-        //    //Loop through the array of referenced assembly names.
-        //    foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
-        //    {
-        //        var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
-
-        //        //Check for the assembly names that have raised the "AssemblyResolve" event.
-        //        if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == requestedAssembly)
-        //        {
-        //            //Build the path of the assembly from where it has to be loaded.
-        //            var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
-        //            assemblyPath = Directory.GetFiles
-        //                            (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).Single();
-        //            break;
-        //            //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
-        //        }
-        //    }
-        //    //Load the assembly from the specified path.
-        //    Assembly myAssembly = null;
-
-        //    // failing to ignore queries for satellite resource assemblies or using [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)] 
-        //    // in AssemblyInfo.cs will crash the program on non en-US based system cultures.
-        //    if (!string.IsNullOrWhiteSpace(assemblyPath))
-        //        myAssembly = Assembly.LoadFrom(assemblyPath);
-
-        //    //Return the loaded assembly.
-        //    return myAssembly;
-        //}
-
-
-        
-        
-
     }
 }

@@ -43,16 +43,22 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Woxalizer">
+      <HintPath>..\..\..\..\Bin\Common\ThirdParty\Woxalizer\Woxalizer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
+    <Compile Include="ClientData.cs" />
     <Compile Include="EMessageType.cs" />
     <Compile Include="EOpCode.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Message.cs" />
+    <Compile Include="Network\AsyncUserToken.cs" />
     <Compile Include="OpenRmException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Strings.cs" />
+    <Compile Include="WoxalizerAdapter.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
