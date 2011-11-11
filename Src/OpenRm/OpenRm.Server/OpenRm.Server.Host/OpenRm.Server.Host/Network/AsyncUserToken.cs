@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Net.Sockets;
+using OpenRm.Common.Entities;
 
 namespace OpenRm.Server.Host
 {
@@ -53,14 +51,6 @@ namespace OpenRm.Server.Host
         public int GetRunId()
         {
             return runId++;
-        }
-
-
-//TODO: can we remove it?
-        public Socket Socket
-        {
-            get { return socket; }
-            set { socket = value; }
         }
     }
 }
