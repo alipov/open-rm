@@ -62,7 +62,7 @@ namespace OpenRm.Server.Host.MicrosoftExample
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
                 var readWriteEventArg = new SocketAsyncEventArgs();
                 readWriteEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-                readWriteEventArg.UserToken = new AsyncUserToken();
+                readWriteEventArg.UserToken = new AsyncUserTokenMicr();
 
                 // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
                 _bufferManager.SetBuffer(readWriteEventArg);
@@ -133,7 +133,7 @@ namespace OpenRm.Server.Host.MicrosoftExample
             // Get the socket for the accepted client connection and put it into the 
             //ReadEventArg object user token
             SocketAsyncEventArgs readEventArgs = _readWritePool.Pop();
-            ((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
+            ((AsyncUserTokenMicr)readEventArgs.UserToken).Socket = e.AcceptSocket;
 
             // As soon as the client is connected, post a receive to the connection
             bool willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArgs);
@@ -171,7 +171,7 @@ namespace OpenRm.Server.Host.MicrosoftExample
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
             // check if the remote host closed the connection
-            var token = (AsyncUserToken)e.UserToken;
+            var token = (AsyncUserTokenMicr)e.UserToken;
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
                 //increment the count of the total bytes receive by the server
@@ -201,7 +201,7 @@ namespace OpenRm.Server.Host.MicrosoftExample
             if (e.SocketError == SocketError.Success)
             {
                 // done echoing data back to the client
-                AsyncUserToken token = (AsyncUserToken)e.UserToken;
+                AsyncUserTokenMicr token = (AsyncUserTokenMicr)e.UserToken;
                 // read the next block of data send from the client
                 bool willRaiseEvent = token.Socket.ReceiveAsync(e);
                 if (!willRaiseEvent)
@@ -217,7 +217,7 @@ namespace OpenRm.Server.Host.MicrosoftExample
 
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
+            AsyncUserTokenMicr token = e.UserToken as AsyncUserTokenMicr;
 
             // close the socket associated with the client
             try
