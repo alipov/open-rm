@@ -54,7 +54,7 @@
     <Compile Include="EOpCode.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="Network\AsyncUserToken.cs" />
+    <Compile Include="Network\AsyncUserTokenBase.cs" />
     <Compile Include="OpenRmException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Strings.cs" />

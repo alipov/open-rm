@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Xml;
 using OpenRm.Common.Entities;
+using OpenRm.Server.Host.Network;
 using Woxalizer;
 
 namespace OpenRm.Server.Host
@@ -60,7 +61,7 @@ namespace OpenRm.Server.Host
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
                 readWriteArg = new SocketAsyncEventArgs();
                 readWriteArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-                readWriteArg.UserToken = new AsyncUserToken();
+                readWriteArg.UserToken = new HostAsyncUserToken();
 
                 // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
                 bufferManager.SetBuffer(readWriteArg);
@@ -139,7 +140,7 @@ namespace OpenRm.Server.Host
             SocketAsyncEventArgs readEventArgs = argsReadWritePool.Pop();
             if (readEventArgs != null)
             {
-                ((AsyncUserToken)readEventArgs.UserToken).socket = e.AcceptSocket;
+                ((HostAsyncUserToken)readEventArgs.UserToken).socket = e.AcceptSocket;
                 readEventArgs.AcceptSocket = e.AcceptSocket;
                 e.AcceptSocket = null;                          // We'll reuse Accept SocketAsyncEventArgs object
 
@@ -192,7 +193,7 @@ namespace OpenRm.Server.Host
         // If the remote host closed the connection, then the socket is closed.
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (HostAsyncUserToken)e.UserToken;
             // Check if the remote host closed the connection
             //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)         
@@ -306,7 +307,7 @@ namespace OpenRm.Server.Host
             //TODO:  maybe remove 3-byte descriptor from beginning of array?
             Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
 
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (HostAsyncUserToken)e.UserToken;
 
             // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
@@ -329,7 +330,7 @@ namespace OpenRm.Server.Host
 
         private void StartSend(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (HostAsyncUserToken)e.UserToken;
 
             int bytesToTransfer = Math.Min(receiveBufferSize, token.sendingMsg.Length - token.sendingMsgBytesSent);
             Array.Copy(token.sendingMsg, token.sendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
@@ -346,7 +347,7 @@ namespace OpenRm.Server.Host
         // This method is invoked when an asynchronous send operation completes.
         private void ProcessSend(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (HostAsyncUserToken)e.UserToken;
 
             if (e.SocketError == SocketError.Success)
             {    
@@ -379,7 +380,7 @@ namespace OpenRm.Server.Host
 
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
+            var token = e.UserToken as HostAsyncUserToken;
             String clientEP = token.socket.RemoteEndPoint.ToString();
 
             // close the socket associated with the client
@@ -402,7 +403,7 @@ namespace OpenRm.Server.Host
 
         private void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (HostAsyncUserToken)e.UserToken;
 
             Message message = WoxalizerAdapter.DeserializeFromXml(token.msgData, TypeResolving.AssemblyResolveHandler);
 
@@ -433,7 +434,7 @@ namespace OpenRm.Server.Host
 
         private void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (HostAsyncUserToken)e.UserToken;
 
             if (message.Response is IdentificationData)
             {

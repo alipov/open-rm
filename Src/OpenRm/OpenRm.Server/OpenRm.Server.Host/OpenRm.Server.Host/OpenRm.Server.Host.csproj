@@ -71,6 +71,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Network\HostAsyncUserToken.cs" />
     <Compile Include="TypeResolving.cs" />
     <Compile Include="MicrosoftExample\AsyncUserToken.cs" />
     <Compile Include="MicrosoftExample\BufferManager.cs" />

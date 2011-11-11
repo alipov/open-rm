@@ -50,8 +50,8 @@ namespace OpenRm.Agent
             SocketAsyncEventArgs sockArgs = new SocketAsyncEventArgs();
             sockArgs.Completed += new EventHandler<SocketAsyncEventArgs>(SocketEventArg_Completed);
             sockArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverIP), _serverPort);
-            sockArgs.UserToken = new AsyncUserToken();
-            ((AsyncUserToken)sockArgs.UserToken).socket = socket;
+            sockArgs.UserToken = new AgentAsyncUserToken();
+            ((AgentAsyncUserToken)sockArgs.UserToken).socket = socket;
             sockArgs.AcceptSocket = socket;
 
             socket.ConnectAsync(sockArgs);
@@ -86,7 +86,7 @@ namespace OpenRm.Agent
         {
             if (e.SocketError == SocketError.Success)
             {
-                Logger.WriteStr("Successfully connected to the server on " + ((AsyncUserToken)(e.UserToken)).socket.LocalEndPoint.ToString());
+                Logger.WriteStr("Successfully connected to the server on " + ((AgentAsyncUserToken)(e.UserToken)).socket.LocalEndPoint.ToString());
                 retryIntervalCurrent = retryIntervalInitial;          // set it to initial value
 
                 //Send authorization info about this client as soon as connection established
@@ -108,7 +108,7 @@ namespace OpenRm.Agent
                     retryIntervalCurrent += 5;         
 
                 e.SocketError = 0;  //clear Error info and try to connect again
-                ((AsyncUserToken)e.UserToken).socket.ConnectAsync(e);
+                ((AgentAsyncUserToken)e.UserToken).socket.ConnectAsync(e);
 
                 return;
             }
@@ -122,7 +122,7 @@ namespace OpenRm.Agent
         {
             Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
 
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            AgentAsyncUserToken token = (AgentAsyncUserToken)e.UserToken;
 
             // reset token's buffers and counters before reusing the token
             token.Clean();
@@ -149,7 +149,7 @@ namespace OpenRm.Agent
 
         private void StartSend(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (AgentAsyncUserToken)e.UserToken;
 
             int bytesToTransfer = Math.Min(sendReceiveBuffer.Length, token.sendingMsg.Length - token.sendingMsgBytesSent);
             e.SetBuffer(sendReceiveBuffer, 0, bytesToTransfer);
@@ -166,7 +166,7 @@ namespace OpenRm.Agent
         // This method is invoked when an asynchronous send operation completes.
         private void ProcessSend(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (AgentAsyncUserToken)e.UserToken;
 
             if (e.SocketError == SocketError.Success)
             {
@@ -213,7 +213,7 @@ namespace OpenRm.Agent
         // If the remote host closed the connection, then the socket is closed.
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (AgentAsyncUserToken)e.UserToken;
             // Check if the remote host closed the connection
             //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
@@ -313,7 +313,7 @@ namespace OpenRm.Agent
 
         private void CloseServerConnection(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (AgentAsyncUserToken)e.UserToken;
 
             // close the socket
             try
@@ -346,7 +346,7 @@ namespace OpenRm.Agent
 
         private void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (AgentAsyncUserToken)e.UserToken;
 
             Message message = WoxalizerAdapter.DeserializeFromXml(token.msgData, TypeResolving.AssemblyResolveHandler);
 
@@ -362,7 +362,7 @@ namespace OpenRm.Agent
 
         private void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (AgentAsyncUserToken)e.UserToken;
 
             ResponseMessage responseMsg;
             switch (message.OpCode)
