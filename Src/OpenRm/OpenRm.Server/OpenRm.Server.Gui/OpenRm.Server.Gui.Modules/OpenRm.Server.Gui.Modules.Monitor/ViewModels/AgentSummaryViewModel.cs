@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
+using OpenRm.Common.Entities;
 using OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels;
-using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {

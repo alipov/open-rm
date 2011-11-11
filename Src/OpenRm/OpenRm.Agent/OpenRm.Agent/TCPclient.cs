@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using OpenRm.Common.Entities;
 using Woxalizer;
-using System.Reflection;
 using System.IO;
 using System.Xml;
 
@@ -383,15 +380,16 @@ namespace OpenRm.Agent
                     SendMessage(e, SerializeToXml(responseMsg));
                     break;
 
-                case (int)EOpCode.OsInfo:
-                    var os = new OsInfo();
-                    OpProcessor.GetInfo(os);
+                    //TODO: [Alex] commented it because it didn't compiled
+                //case (int)EOpCode.OsInfo:
+                //    var os = new OsInfo();
+                //    OpProcessor.GetInfo(os);
 
 
 
-                    break;
+                //    break;
 
-                    //TODO:  Add all OpCodes...
+                //    //TODO:  Add all OpCodes...
 
 
 
@@ -418,7 +416,7 @@ namespace OpenRm.Agent
             var writer = XmlWriter.Create(mem);
 
             //TODO:  how to change this code to generic?
-            using (var woxalizer = new WoxalizerUtil(App.AssemblyResolveHandler))
+            using (var woxalizer = new WoxalizerUtil(TypeResolving.AssemblyResolveHandler))
             {
                 if (msg is RequestMessage)
                 {
@@ -443,7 +441,7 @@ namespace OpenRm.Agent
             var mem = new MemoryStream(msg);
             var reader = XmlReader.Create(mem);
 
-            using (var woxalizer = new WoxalizerUtil(App.AssemblyResolveHandler))
+            using (var woxalizer = new WoxalizerUtil(TypeResolving.AssemblyResolveHandler))
             {
                 message = (Message)woxalizer.Load(reader);
             }

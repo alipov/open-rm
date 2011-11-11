@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenRm.Common.Entities;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
-using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Services
 {
