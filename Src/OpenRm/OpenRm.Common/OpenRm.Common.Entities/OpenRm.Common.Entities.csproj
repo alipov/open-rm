@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="Woxalizer">
       <HintPath>..\..\..\..\Bin\Common\ThirdParty\Woxalizer\Woxalizer.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
