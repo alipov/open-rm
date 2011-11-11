@@ -78,7 +78,6 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="Woxalizer">
       <HintPath>..\..\..\..\Bin\Common\ThirdParty\Woxalizer\Woxalizer.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +91,7 @@
     </Compile>
     <Compile Include="OpProcessor.cs" />
     <Compile Include="TCPclient.cs" />
+    <Compile Include="TypeResolving.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncUserToken.cs" />

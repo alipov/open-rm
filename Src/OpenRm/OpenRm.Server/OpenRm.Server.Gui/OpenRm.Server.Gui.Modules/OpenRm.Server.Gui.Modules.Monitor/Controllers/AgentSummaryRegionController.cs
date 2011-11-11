@@ -3,12 +3,12 @@ using System.Linq;
 using Microsoft.Practices.Prism.Events;
 using Microsoft.Practices.Prism.Regions;
 using Microsoft.Practices.Unity;
+using OpenRm.Common.Entities;
 using OpenRm.Server.Gui.Inf;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Controllers;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Views;
 using OpenRm.Server.Gui.Modules.Monitor.EventAggregatorMessages;
-using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Controllers
 {

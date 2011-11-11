@@ -66,12 +66,12 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Woxalizer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Woxalizer">
       <HintPath>..\..\..\..\..\Bin\Common\ThirdParty\Woxalizer\Woxalizer.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TypeResolving.cs" />
     <Compile Include="ClientData.cs" />
     <Compile Include="MicrosoftExample\AsyncUserToken.cs" />
     <Compile Include="MicrosoftExample\BufferManager.cs" />

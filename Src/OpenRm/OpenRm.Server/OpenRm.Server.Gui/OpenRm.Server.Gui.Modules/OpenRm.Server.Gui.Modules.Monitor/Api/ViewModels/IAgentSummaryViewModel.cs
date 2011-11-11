@@ -1,5 +1,5 @@
-﻿using OpenRm.Server.Gui.Inf.Api.Mvvm;
-using OpenRm.Server.Gui.Modules.Monitor.Models;
+﻿using OpenRm.Common.Entities;
+using OpenRm.Server.Gui.Inf.Api.Mvvm;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels
 {

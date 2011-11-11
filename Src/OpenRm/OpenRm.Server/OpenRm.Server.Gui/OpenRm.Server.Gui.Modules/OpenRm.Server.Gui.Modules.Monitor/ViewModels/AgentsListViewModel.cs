@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using Microsoft.Practices.Prism.Events;
+using OpenRm.Common.Entities;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
 using OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels;
 using OpenRm.Server.Gui.Modules.Monitor.EventAggregatorMessages;
-using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {

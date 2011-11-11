@@ -71,7 +71,6 @@
     <Compile Include="Api\Views\IAgentSummaryView.cs" />
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
-    <Compile Include="Models\Agent.cs" />
     <Compile Include="MonitorModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -131,12 +130,19 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\OpenRm.Common\OpenRm.Common.Entities\OpenRm.Common.Entities.csproj">
+      <Project>{37332D34-F657-4B35-89E1-27717296E7FE}</Project>
+      <Name>OpenRm.Common.Entities</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\OpenRm.Server.Gui.Inf\OpenRm.Server.Gui.Inf.csproj">
       <Project>{8488DE26-2A84-4DB2-9421-7F181CA7AA5F}</Project>
       <Name>OpenRm.Server.Gui.Inf</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
