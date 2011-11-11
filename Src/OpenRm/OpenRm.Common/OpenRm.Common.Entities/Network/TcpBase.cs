@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -14,12 +15,12 @@ namespace OpenRm.Common.Entities.Network
         protected TcpBase(Func<object, ResolveEventArgs, Assembly> assemblyResolveHandler, int bufferSize)
         {
             _assemblyResolveHandler = assemblyResolveHandler;
-            this.receiveBufferSize = bufferSize;
+            receiveBufferSize = bufferSize;
         }
 
         // Invoked when an asycnhronous receive operation completes.  
         // If the remote host closed the connection, then the socket is closed.
-        private void ProcessReceive(SocketAsyncEventArgs e)
+        protected void ProcessReceive(SocketAsyncEventArgs e)
         {
             var token = (AsyncUserTokenBase)e.UserToken;
             // Check if the remote host closed the connection
@@ -126,7 +127,7 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        private void StartReceive(SocketAsyncEventArgs readEventArgs)
+        protected void StartReceive(SocketAsyncEventArgs readEventArgs)
         {
             readEventArgs.SetBuffer(readEventArgs.Offset, receiveBufferSize);
             bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
@@ -138,7 +139,7 @@ namespace OpenRm.Common.Entities.Network
             Logger.WriteStr("StartReceive has been run");
         }
 
-        private void ProcessReceivedMessage(SocketAsyncEventArgs e)
+        protected void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
             var token = (AsyncUserTokenBase)e.UserToken;
 
@@ -155,5 +156,7 @@ namespace OpenRm.Common.Entities.Network
         protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);
         protected abstract void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message);
         protected abstract void CloseConnection(SocketAsyncEventArgs e);
+
+        public abstract void Start();
     }
 }

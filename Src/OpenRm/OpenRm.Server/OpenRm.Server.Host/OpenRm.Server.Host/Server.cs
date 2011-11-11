@@ -34,7 +34,8 @@ namespace OpenRm.Server.Host
                 Logger.CreateLogFile("logs", _logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
                 Logger.WriteStr("Started");
 
-                var srv = new TCPServerListener(ListenPort, MaxNumConnections, ReceiveBufferSize);
+                var srv = new TcpServerListener(ListenPort, MaxNumConnections, ReceiveBufferSize, TypeResolving.AssemblyResolveHandler);
+                srv.Start();
 
                 Logger.WriteStr("Server terminated");
             }

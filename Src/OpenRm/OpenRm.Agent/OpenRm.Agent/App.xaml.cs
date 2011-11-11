@@ -18,7 +18,7 @@ namespace OpenRm.Agent
         private string logFilenamePattern;
         public static int ReceiveBufferSize = 64;      //recieve buffer size for tcp connection
         private static Thread starterThread;
-        private TCPclient client;
+        private TcpClient client;
 
         private NotifyIconWrapper _notifyIconComponent;
 
@@ -38,19 +38,20 @@ namespace OpenRm.Agent
 
         private void StartThread(object sender, EventArgs e)
         {
-            starterThread = new Thread(new ThreadStart(AgentStarterTread));
+            starterThread = new Thread(AgentStarterThread);
             starterThread.Start();
         }
 
-        private void AgentStarterTread()
+        private void AgentStarterThread()
         {
-            if (!ReadConfigFile()) return;
+            if (!ReadConfigFile()) return; //TODO: close application? notify user?
 
             Logger.CreateLogFile("logs", logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
             Logger.WriteStr("Client started.");
             agentStarted = true;
-
-            client = new TCPclient(serverIP, serverPort, ReceiveBufferSize);
+            
+            client = new TcpClient(serverIP, serverPort, ReceiveBufferSize, TypeResolving.AssemblyResolveHandler);
+            client.Start();
 
             Logger.WriteStr("Client terminated");
 
@@ -72,14 +73,11 @@ namespace OpenRm.Agent
             _notifyIconComponent.Dispose();
         }
 
-
-
         // read configuration from config file
         private bool ReadConfigFile()
         {
             try
             {
-                 
                 serverIP = ConfigurationManager.AppSettings["ServerIP"];
                 serverPort = Int32.Parse(ConfigurationManager.AppSettings["ServerPort"]);
                 logFilenamePattern = ConfigurationManager.AppSettings["LogFilePattern"];

@@ -48,13 +48,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Agent.cs" />
+    <Compile Include="Entities\Agent.cs" />
     <Compile Include="ClientData.cs" />
-    <Compile Include="EMessageType.cs" />
-    <Compile Include="EOpCode.cs" />
+    <Compile Include="Enums\EMessageType.cs" />
+    <Compile Include="Enums\EOpCode.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Message.cs" />
+    <Compile Include="Network\Messages\IdentificationData.cs" />
+    <Compile Include="Network\Messages\IpConfigData.cs" />
+    <Compile Include="Network\Messages\Message.cs" />
     <Compile Include="Network\AsyncUserTokenBase.cs" />
+    <Compile Include="Network\Messages\OsInfo.cs" />
+    <Compile Include="Network\Messages\RequestMessage.cs" />
+    <Compile Include="Network\Messages\ResponseMessage.cs" />
+    <Compile Include="Network\Messages\RunCompletedStatus.cs" />
+    <Compile Include="Network\Messages\RunProcess.cs" />
     <Compile Include="Network\TcpBase.cs" />
     <Compile Include="OpenRmException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
