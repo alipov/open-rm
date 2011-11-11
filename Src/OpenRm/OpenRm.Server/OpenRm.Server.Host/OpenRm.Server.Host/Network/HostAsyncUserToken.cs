@@ -8,11 +8,11 @@ namespace OpenRm.Server.Host.Network
     {
         public HostAsyncUserToken() : base(null, null) {}
 
-        public HostAsyncUserToken(Socket socket, ClientData data, int msgPrefixLength = 4)
-            : base(socket, data, msgPrefixLength)
-        {
+        //public HostAsyncUserToken(Socket socket, ClientData data, int msgPrefixLength = 4)
+        //    : base(socket, data, msgPrefixLength)
+        //{
             
-        }
+        //}
 
         static HostAsyncUserToken()
         {

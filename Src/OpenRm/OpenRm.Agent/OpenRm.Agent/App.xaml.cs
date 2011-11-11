@@ -33,6 +33,7 @@ namespace OpenRm.Agent
 
             _notifyIconComponent = new NotifyIconWrapper();
             _notifyIconComponent.StartAgentClick += StartThread;
+            
         }
 
 
