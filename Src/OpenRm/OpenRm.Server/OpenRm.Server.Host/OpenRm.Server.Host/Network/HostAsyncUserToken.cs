@@ -14,12 +14,18 @@ namespace OpenRm.Server.Host.Network
             
         }
 
-        public static int runId = 1;
-
-        // returns and increments process identification number
-        public int GetRunId()
+        static HostAsyncUserToken()
         {
-            return runId++;
+            _runId = 1;
+        }
+
+        private static int _runId;
+        public static int RunId
+        {
+            get // returns and increments process identification number
+            {
+                return _runId++;
+            }
         }
     }
 }

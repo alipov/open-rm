@@ -51,7 +51,7 @@ namespace OpenRm.Agent
             sockArgs.Completed += new EventHandler<SocketAsyncEventArgs>(SocketEventArg_Completed);
             sockArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverIP), _serverPort);
             sockArgs.UserToken = new AgentAsyncUserToken();
-            ((AgentAsyncUserToken)sockArgs.UserToken).socket = socket;
+            ((AgentAsyncUserToken)sockArgs.UserToken).Socket = socket;
             sockArgs.AcceptSocket = socket;
 
             socket.ConnectAsync(sockArgs);
@@ -86,7 +86,7 @@ namespace OpenRm.Agent
         {
             if (e.SocketError == SocketError.Success)
             {
-                Logger.WriteStr("Successfully connected to the server on " + ((AgentAsyncUserToken)(e.UserToken)).socket.LocalEndPoint.ToString());
+                Logger.WriteStr("Successfully connected to the server on " + ((AgentAsyncUserToken)(e.UserToken)).Socket.LocalEndPoint.ToString());
                 retryIntervalCurrent = retryIntervalInitial;          // set it to initial value
 
                 //Send authorization info about this client as soon as connection established
@@ -108,7 +108,7 @@ namespace OpenRm.Agent
                     retryIntervalCurrent += 5;         
 
                 e.SocketError = 0;  //clear Error info and try to connect again
-                ((AgentAsyncUserToken)e.UserToken).socket.ConnectAsync(e);
+                ((AgentAsyncUserToken)e.UserToken).Socket.ConnectAsync(e);
 
                 return;
             }
@@ -137,9 +137,9 @@ namespace OpenRm.Agent
             //}
 
             // prepare complete data and store it into token
-            token.sendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
-            prefixToAdd.CopyTo(token.sendingMsg, 0);
-            msgToSend.CopyTo(token.sendingMsg, msgPrefixLength);
+            token.SendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
+            prefixToAdd.CopyTo(token.SendingMsg, 0);
+            msgToSend.CopyTo(token.SendingMsg, msgPrefixLength);
 
 
             StartSend(e);
@@ -151,9 +151,9 @@ namespace OpenRm.Agent
         {
             var token = (AgentAsyncUserToken)e.UserToken;
 
-            int bytesToTransfer = Math.Min(sendReceiveBuffer.Length, token.sendingMsg.Length - token.sendingMsgBytesSent);
+            int bytesToTransfer = Math.Min(sendReceiveBuffer.Length, token.SendingMsg.Length - token.SendingMsgBytesSent);
             e.SetBuffer(sendReceiveBuffer, 0, bytesToTransfer);
-            Array.Copy(token.sendingMsg, token.sendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
+            Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
 
             bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
             if (!willRaiseEvent)
@@ -170,11 +170,11 @@ namespace OpenRm.Agent
 
             if (e.SocketError == SocketError.Success)
             {
-                token.sendingMsgBytesSent += sendReceiveBuffer.Length;     // receiveBufferSize is the maximum data length in one send
-                if (token.sendingMsgBytesSent < token.sendingMsg.Length)
+                token.SendingMsgBytesSent += sendReceiveBuffer.Length;     // receiveBufferSize is the maximum data length in one send
+                if (token.SendingMsgBytesSent < token.SendingMsg.Length)
                 {
                     // Not all message has been sent, so send next part
-                    Logger.WriteStr(token.sendingMsgBytesSent + " of " + token.sendingMsg.Length + " have been sent. Calling additional Send...");
+                    Logger.WriteStr(token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
                     StartSend(e);
                     return;
                 }
@@ -232,19 +232,19 @@ namespace OpenRm.Agent
                 {
                     // Determine how many bytes we want to transfer to the buffer and transfer them 
                     int bytesAvailable = e.BytesTransferred - i;
-                    if (token.msgData == null)
+                    if (token.MsgData == null)
                     {
                         // token.msgData is empty so we a dealing with Prefix.
                         // Copy the incoming bytes into token's prefix's buffer
                         // All incoming data is in e.Buffer, at e.Offset position
-                        int bytesRequested = msgPrefixLength - token.recievedPrefixPartLength;
+                        int bytesRequested = msgPrefixLength - token.RecievedPrefixPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.prefixData, token.recievedPrefixPartLength, bytesTransferred);
+                        Array.Copy(e.Buffer, e.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
                         i += bytesTransferred;
 
-                        token.recievedPrefixPartLength += bytesTransferred;
+                        token.RecievedPrefixPartLength += bytesTransferred;
 
-                        if (token.recievedPrefixPartLength != msgPrefixLength)
+                        if (token.RecievedPrefixPartLength != msgPrefixLength)
                         {
                             // We haven't got all the prefix buffer yet. Call StartReceive again to receive remaining data from TCP buffer
                             Logger.WriteStr("We've got just a part of prefix. Trying to get more data...");
@@ -254,34 +254,34 @@ namespace OpenRm.Agent
                         else
                         {
                             // We've gotten the length buffer 
-                            int length = BitConverter.ToInt32(token.prefixData, 0);
+                            int length = BitConverter.ToInt32(token.PrefixData, 0);
                             Logger.WriteStr(" Got prefix representing value: " + length);
 
                             if (length < 0)
                                 throw new System.Net.ProtocolViolationException("Invalid message prefix");
 
                             // Save prefix value into token
-                            token.messageLength = length;
+                            token.MessageLength = length;
 
                             // Create the data buffer and start reading into it 
-                            token.msgData = new byte[length];
+                            token.MsgData = new byte[length];
 
                             // zero prefix counter
-                            token.recievedPrefixPartLength = 0;
+                            token.RecievedPrefixPartLength = 0;
                         }
 
                     }
                     else
                     {
                         // We're reading into the data buffer  
-                        int bytesRequested = token.messageLength - token.recievedMsgPartLength;
+                        int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.msgData, token.recievedMsgPartLength, bytesTransferred);
-                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.msgData));
+                        Array.Copy(e.Buffer, e.Offset + i, token.MsgData, token.RecievedMsgPartLength, bytesTransferred);
+                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.MsgData));
                         i += bytesTransferred;
 
-                        token.recievedMsgPartLength += bytesTransferred;
-                        if (token.recievedMsgPartLength != token.msgData.Length)
+                        token.RecievedMsgPartLength += bytesTransferred;
+                        if (token.RecievedMsgPartLength != token.MsgData.Length)
                         {
                             // We haven't gotten all the data buffer yet: just wait for more data to arrive
                             StartReceive(e);
@@ -290,7 +290,7 @@ namespace OpenRm.Agent
                         else
                         {
                             // we've gotten an entire packet
-                            Logger.WriteStr("Got complete message from " + e.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.msgData));
+                            Logger.WriteStr("Got complete message from " + e.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.MsgData));
 
                             ProcessReceivedMessage(e);
 
@@ -303,7 +303,7 @@ namespace OpenRm.Agent
             }
             else
             {
-                Logger.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + " due to exception:\n"
+                Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint.ToString() + " due to exception:\n"
                     + new SocketException((int)e.SocketError).ToString() + "\n"
                     + "Closing this connection....");
                 CloseServerConnection(e);
@@ -318,7 +318,7 @@ namespace OpenRm.Agent
             // close the socket
             try
             {
-                token.socket.Shutdown(SocketShutdown.Send);
+                token.Socket.Shutdown(SocketShutdown.Send);
             }
             // throws if server has already closed connection
             catch (Exception) { }
@@ -326,7 +326,7 @@ namespace OpenRm.Agent
             Logger.WriteStr("Client disconnected from server.");
 
             token.Clean();
-            token.socket.Close();
+            token.Socket.Close();
 
             if (App.agentStarted)
             {
@@ -338,7 +338,7 @@ namespace OpenRm.Agent
             }
             else
             {
-                token.socket.Close();
+                token.Socket.Close();
                 clientDone.Reset();
             }
         }
@@ -348,7 +348,7 @@ namespace OpenRm.Agent
         {
             var token = (AgentAsyncUserToken)e.UserToken;
 
-            Message message = WoxalizerAdapter.DeserializeFromXml(token.msgData, TypeResolving.AssemblyResolveHandler);
+            Message message = WoxalizerAdapter.DeserializeFromXml(token.MsgData, TypeResolving.AssemblyResolveHandler);
 
             if (message is RequestMessage)
                 ProcessReceivedMessageRequest(e, (RequestMessage)message);
@@ -369,7 +369,7 @@ namespace OpenRm.Agent
             {
                 case (int)EOpCode.IpConfigData:
                     var ipdata = new IpConfigData();
-                    OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.socket.LocalEndPoint).Address.ToString());       // fill required data
+                    OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.Socket.LocalEndPoint).Address.ToString());       // fill required data
                     responseMsg = new ResponseMessage {Response = ipdata};
                     SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     break;

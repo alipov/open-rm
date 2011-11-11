@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Xml;
 using OpenRm.Common.Entities;
-using OpenRm.Server.Host.Network;
-using Woxalizer;
 
-namespace OpenRm.Server.Host
+namespace OpenRm.Server.Host.Network
 {
     class TCPServerListener
     {
@@ -140,7 +133,7 @@ namespace OpenRm.Server.Host
             SocketAsyncEventArgs readEventArgs = argsReadWritePool.Pop();
             if (readEventArgs != null)
             {
-                ((HostAsyncUserToken)readEventArgs.UserToken).socket = e.AcceptSocket;
+                ((HostAsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
                 readEventArgs.AcceptSocket = e.AcceptSocket;
                 e.AcceptSocket = null;                          // We'll reuse Accept SocketAsyncEventArgs object
 
@@ -212,19 +205,19 @@ namespace OpenRm.Server.Host
                 {
                     // Determine how many bytes we want to transfer to the buffer and transfer them 
                     int bytesAvailable = e.BytesTransferred - i;
-                    if (token.msgData == null)
+                    if (token.MsgData == null)
                     {
                         // token.msgData is empty so we a dealing with Prefix.
                         // Copy the incoming bytes into token's prefix's buffer
                         // All incoming data is in e.Buffer, at e.Offset position
-                        int bytesRequested = msgPrefixLength - token.recievedPrefixPartLength;
+                        int bytesRequested = msgPrefixLength - token.RecievedPrefixPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.prefixData, token.recievedPrefixPartLength, bytesTransferred);
+                        Array.Copy(e.Buffer, e.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
                         i += bytesTransferred;
 
-                        token.recievedPrefixPartLength += bytesTransferred;
+                        token.RecievedPrefixPartLength += bytesTransferred;
 
-                        if (token.recievedPrefixPartLength != msgPrefixLength)
+                        if (token.RecievedPrefixPartLength != msgPrefixLength)
                         {
                             // We haven't gotten all the prefix buffer yet: call Receive again.
                             Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
@@ -234,34 +227,34 @@ namespace OpenRm.Server.Host
                         else
                         {
                             // We've gotten the prefix buffer 
-                            int length = BitConverter.ToInt32(token.prefixData, 0);
+                            int length = BitConverter.ToInt32(token.PrefixData, 0);
                             Logger.WriteStr(" Got prefix representing value: " + length);
 
                             if (length < 0)
                                 throw new System.Net.ProtocolViolationException("Invalid message prefix");
 
                             // Save prefix value into token
-                            token.messageLength = length;
+                            token.MessageLength = length;
 
                             // Create the data buffer and start reading into it 
-                            token.msgData = new byte[length];
+                            token.MsgData = new byte[length];
                             
                             // zero prefix counter
-                            token.recievedPrefixPartLength = 0;
+                            token.RecievedPrefixPartLength = 0;
                         }
 
                     }
                     else
                     {
                         // We're reading into the data buffer  
-                        int bytesRequested = token.messageLength - token.recievedMsgPartLength;
+                        int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.msgData, token.recievedMsgPartLength, bytesTransferred);
-                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.msgData));
+                        Array.Copy(e.Buffer, e.Offset + i, token.MsgData, token.RecievedMsgPartLength, bytesTransferred);
+                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.MsgData));
                         i += bytesTransferred;
 
-                        token.recievedMsgPartLength += bytesTransferred;
-                        if (token.recievedMsgPartLength != token.msgData.Length)
+                        token.RecievedMsgPartLength += bytesTransferred;
+                        if (token.RecievedMsgPartLength != token.MsgData.Length)
                         {
                             // We haven't gotten all the data buffer yet: call Receive again to get more data
                             StartReceive(e);
@@ -270,7 +263,7 @@ namespace OpenRm.Server.Host
                         else
                         {
                             // we've gotten an entire packet
-                            Logger.WriteStr("Got complete message from " + token.socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.msgData));
+                            Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.MsgData));
 // TODO:  get token.msgData data and convert to XML, .... . . . ..
 
                             ProcessReceivedMessage(e);
@@ -291,7 +284,7 @@ namespace OpenRm.Server.Host
             }               
             else
             {
-                Logger.WriteStr("ERROR: Failed to get data on socket " + token.socket.LocalEndPoint.ToString() + " due to exception:\n"
+                Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint.ToString() + " due to exception:\n"
                     + new SocketException((int)e.SocketError).ToString() + "\n"
                     + "Closing this connection....");
                 CloseClientSocket(e);
@@ -319,9 +312,9 @@ namespace OpenRm.Server.Host
             ////}
 
             // prepare complete data and store it into token
-            token.sendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
-            prefixToAdd.CopyTo(token.sendingMsg, 0);
-            msgToSend.CopyTo(token.sendingMsg, msgPrefixLength);
+            token.SendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
+            prefixToAdd.CopyTo(token.SendingMsg, 0);
+            msgToSend.CopyTo(token.SendingMsg, msgPrefixLength);
 
             StartSend(e);
  
@@ -332,8 +325,8 @@ namespace OpenRm.Server.Host
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
-            int bytesToTransfer = Math.Min(receiveBufferSize, token.sendingMsg.Length - token.sendingMsgBytesSent);
-            Array.Copy(token.sendingMsg, token.sendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
+            int bytesToTransfer = Math.Min(receiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
+            Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
             e.SetBuffer(e.Offset, bytesToTransfer);
 
             bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
@@ -351,11 +344,11 @@ namespace OpenRm.Server.Host
 
             if (e.SocketError == SocketError.Success)
             {    
-                token.sendingMsgBytesSent += receiveBufferSize;     // receiveBufferSize is the maximum data length in one send
-                if (token.sendingMsgBytesSent < token.sendingMsg.Length)
+                token.SendingMsgBytesSent += receiveBufferSize;     // receiveBufferSize is the maximum data length in one send
+                if (token.SendingMsgBytesSent < token.SendingMsg.Length)
                 {
                     // Not all message has been sent, so send next part
-                    Logger.WriteStr(token.sendingMsgBytesSent + " of " + token.sendingMsg.Length + " have been sent. Calling additional Send...");
+                    Logger.WriteStr(token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
                     StartSend(e);
                     return;
                 }
@@ -381,16 +374,16 @@ namespace OpenRm.Server.Host
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
             var token = e.UserToken as HostAsyncUserToken;
-            String clientEP = token.socket.RemoteEndPoint.ToString();
+            String clientEP = token.Socket.RemoteEndPoint.ToString();
 
             // close the socket associated with the client
             try
             {
-                token.socket.Shutdown(SocketShutdown.Send);
+                token.Socket.Shutdown(SocketShutdown.Send);
             }
             // throws if client process has already closed
             catch (Exception) { }
-            token.socket.Close();
+            token.Socket.Close();
             maxNumberAcceptedClients.Release();
             token.Clean();
 
@@ -405,7 +398,7 @@ namespace OpenRm.Server.Host
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
-            Message message = WoxalizerAdapter.DeserializeFromXml(token.msgData, TypeResolving.AssemblyResolveHandler);
+            Message message = WoxalizerAdapter.DeserializeFromXml(token.MsgData, TypeResolving.AssemblyResolveHandler);
 
                 //// TODO: why do not write: "if (message is RequestMessage)" ...  - so we don't need MessageType!
                 ////switch ((EMessageType)message.MessageType)
@@ -452,14 +445,14 @@ namespace OpenRm.Server.Host
             else if (message.Response is IpConfigData)
             {
                 var ipConf = (IpConfigData) message.Response;
-                token.data.IpConfig = ipConf;       //store in "database"
+                token.Data.IpConfig = ipConf;       //store in "database"
 
 
                 //TODO: move to another place
                 var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
                 var exec = new RunProcess
                                {
-                                   RunId = token.GetRunId(),
+                                   RunId = HostAsyncUserToken.RunId,
                                    Cmd = "notepad.exe",
                                    Args = "",
                                    WorkDir = "c:\\",
@@ -495,7 +488,7 @@ namespace OpenRm.Server.Host
             }
             else
             {
-                Logger.WriteStr("WARNING: Recieved unkown response from " + token.socket.RemoteEndPoint.ToString() + "!");
+                Logger.WriteStr("WARNING: Recieved unkown response from " + token.Socket.RemoteEndPoint.ToString() + "!");
             }
                 
         }
