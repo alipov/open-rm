@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -59,7 +58,10 @@ namespace OpenRm.Server.Host.Network
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
                 readWriteArg = new SocketAsyncEventArgs();
                 readWriteArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-                readWriteArg.UserToken = new HostAsyncUserToken();
+                var token = new HostAsyncUserToken() {Data = new ClientData()};
+                readWriteArg.UserToken = token;
+                
+
 
                 // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
                 bufferManager.SetBuffer(readWriteArg);
@@ -173,38 +175,9 @@ namespace OpenRm.Server.Host.Network
                 default:
                     throw new ArgumentException("The last operation completed on the socket was not a receive or send");
             }
-
         }
 
-        // Prepares data to be sent and calls sending method. 
-        // It can process large messages by cutting them into small ones.
-        // The method issues another receive on the socket to read client's answer.
-        private void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
-        {
-            //TODO:  maybe remove 3-byte descriptor from beginning of array?
-            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
-
-            var token = (HostAsyncUserToken)e.UserToken;
-
-            // prepare data to send: add prefix that holds length of message
-            Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
-            ////if (prefixToAdd.Length != msgPrefixLength )
-            ////{
-            ////    //TODO:  Do we need this check??? if yes - throw Exception
-            ////    Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
-            ////    return;
-            ////}
-
-            // prepare complete data and store it into token
-            token.SendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
-            prefixToAdd.CopyTo(token.SendingMsg, 0);
-            msgToSend.CopyTo(token.SendingMsg, msgPrefixLength);
-
-            StartSend(e);
- 
-        }
-
-        private void StartSend(SocketAsyncEventArgs e)
+        protected override void StartSend(SocketAsyncEventArgs e)
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
@@ -216,39 +189,6 @@ namespace OpenRm.Server.Host.Network
             if (!willRaiseEvent)
             {
                 ProcessSend(e);
-            }
-        }
-
-        // This method is invoked when an asynchronous send operation completes.
-        private void ProcessSend(SocketAsyncEventArgs e)
-        {
-            var token = (HostAsyncUserToken)e.UserToken;
-
-            if (e.SocketError == SocketError.Success)
-            {    
-                token.SendingMsgBytesSent += receiveBufferSize;     // receiveBufferSize is the maximum data length in one send
-                if (token.SendingMsgBytesSent < token.SendingMsg.Length)
-                {
-                    // Not all message has been sent, so send next part
-                    Logger.WriteStr(token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
-                    StartSend(e);
-                    return;
-                }
-
-                Logger.WriteStr(" Message has been sent.");
-
-                // reset token's buffers and counters before reusing the token
-                token.Clean();
-
-                // read the answer send from the client
-                StartReceive(e);
-
-            }
-            else
-            {
-                Logger.WriteStr(" Message has failed to be sent.");
-                token.Clean();
-                CloseConnection(e);
             }
         }
 
@@ -283,12 +223,16 @@ namespace OpenRm.Server.Host.Network
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
+            if(token.Data == null)
+                token.Data = new ClientData();
+
             if (message.Response is IdentificationData)
             {
                 var idata = (IdentificationData) message.Response;
                 Logger.WriteStr(" * New client has connected: " + idata.deviceName);
                 // ...create ClientData (if does not exist already) and add to token
                 //...
+
 
                 //TODO: for testing only:
                 //Get IP information
@@ -348,6 +292,69 @@ namespace OpenRm.Server.Host.Network
         }
 
         #region ToDelete
+
+
+        //// Prepares data to be sent and calls sending method. 
+        //// It can process large messages by cutting them into small ones.
+        //// The method issues another receive on the socket to read client's answer.
+        //private void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
+        //{
+        //    //TODO:  maybe remove 3-byte descriptor from beginning of array?
+        //    Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
+
+        //    var token = (HostAsyncUserToken)e.UserToken;
+
+        //    // prepare data to send: add prefix that holds length of message
+        //    Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
+        //    ////if (prefixToAdd.Length != msgPrefixLength )
+        //    ////{
+        //    ////    //TODO:  Do we need this check??? if yes - throw Exception
+        //    ////    Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
+        //    ////    return;
+        //    ////}
+
+        //    // prepare complete data and store it into token
+        //    token.SendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
+        //    prefixToAdd.CopyTo(token.SendingMsg, 0);
+        //    msgToSend.CopyTo(token.SendingMsg, msgPrefixLength);
+
+        //    StartSend(e);
+
+        //}
+
+
+        //// This method is invoked when an asynchronous send operation completes.
+        //private void ProcessSend(SocketAsyncEventArgs e)
+        //{
+        //    var token = (HostAsyncUserToken)e.UserToken;
+
+        //    if (e.SocketError == SocketError.Success)
+        //    {    
+        //        token.SendingMsgBytesSent += receiveBufferSize;     // receiveBufferSize is the maximum data length in one send
+        //        if (token.SendingMsgBytesSent < token.SendingMsg.Length)
+        //        {
+        //            // Not all message has been sent, so send next part
+        //            Logger.WriteStr(token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
+        //            StartSend(e);
+        //            return;
+        //        }
+
+        //        Logger.WriteStr(" Message has been sent.");
+
+        //        // reset token's buffers and counters before reusing the token
+        //        token.Clean();
+
+        //        // read the answer send from the client
+        //        StartReceive(e);
+
+        //    }
+        //    else
+        //    {
+        //        Logger.WriteStr(" Message has failed to be sent.");
+        //        //token.Clean();
+        //        CloseConnection(e);
+        //    }
+        //}
 
         //private void ProcessReceivedMessage(SocketAsyncEventArgs e)
         //{

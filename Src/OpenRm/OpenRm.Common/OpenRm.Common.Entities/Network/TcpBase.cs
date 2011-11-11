@@ -153,6 +153,70 @@ namespace OpenRm.Common.Entities.Network
                 throw new ArgumentException("Cannot determinate Message type!");
         }
 
+        // This method is invoked when an asynchronous send operation completes.
+        protected void ProcessSend(SocketAsyncEventArgs e)
+        {
+            var token = (AsyncUserTokenBase)e.UserToken;
+
+            if (e.SocketError == SocketError.Success)
+            {
+                token.SendingMsgBytesSent += receiveBufferSize;     // receiveBufferSize is the maximum data length in one send
+                if (token.SendingMsgBytesSent < token.SendingMsg.Length)
+                {
+                    // Not all message has been sent, so send next part
+                    Logger.WriteStr(token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
+                    StartSend(e);
+                    return;
+                }
+
+                Logger.WriteStr(" Message has been sent.");
+
+                // reset token's buffers and counters before reusing the token
+                token.Clean();
+
+                // read the answer send from the client
+                StartReceive(e);
+
+            }
+            else
+            {
+                Logger.WriteStr(" Message has failed to be sent.");
+                //token.Clean();
+                CloseConnection(e);
+            }
+        }
+
+        // Prepares data to be sent and calls sending method. 
+        // It can process large messages by cutting them into small ones.
+        // The method issues another receive on the socket to read client's answer.
+        protected void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
+        {
+            //TODO:  maybe remove 3-byte descriptor from beginning of array?
+            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
+
+            var token = (AsyncUserTokenBase)e.UserToken;
+
+            // reset token's buffers and counters before reusing the token
+            //token.Clean();
+
+            // prepare data to send: add prefix that holds length of message
+            Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
+            //if (prefixToAdd.Length != msgPrefixLength)
+            //{
+            //    //TODO:  Do we need this check??? if yes - throw Exception
+            //    Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
+            //    return;
+            //}
+
+            // prepare complete data and store it into token
+            token.SendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
+            prefixToAdd.CopyTo(token.SendingMsg, 0);
+            msgToSend.CopyTo(token.SendingMsg, msgPrefixLength);
+
+            StartSend(e);
+        }
+
+        protected abstract void StartSend(SocketAsyncEventArgs e);
         protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);
         protected abstract void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message);
         protected abstract void CloseConnection(SocketAsyncEventArgs e);
