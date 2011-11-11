@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -50,17 +51,29 @@ namespace OpenRm.Agent
 
         public static void GetInfo(OsInfo os)
         {
-            os.OsName = GetWMIdata("Win32_OperatingSystem", "Caption");
-            os.OsVersion = GetWMIdata("Win32_OperatingSystem", "Version");
-            os.OsArchitecture = GetWMIdata("Win32_OperatingSystem", "OSArchitecture");
-            if (os.OsArchitecture == "")
-                os.OsArchitecture = "32 bit";
-            os.RamSize = Int32.Parse(GetWMIdata("Win32_OperatingSystem", "TotalVisibleMemorySize"));
-            os.FreeRamSize = Int32.Parse(GetWMIdata("Win32_OperatingSystem", "FreePhysicalMemory"));
-            os.CdriveSize = Int32.Parse(GetWMIdata("Win32_LogicalDisk", "Size"));  //TODO: 3rd parameter
-            os.CdriveFreeSpace = Int32.Parse(GetWMIdata("Win32_LogicalDisk", "FreeSpace"));  //TODO: 3rd parameter
+            string[] properties = new string[] { "Caption", "Version", "OSArchitecture", "TotalVisibleMemorySize", "FreePhysicalMemory" };
+            Dictionary<string, string> values = GetWMIdata("Win32_OperatingSystem", properties);    //retrieve all data in one call
+            os.OsName = values["Caption"];
+            os.OsVersion = values["Version"];
+            if (values.ContainsKey("OSArchitecture"))
+                os.OsArchitecture = values["OSArchitecture"];
+            else
+                os.OsArchitecture = "32 bit";   //old 32-bit systems has no OSArchitecture property  
+            os.RamSize = Int32.Parse(values["TotalVisibleMemorySize"]);
+            os.FreeRamSize = Int32.Parse(values["FreePhysicalMemory"]);
+            os.SystemDrive = values["SystemDrive"];
+
+            properties = new string[] { "Size", "FreeSpace" };
+            values = GetWMIdata("Win32_LogicalDisk", properties, "Name", os.SystemDrive);
+            os.SystemDriveSize = Int32.Parse(values["Size"]);
+            os.SystemDriveFree = Int32.Parse(values["FreeSpace"]);
         }
 
+        public static void GetInfo(DiskInfo disks)
+        {
+            
+
+        }
 
         // TODO: maybe to start in new Thread?
         public static RunCompletedStatus StartProcess(RunProcess proc)
@@ -108,22 +121,67 @@ namespace OpenRm.Agent
 
         private static string GetWMIdata(string key, string property)
         {
-            string value = "";       //return value
+            string[] properties = new string[] { property };     // needed only for providing to another function
+
+            Dictionary<string, string> values = GetWMIdata(key, properties);
+
+            return values[property];
+
+            //try
+            //{
+            //    ManagementObjectSearcher searcher = new ManagementObjectSearcher("select " + property + " from " + key);
+            //    foreach (ManagementObject element in searcher.Get())
+            //    {
+            //        value = element[property].ToString();
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    //TODO:  throw new ArgumentException ?
+            //    Logger.WriteStr(" ERROR: Cannot retrieve " + property + " from WMI key " + key + ". (Error: " + ex.Message + ")");
+            //}
+            //
+            //return value;
+        }
+
+        private static Dictionary<string, string> GetWMIdata(string key, string[] properties)
+        {
+            GetWMIdata(key, properties, null, null);
+        }
+
+        private static Dictionary<string, string> GetWMIdata(string key, string[] properties, string specificElementName, string specificElementValue)
+        {
+            Dictionary<string, string> values = new Dictionary<string, string>();      //return value
             try
             {
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher("select " + property + " from " + key);
+                ManagementObjectSearcher searcher = new ManagementObjectSearcher("select * from " + key);
                 foreach (ManagementObject element in searcher.Get())
                 {
-                    value = element[property].ToString();
+                    if (specificElementName == null || element[specificElementName].ToString() == specificElementValue)
+                    {
+                        foreach (string property in properties)
+                        {
+                            try
+                            {
+                                values.Add(property, element[property].ToString());
+                            }
+                            catch (Exception)
+                            {
+                                // just ignore exception bacause it some properties don't exist in all OS platforms (like OSArchitecture)
+                                Logger.WriteStr(" WARNING: \"" + property + "\" does not exist in " + key);
+                            }                         
+                        }
+                    }
+                    
                 }
             }
             catch (Exception ex)
             {
                 //TODO:  throw new ArgumentException ?
-                Logger.WriteStr(" ERROR: Cannot retrieve " + property + " from WMI key " + key + ". (Error: " + ex.Message + ")");
+                Logger.WriteStr(" ERROR: Cannot retrieve data from WMI key " + key + ". (Error: " + ex.Message + ")");
             }
 
-            return value;
+            return values;
         }
 
 
