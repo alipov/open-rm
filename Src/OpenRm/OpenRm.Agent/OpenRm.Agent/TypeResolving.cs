@@ -19,27 +19,55 @@ namespace OpenRm.Agent
             //This handler is called only when the common language runtime tries to bind to the assembly and fails.
 
             //Retrieve the list of referenced assemblies in an array of AssemblyName.
-            var assemblyPath = string.Empty;
+            //var assemblyPath = string.Empty;
 
-            Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
-            AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
+            //Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
+            //AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
 
-            //Loop through the array of referenced assembly names.
-            foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
-            {
-                var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
+            // Note: no need to check whether or not the assembly is referenced
+            ////Loop through the array of referenced assembly names.
+            //foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
+            //{
+            //    var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
 
-                //Check for the assembly names that have raised the "AssemblyResolve" event.
-                if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == requestedAssembly)
-                {
-                    //Build the path of the assembly from where it has to be loaded.
-                    var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
-                    assemblyPath = Directory.GetFiles
-                                    (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).Single();
-                    break;
-                    //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
-                }
+            //    //Check for the assembly names that have raised the "AssemblyResolve" event.
+            //    if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == requestedAssembly)
+            //    {
+            //        //Build the path of the assembly from where it has to be loaded.
+            //        var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
+            //        assemblyPath = Directory.GetFiles
+            //                        (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).Single();
+            //        break;
+            //        //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
+            //    }
+            //}
+
+            
+
+            var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
+
+            if (requestedAssembly.EndsWith("resources")) return null;
+
+            var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
+            var assemblyPaths = Directory.GetFiles
+                (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).ToList();
+
+            if (assemblyPaths.Count > 1)
+            { 
+                throw new TypeLoadException(string.Format
+                    ("Found more that one '{0}' file in the following root directory: '{1}'", 
+                                                requestedAssembly, rootDirecotory));
             }
+
+            if (assemblyPaths.Count == 0)
+            { 
+                throw new DllNotFoundException(string.Format
+                    ("Not found the '{0}' file in the following root directory: '{1}'",
+                                                requestedAssembly, rootDirecotory));
+            }
+
+            var assemblyPath = assemblyPaths.Single();
+
             //Load the assembly from the specified path.
             Assembly myAssembly = null;
 
