@@ -4,6 +4,7 @@
     {
         IdentificationData,
         IpConfigData,
+        OsInfo,
         RunProcess
     }
 }
