@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
-//using OpenRm.Common.Entities;
+using OpenRm.Common.Entities;
 
 
 namespace OpenRm.Agent
@@ -12,8 +12,8 @@ namespace OpenRm.Agent
     class ClientData
     {
 //TODO: replace all int/strings/IPaddresses with Common.Entities objects:
-        public String computerName { get; set; }    // Computer name is it's identifier
-        //public IpConfigData ipConfig { get; set; } 
+        public IdentificationData Idata { get; set; }    // Computer name is it's identifier
+        public IpConfigData IpConfig { get; set; } 
         public String OStype { get; set; }
         public String CPU { get; set; }
         public Int32 RAM { get; set; }

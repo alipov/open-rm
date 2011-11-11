@@ -375,14 +375,21 @@ namespace OpenRm.Agent
                     OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.socket.LocalEndPoint).Address.ToString());       // fill required data
                     responseMsg = new ResponseMessage {Response = ipdata};
                     SendMessage(e, SerializeToXml(responseMsg));
-
                     break;
+
                 case (int)EOpCode.RunProcess:
                     RunCompletedStatus result = OpProcessor.StartProcess((RunProcess)message.Request);
                     responseMsg = new ResponseMessage { Response = result };
                     SendMessage(e, SerializeToXml(responseMsg));
+                    break;
+
+                case (int)EOpCode.OsInfo:
+                    var os = new OsInfo();
+                    OpProcessor.GetInfo(os);
 
 
+
+                    break;
 
                     //TODO:  Add all OpCodes...
 

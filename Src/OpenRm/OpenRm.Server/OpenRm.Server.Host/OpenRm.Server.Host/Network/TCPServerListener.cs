@@ -437,7 +437,7 @@ namespace OpenRm.Server.Host
 
             if (message.Response is IdentificationData)
             {
-                IdentificationData idata = (IdentificationData) message.Response;
+                var idata = (IdentificationData) message.Response;
                 Logger.WriteStr(" * New client has connected: " + idata.deviceName);
                 // ...create ClientData (if does not exist already) and add to token
                 //...
@@ -450,16 +450,51 @@ namespace OpenRm.Server.Host
             }
             else if (message.Response is IpConfigData)
             {
-                //...
+                var ipConf = (IpConfigData) message.Response;
+                token.data.ipConfig = ipConf;       //store in "database"
 
-                //TODO: delete me
+
+                //TODO: move to another place
                 var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                msg.Request = new RunProcess(token.GetRunId(), "notepad.exe", "", "c:\\", 0, 180000, true);
+                var exec = new RunProcess
+                               {
+                                   RunId = token.GetRunId(),
+                                   Cmd = "notepad.exe",
+                                   Args = "",
+                                   WorkDir = "c:\\",
+                                   TimeOut = 180000,        //ms
+                                   Hidden = true
+                               };
+                
+                msg.Request = exec;
                 SendMessage(e, SerializeToXml(msg));
+            }
+            else if (message.Response is RunCompletedStatus)
+            {
+                var status = (RunCompletedStatus) message.Response;
+                if (status.ExitCode == 0)
+                {
+                    Logger.WriteStr("Remote successfully executed");
+                }
+                else if (status.ExitCode > 0)
+                {
+                    Logger.WriteStr("Remote program executed with exit code: " + status.ExitCode +
+                                "and error message: \"" + status.ErrorMessage + "\"");
+                }
+                else
+                {
+                    throw new ArgumentException("Invalid exit code of remote execution (" + status.ExitCode + ")");
+                }
+                
+
+
+
+
+                //...
             }
             else
             {
-                Logger.WriteStr(" Recieved unkown response! ");
+                Logger.WriteStr("WARNING: Recieved unkown response from " + token.socket.RemoteEndPoint.ToString() + "!");
             }
                 
         }

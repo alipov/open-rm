@@ -51,6 +51,17 @@
         public string defaultGateway;
     }
 
+    public class OsInfo : ResponseBase
+    {
+        public string OsName;
+        public string OsVersion;
+        public string OsArchitecture;
+        public int CdriveSize;
+        public int CdriveFreeSpace;
+        public int RamSize;
+        public int FreeRamSize;
+
+    }
 
     public class RunProcess : RequestBase
     {
@@ -61,22 +72,12 @@
         public int Delay;       //delay period before run. in seconds.
         public int TimeOut;     //max time to wait for process execution completion. in ms.
         public bool Hidden;     //run hidden from user
-        public RunProcess(int runId, string cmd, string args, string workDir, int delay, int timeout, bool hidden)
-        {
-            RunId = runId;
-            Cmd = cmd;
-            Args = args;
-            WorkDir = workDir;
-            Delay = delay;
-            TimeOut = timeout;
-            Hidden = hidden;
-        }
     }
 
     public class RunCompletedStatus : ResponseBase
     {
         public int RunId;
-        public int ExitCode;
+        public int ExitCode = -1;
         public string ErrorMessage;
     }
 

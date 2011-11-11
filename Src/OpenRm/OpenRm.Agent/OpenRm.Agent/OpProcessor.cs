@@ -47,6 +47,20 @@ namespace OpenRm.Agent
             }
         }
 
+        public static void GetInfo(OsInfo os)
+        {
+            os.OsName = GetWMIdata("Win32_OperatingSystem", "Caption");
+            os.OsVersion = GetWMIdata("Win32_OperatingSystem", "Version");
+            os.OsArchitecture = GetWMIdata("Win32_OperatingSystem", "OSArchitecture");
+            if (os.OsArchitecture == "")
+                os.OsArchitecture = "32 bit";
+            os.RamSize = Int32.Parse(GetWMIdata("Win32_OperatingSystem", "TotalVisibleMemorySize"));
+            os.FreeRamSize = Int32.Parse(GetWMIdata("Win32_OperatingSystem", "FreePhysicalMemory"));
+            os.CdriveSize = Int32.Parse(GetWMIdata("Win32_LogicalDisk", "Size"));  //TODO: 3rd parameter
+            os.CdriveFreeSpace = Int32.Parse(GetWMIdata("Win32_LogicalDisk", "FreeSpace"));  //TODO: 3rd parameter
+        }
+
+
         // TODO: maybe to start in new Thread?
         public static RunCompletedStatus StartProcess(RunProcess proc)
         {
@@ -61,18 +75,21 @@ namespace OpenRm.Agent
             execInfo.Arguments = proc.Args;
             execInfo.CreateNoWindow = false;
             execInfo.UseShellExecute = false;
-            //if (proc.Hidden)
-            //    execInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            execInfo.RedirectStandardError = true;
+            if (proc.Hidden)
+                execInfo.WindowStyle = ProcessWindowStyle.Hidden;
             
             try
             {
                 newProcess = Process.Start(execInfo);
 
+                string stderr = newProcess.StandardError.ReadToEnd();       //get error output
+
                 newProcess.WaitForExit(proc.TimeOut);  // wait for process completion or timeout
                 
                 status.ExitCode = newProcess.ExitCode;
                 if (status.ExitCode > 0)
-                    status.ErrorMessage = newProcess.StandardError.ToString();
+                    status.ErrorMessage = stderr;
             }
             catch (Exception)
             {
