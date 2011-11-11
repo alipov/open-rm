@@ -1,20 +1,18 @@
 ﻿using System;
+using System.Reflection;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using OpenRm.Common.Entities;
-using Woxalizer;
-using System.IO;
-using System.Xml;
-
+using OpenRm.Common.Entities.Network;
+using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Agent
 {    
-
-    class TCPclient
+    internal class TcpClient : TcpBase
     {
-        public const int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
+        //public const int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
         private byte[] sendReceiveBuffer;        // buffer for sending/receiving data by TCP layer. 
                                                         // Note that it has fixed size (same as for server, but also can be different)
             
@@ -23,17 +21,21 @@ namespace OpenRm.Agent
         private int retryIntervalMaximum = 60;   // 60 sec.
 
         private string _serverIP = "";
-        private int _serverPort = 0;
+        private int _serverPort;
 
         public static ManualResetEvent clientDone = new ManualResetEvent(false);
 
-        public TCPclient(string serverIP, int serverPort, int bufferSize)
+        public TcpClient(string serverIP, int serverPort, int bufferSize, Func<object, ResolveEventArgs, Assembly> resolver)
+            : base(resolver, bufferSize)
         {
             // Initialize buffer for sending/receiving data by TCP layer. 
             sendReceiveBuffer = new byte[bufferSize];
             _serverIP = serverIP;
             _serverPort = serverPort;
+        }
 
+        public override void Start()
+        {
             EstablishConnection();
 
             // pause current thread
@@ -46,8 +48,8 @@ namespace OpenRm.Agent
         // Create a socket and connect to the server
         private void EstablishConnection()
         {
-            Socket socket = new Socket((IPAddress.Parse(_serverIP)).AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            SocketAsyncEventArgs sockArgs = new SocketAsyncEventArgs();
+            var socket = new Socket((IPAddress.Parse(_serverIP)).AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            var sockArgs = new SocketAsyncEventArgs();
             sockArgs.Completed += new EventHandler<SocketAsyncEventArgs>(SocketEventArg_Completed);
             sockArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverIP), _serverPort);
             sockArgs.UserToken = new AgentAsyncUserToken();
@@ -56,8 +58,6 @@ namespace OpenRm.Agent
 
             socket.ConnectAsync(sockArgs);
         }
-
-
 
         // A single callback is used for all socket operations. This method forwards execution on to the correct handler 
         // based on the type of completed operation.
@@ -75,7 +75,7 @@ namespace OpenRm.Agent
                     ProcessSend(e);
                     break;
                 default:
-                    CloseServerConnection(e);
+                    CloseConnection(e);
                     throw new Exception("Invalid operation completed");
             }
         }
@@ -141,9 +141,7 @@ namespace OpenRm.Agent
             prefixToAdd.CopyTo(token.SendingMsg, 0);
             msgToSend.CopyTo(token.SendingMsg, msgPrefixLength);
 
-
             StartSend(e);
-
         }
 
 
@@ -191,127 +189,11 @@ namespace OpenRm.Agent
             else
             {
                 Logger.WriteStr(" Message has failed to be sent due to error: " + e.SocketError);
-                CloseServerConnection(e);
+                CloseConnection(e);
             }
         }
 
-
-
-        private void StartReceive(SocketAsyncEventArgs readEventArgs)
-        {
-            readEventArgs.SetBuffer(readEventArgs.Offset, sendReceiveBuffer.Length);
-            bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
-            if (!willRaiseEvent)
-            {
-                // need to be proceeded synchroniously
-                ProcessReceive(readEventArgs);
-            }
-            Logger.WriteStr("StartReceive has been run");
-        }
-
-        // Invoked when an asycnhronous receive operation completes.  
-        // If the remote host closed the connection, then the socket is closed.
-        private void ProcessReceive(SocketAsyncEventArgs e)
-        {
-            var token = (AgentAsyncUserToken)e.UserToken;
-            // Check if the remote host closed the connection
-            //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
-            if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
-            {
-                // got message. need to handle it
-                Logger.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
-
-                // now we need to check if we have complete message in our recieved data.
-                // if yes - process it
-                // but few messages can be combined into one send/recieve operation,
-                //  or we can get only half message or just part of Prefix 
-                //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
-
-                int i = 0;      // go through buffer of currently received data 
-                while (i < e.BytesTransferred)
-                {
-                    // Determine how many bytes we want to transfer to the buffer and transfer them 
-                    int bytesAvailable = e.BytesTransferred - i;
-                    if (token.MsgData == null)
-                    {
-                        // token.msgData is empty so we a dealing with Prefix.
-                        // Copy the incoming bytes into token's prefix's buffer
-                        // All incoming data is in e.Buffer, at e.Offset position
-                        int bytesRequested = msgPrefixLength - token.RecievedPrefixPartLength;
-                        int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
-                        i += bytesTransferred;
-
-                        token.RecievedPrefixPartLength += bytesTransferred;
-
-                        if (token.RecievedPrefixPartLength != msgPrefixLength)
-                        {
-                            // We haven't got all the prefix buffer yet. Call StartReceive again to receive remaining data from TCP buffer
-                            Logger.WriteStr("We've got just a part of prefix. Trying to get more data...");
-                            StartReceive(e);
-                            return;
-                        }
-                        else
-                        {
-                            // We've gotten the length buffer 
-                            int length = BitConverter.ToInt32(token.PrefixData, 0);
-                            Logger.WriteStr(" Got prefix representing value: " + length);
-
-                            if (length < 0)
-                                throw new System.Net.ProtocolViolationException("Invalid message prefix");
-
-                            // Save prefix value into token
-                            token.MessageLength = length;
-
-                            // Create the data buffer and start reading into it 
-                            token.MsgData = new byte[length];
-
-                            // zero prefix counter
-                            token.RecievedPrefixPartLength = 0;
-                        }
-
-                    }
-                    else
-                    {
-                        // We're reading into the data buffer  
-                        int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
-                        int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.MsgData, token.RecievedMsgPartLength, bytesTransferred);
-                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.MsgData));
-                        i += bytesTransferred;
-
-                        token.RecievedMsgPartLength += bytesTransferred;
-                        if (token.RecievedMsgPartLength != token.MsgData.Length)
-                        {
-                            // We haven't gotten all the data buffer yet: just wait for more data to arrive
-                            StartReceive(e);
-                            return;
-                        }
-                        else
-                        {
-                            // we've gotten an entire packet
-                            Logger.WriteStr("Got complete message from " + e.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.MsgData));
-
-                            ProcessReceivedMessage(e);
-
-                            //// empty Token's buffers and counters
-                            //token.Clean();
-
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint.ToString() + " due to exception:\n"
-                    + new SocketException((int)e.SocketError).ToString() + "\n"
-                    + "Closing this connection....");
-                CloseServerConnection(e);
-            }
-        }
-
-
-        private void CloseServerConnection(SocketAsyncEventArgs e)
+        protected override void CloseConnection(SocketAsyncEventArgs e)
         {
             var token = (AgentAsyncUserToken)e.UserToken;
 
@@ -343,24 +225,7 @@ namespace OpenRm.Agent
             }
         }
 
-
-        private void ProcessReceivedMessage(SocketAsyncEventArgs e)
-        {
-            var token = (AgentAsyncUserToken)e.UserToken;
-
-            Message message = WoxalizerAdapter.DeserializeFromXml(token.MsgData, TypeResolving.AssemblyResolveHandler);
-
-            if (message is RequestMessage)
-                ProcessReceivedMessageRequest(e, (RequestMessage)message);
-            else if (message is ResponseMessage)
-                ProcessReceivedMessageResponse(e, (ResponseMessage)message);
-            else
-                throw new ArgumentException("Cannot determinate Message type!");
-        }
-
-
-
-        private void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
+        protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
         {
             var token = (AgentAsyncUserToken)e.UserToken;
 
@@ -390,11 +255,6 @@ namespace OpenRm.Agent
 
                 //    //TODO:  Add all OpCodes...
 
-
-
-
-
-
                     break;
                 default:
                     throw new ArgumentException("WARNING: Got unknown operation code request!");
@@ -402,9 +262,140 @@ namespace OpenRm.Agent
             }
         }
 
-        private void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
+        protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
         {
             //TODO: what info client needs from server?
         }
+
+        #region ToDelete
+
+        //private void ProcessReceivedMessage(SocketAsyncEventArgs e)
+        //{
+        //    var token = (AgentAsyncUserToken)e.UserToken;
+
+        //    Message message = WoxalizerAdapter.DeserializeFromXml(token.MsgData, TypeResolving.AssemblyResolveHandler);
+
+        //    if (message is RequestMessage)
+        //        ProcessReceivedMessageRequest(e, (RequestMessage)message);
+        //    else if (message is ResponseMessage)
+        //        ProcessReceivedMessageResponse(e, (ResponseMessage)message);
+        //    else
+        //        throw new ArgumentException("Cannot determinate Message type!");
+        //}
+
+        //private void StartReceive(SocketAsyncEventArgs readEventArgs)
+        //{
+        //    readEventArgs.SetBuffer(readEventArgs.Offset, sendReceiveBuffer.Length);
+        //    bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
+        //    if (!willRaiseEvent)
+        //    {
+        //        // need to be proceeded synchroniously
+        //        ProcessReceive(readEventArgs);
+        //    }
+        //    Logger.WriteStr("StartReceive has been run");
+        //}
+
+        //// Invoked when an asycnhronous receive operation completes.  
+        //// If the remote host closed the connection, then the socket is closed.
+        //private void ProcessReceive(SocketAsyncEventArgs e)
+        //{
+        //    var token = (AgentAsyncUserToken)e.UserToken;
+        //    // Check if the remote host closed the connection
+        //    //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
+        //    if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+        //    {
+        //        // got message. need to handle it
+        //        Logger.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
+
+        //        // now we need to check if we have complete message in our recieved data.
+        //        // if yes - process it
+        //        // but few messages can be combined into one send/recieve operation,
+        //        //  or we can get only half message or just part of Prefix 
+        //        //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
+
+        //        int i = 0;      // go through buffer of currently received data 
+        //        while (i < e.BytesTransferred)
+        //        {
+        //            // Determine how many bytes we want to transfer to the buffer and transfer them 
+        //            int bytesAvailable = e.BytesTransferred - i;
+        //            if (token.MsgData == null)
+        //            {
+        //                // token.msgData is empty so we a dealing with Prefix.
+        //                // Copy the incoming bytes into token's prefix's buffer
+        //                // All incoming data is in e.Buffer, at e.Offset position
+        //                int bytesRequested = msgPrefixLength - token.RecievedPrefixPartLength;
+        //                int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
+        //                Array.Copy(e.Buffer, e.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
+        //                i += bytesTransferred;
+
+        //                token.RecievedPrefixPartLength += bytesTransferred;
+
+        //                if (token.RecievedPrefixPartLength != msgPrefixLength)
+        //                {
+        //                    // We haven't got all the prefix buffer yet. Call StartReceive again to receive remaining data from TCP buffer
+        //                    Logger.WriteStr("We've got just a part of prefix. Trying to get more data...");
+        //                    StartReceive(e);
+        //                    return;
+        //                }
+        //                else
+        //                {
+        //                    // We've gotten the length buffer 
+        //                    int length = BitConverter.ToInt32(token.PrefixData, 0);
+        //                    Logger.WriteStr(" Got prefix representing value: " + length);
+
+        //                    if (length < 0)
+        //                        throw new System.Net.ProtocolViolationException("Invalid message prefix");
+
+        //                    // Save prefix value into token
+        //                    token.MessageLength = length;
+
+        //                    // Create the data buffer and start reading into it 
+        //                    token.MsgData = new byte[length];
+
+        //                    // zero prefix counter
+        //                    token.RecievedPrefixPartLength = 0;
+        //                }
+
+        //            }
+        //            else
+        //            {
+        //                // We're reading into the data buffer  
+        //                int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
+        //                int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
+        //                Array.Copy(e.Buffer, e.Offset + i, token.MsgData, token.RecievedMsgPartLength, bytesTransferred);
+        //                Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.MsgData));
+        //                i += bytesTransferred;
+
+        //                token.RecievedMsgPartLength += bytesTransferred;
+        //                if (token.RecievedMsgPartLength != token.MsgData.Length)
+        //                {
+        //                    // We haven't gotten all the data buffer yet: just wait for more data to arrive
+        //                    StartReceive(e);
+        //                    return;
+        //                }
+        //                else
+        //                {
+        //                    // we've gotten an entire packet
+        //                    Logger.WriteStr("Got complete message from " + e.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.MsgData));
+
+        //                    ProcessReceivedMessage(e);
+
+        //                    //// empty Token's buffers and counters
+        //                    //token.Clean();
+
+        //                }
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint.ToString() + " due to exception:\n"
+        //            + new SocketException((int)e.SocketError).ToString() + "\n"
+        //            + "Closing this connection....");
+        //        CloseServerConnection(e);
+        //    }
+        //}
+
+        #endregion
     }
 }

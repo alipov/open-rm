@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities
 {

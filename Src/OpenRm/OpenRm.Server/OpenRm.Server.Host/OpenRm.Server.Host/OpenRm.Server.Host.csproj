@@ -84,7 +84,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Network\SocketAsyncEventArgsPool.cs" />
-    <Compile Include="Network\TCPServerListener.cs" />
+    <Compile Include="Network\TcpServerListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

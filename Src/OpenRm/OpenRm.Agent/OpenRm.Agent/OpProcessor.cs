@@ -7,6 +7,7 @@ using System.Threading;
 using OpenRm.Common.Entities;
 using System.Management;
 using System.Net.NetworkInformation;
+using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Agent
 {

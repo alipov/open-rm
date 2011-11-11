@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using OpenRm.Common.Entities.Network.Messages;
 using Woxalizer;
 
 namespace OpenRm.Common.Entities
