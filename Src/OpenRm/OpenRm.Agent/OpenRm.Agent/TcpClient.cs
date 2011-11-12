@@ -190,8 +190,9 @@ namespace OpenRm.Agent
 
                 case (int)EOpCode.PerfmonData:
                     var pf = new PerfmonData();
-                    //fetch system disk
-                    //token.Data.
+                    OpProcessor.GetInfo(pf, token.Data.OS.SystemDrive);     //provide which disk to monitor
+                    responseMsg = new ResponseMessage { Response = pf };
+                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     //...
 
 
