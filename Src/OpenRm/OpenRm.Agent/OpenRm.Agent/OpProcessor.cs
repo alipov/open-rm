@@ -51,8 +51,9 @@ namespace OpenRm.Agent
 
         public static void GetInfo(OsInfo os)
         {
+            //retrieve all data in one call because WMI call usually takes some time...
             string[] properties = new string[] { "Caption", "Version", "OSArchitecture", "TotalVisibleMemorySize", "FreePhysicalMemory" };
-            Dictionary<string, string> values = GetWMIdata("Win32_OperatingSystem", properties);    //retrieve all data in one call
+            Dictionary<string, string> values = GetWMIdata("Win32_OperatingSystem", properties);    
             os.OsName = values["Caption"];
             os.OsVersion = values["Version"];
             if (values.ContainsKey("OSArchitecture"))
@@ -60,22 +61,26 @@ namespace OpenRm.Agent
             else
                 os.OsArchitecture = "32 bit";   //old 32-bit systems has no OSArchitecture property  
             os.RamSize = Int32.Parse(values["TotalVisibleMemorySize"]);
-            os.FreeRamSize = Int32.Parse(values["FreePhysicalMemory"]);
             os.SystemDrive = values["SystemDrive"];
-
-            properties = new string[] { "Size", "FreeSpace" };
-            values = GetWMIdata("Win32_LogicalDisk", properties, "Name", os.SystemDrive);
-            os.SystemDriveSize = Int32.Parse(values["Size"]);
-            os.SystemDriveFree = Int32.Parse(values["FreeSpace"]);
+            os.SystemDriveSize = Int32.Parse(GetWMIdata("Win32_LogicalDisk", os.SystemDrive));
         }
 
-        public static void GetInfo(DiskInfo disks)
+
+        public static void GetInfo(PerfmonData pf, string diskName)
         {
-            
-
+            pf.CPUuse = Int32.Parse(GetWMIdata("Win32_PerfFormattedData_PerfOS_Processor", "PercentProcessorTime", "Name", "_Total"));
+            pf.RAMfree = Int32.Parse(GetWMIdata("Win32_PerfFormattedData_PerfOS_Memory", "AvailableMBytes"));
+            string[] properties = new string[] { "FreeMegabytes", "AvgDiskQueueLength" };
+            Dictionary<string,string> values = GetWMIdata("Win32_PerfFormattedData_PerfDisk_LogicalDisk", properties, "Name", diskName);
+            pf.DiskFree = Int32.Parse(values["FreeMegabytes"]);
+            pf.DiskQueue = Int32.Parse(values["AvgDiskQueueLength"]);
         }
 
-        // TODO: maybe to start in new Thread?
+
+
+
+        // TODO: maybe need to be started in new Thread?
+        // Runs executable provided by "proc" parameter, which also holds information how this process should be executed
         public static RunCompletedStatus StartProcess(RunProcess proc)
         {
             RunCompletedStatus status = new RunCompletedStatus();   // creates new object to return
@@ -119,35 +124,28 @@ namespace OpenRm.Agent
         }
 
 
+
         private static string GetWMIdata(string key, string property)
+        {
+            return GetWMIdata(key, property, null, null);
+        }
+
+
+        private static string GetWMIdata(string key, string property, string specificElementName, string specificElementValue)
         {
             string[] properties = new string[] { property };     // needed only for providing to another function
 
             Dictionary<string, string> values = GetWMIdata(key, properties);
 
             return values[property];
-
-            //try
-            //{
-            //    ManagementObjectSearcher searcher = new ManagementObjectSearcher("select " + property + " from " + key);
-            //    foreach (ManagementObject element in searcher.Get())
-            //    {
-            //        value = element[property].ToString();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    //TODO:  throw new ArgumentException ?
-            //    Logger.WriteStr(" ERROR: Cannot retrieve " + property + " from WMI key " + key + ". (Error: " + ex.Message + ")");
-            //}
-            //
-            //return value;
         }
+
 
         private static Dictionary<string, string> GetWMIdata(string key, string[] properties)
         {
-            GetWMIdata(key, properties, null, null);
+            return GetWMIdata(key, properties, null, null);
         }
+
 
         private static Dictionary<string, string> GetWMIdata(string key, string[] properties, string specificElementName, string specificElementValue)
         {

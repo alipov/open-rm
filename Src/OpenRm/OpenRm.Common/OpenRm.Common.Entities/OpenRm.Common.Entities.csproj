@@ -59,6 +59,7 @@
     <Compile Include="Network\Messages\Message.cs" />
     <Compile Include="Network\AsyncUserTokenBase.cs" />
     <Compile Include="Network\Messages\OsInfo.cs" />
+    <Compile Include="Network\Messages\PerfmonData.cs" />
     <Compile Include="Network\Messages\RequestMessage.cs" />
     <Compile Include="Network\Messages\ResponseMessage.cs" />
     <Compile Include="Network\Messages\RunCompletedStatus.cs" />
