@@ -8,14 +8,14 @@ namespace OpenRm.Common.Entities.Network
 {
     public abstract class TcpBase
     {
-        protected const int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
-        protected int receiveBufferSize;
-        private Func<object, ResolveEventArgs, Assembly> _assemblyResolveHandler;
+        protected const int MsgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
+        protected int ReceiveBufferSize;
+        private readonly Func<object, ResolveEventArgs, Assembly> _assemblyResolveHandler;
 
         protected TcpBase(Func<object, ResolveEventArgs, Assembly> assemblyResolveHandler, int bufferSize)
         {
             _assemblyResolveHandler = assemblyResolveHandler;
-            receiveBufferSize = bufferSize;
+            ReceiveBufferSize = bufferSize;
         }
 
         // Invoked when an asycnhronous receive operation completes.  
@@ -46,14 +46,14 @@ namespace OpenRm.Common.Entities.Network
                         // token.msgData is empty so we a dealing with Prefix.
                         // Copy the incoming bytes into token's prefix's buffer
                         // All incoming data is in e.Buffer, at e.Offset position
-                        int bytesRequested = msgPrefixLength - token.RecievedPrefixPartLength;
+                        int bytesRequested = MsgPrefixLength - token.RecievedPrefixPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
                         Array.Copy(e.Buffer, e.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
                         i += bytesTransferred;
 
                         token.RecievedPrefixPartLength += bytesTransferred;
 
-                        if (token.RecievedPrefixPartLength != msgPrefixLength)
+                        if (token.RecievedPrefixPartLength != MsgPrefixLength)
                         {
                             // We haven't gotten all the prefix buffer yet: call Receive again.
                             Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
@@ -129,7 +129,7 @@ namespace OpenRm.Common.Entities.Network
 
         protected void StartReceive(SocketAsyncEventArgs readEventArgs)
         {
-            readEventArgs.SetBuffer(readEventArgs.Offset, receiveBufferSize);
+            readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
             bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
             if (!willRaiseEvent)
             {
@@ -160,7 +160,7 @@ namespace OpenRm.Common.Entities.Network
 
             if (e.SocketError == SocketError.Success)
             {
-                token.SendingMsgBytesSent += receiveBufferSize;     // receiveBufferSize is the maximum data length in one send
+                token.SendingMsgBytesSent += ReceiveBufferSize;     // receiveBufferSize is the maximum data length in one send
                 if (token.SendingMsgBytesSent < token.SendingMsg.Length)
                 {
                     // Not all message has been sent, so send next part
@@ -209,9 +209,9 @@ namespace OpenRm.Common.Entities.Network
             //}
 
             // prepare complete data and store it into token
-            token.SendingMsg = new Byte[msgPrefixLength + msgToSend.Length];
+            token.SendingMsg = new Byte[MsgPrefixLength + msgToSend.Length];
             prefixToAdd.CopyTo(token.SendingMsg, 0);
-            msgToSend.CopyTo(token.SendingMsg, msgPrefixLength);
+            msgToSend.CopyTo(token.SendingMsg, MsgPrefixLength);
 
             StartSend(e);
         }
