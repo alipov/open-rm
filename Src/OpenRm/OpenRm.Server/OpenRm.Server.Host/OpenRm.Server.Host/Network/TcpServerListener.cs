@@ -181,7 +181,7 @@ namespace OpenRm.Server.Host.Network
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
-            int bytesToTransfer = Math.Min(receiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
+            int bytesToTransfer = Math.Min(ReceiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
             Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
             e.SetBuffer(e.Offset, bytesToTransfer);
 

@@ -92,7 +92,6 @@
     <Compile Include="TypeResolving.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsyncUserToken.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
