@@ -5,6 +5,7 @@
         IdentificationData,
         IpConfigData,
         OsInfo,
+        PerfmonData,
         RunProcess
     }
 }

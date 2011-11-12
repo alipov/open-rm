@@ -184,10 +184,16 @@ namespace OpenRm.Agent
                 case (int)EOpCode.OsInfo:
                     var os = new OsInfo();
                     OpProcessor.GetInfo(os);
-
-
-
+                    responseMsg = new ResponseMessage { Response = os };
+                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     break;
+
+                case (int)EOpCode.PerfmonData:
+                    var pf = new PerfmonData();
+                    //fetch system disk
+                    //token.Data.
+                    //...
+
 
                 //    //TODO:  Add all OpCodes...
 
