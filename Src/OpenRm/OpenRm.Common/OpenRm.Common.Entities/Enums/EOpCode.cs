@@ -6,6 +6,10 @@
         IpConfigData,
         OsInfo,
         PerfmonData,
-        RunProcess
+        RunProcess,
+        RunCompletedStatus,
+        RunPing,
+        RunTraceRoute,
+        RunCommonResponse
     }
 }
