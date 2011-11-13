@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using OpenRm.Common.Entities;
@@ -77,11 +79,134 @@ namespace OpenRm.Agent
         }
 
 
+        
+        /* To get data: 
+                var l = (List<string>)TraceRoute("8.8.8.8");
+                foreach (string s in l)
+                {
+                    Console.WriteLine(s);    
+                } 
+         */
+        public static RunCommonResponse ExecuteTraceRoute(RunTraceRoute tr)
+        {
+            var resultList = (List<string>)SendPingWithTtl(tr.Target, 1);     //start with minimum ttl in order to increase it recursively
+            var resultString = "";
+            foreach (string str in resultList)
+            {
+                resultString += str + "\n";
+            }
+
+            return new RunCommonResponse(tr.RunId, resultString);
+        }
+
+        public static RunCommonResponse ExecutePing(RunPing p)
+        {
+            var resultList = (List<string>)SendPingWithTtl(p.Target, 32);   //start with maximum ttl (32) in order to make just one ping
+            var resultString = "";
+            foreach (string str in resultList)
+            {
+                resultString += str + "\n";
+            }
+            return new RunCommonResponse(p.RunId, resultString);
+        }
+
+        private static IEnumerable<string> SendPingWithTtl(string target, int ttl)
+        {
+            const int timeout = 5000;          // 5 sec timeout
+            const int maxTtl = 32;             // Max TTL
+            var result = new List<string>();
+
+            Ping ping = new Ping();
+            PingOptions options = new PingOptions(ttl, true);
+            byte[] buffer = Encoding.ASCII.GetBytes("abcdefghigklmnop");    // send some data
+
+            try
+            {
+                PingReply reply = ping.Send(target, timeout, buffer, options);
+
+                if (reply != null)
+                {
+                    if (reply.Status == IPStatus.Success)
+                    {
+                        result.Add(reply.Address.ToString() + " " +
+                            reply.RoundtripTime.ToString(NumberFormatInfo.CurrentInfo) + "ms");
+                    }
+                    else if (reply.Status == IPStatus.TtlExpired || reply.Status == IPStatus.TimedOut)
+                    {
+                        if (reply.Status == IPStatus.TtlExpired)
+                        {
+                            //add the currently returned address and time latency
+                            result.Add(reply.Address.ToString() + " " +
+                                reply.RoundtripTime.ToString(NumberFormatInfo.CurrentInfo) + "ms");
+                        }
+                        else
+                        {
+                            result.Add(GetPingStatus(reply.Status));
+                        }
+
+                        if (ttl <= maxTtl)
+                        {
+                            //recurse to get the next address...
+                            IEnumerable<string> tempResult = SendPingWithTtl(target, ttl + 1);
+                            result.AddRange(tempResult);
+                        }
+                        else
+                        {
+                            result.Add("Has reached defined maximum TTL (" + maxTtl.ToString() + ").");
+                        }
+                    }
+                    else
+                    {
+                        result.Add(GetPingStatus(reply.Status));
+                    }
+                }
+                else
+                {
+                    result.Add("Error occured while sending ping. Please see log for more info...");
+                }
+
+            }
+            catch (PingException ex)
+            {
+                result.Add("Error occured while sending ping: " + ex.Message);
+            }
+
+            return result;
+        }
+
+        private static string GetPingStatus(IPStatus status)
+        {
+            switch (status)
+            {
+                case IPStatus.Success:
+                    return "Success.";
+                case IPStatus.DestinationHostUnreachable:
+                    return "Destination host unreachable.";
+                case IPStatus.DestinationNetworkUnreachable:
+                    return "Destination network unreachable.";
+                case IPStatus.DestinationPortUnreachable:
+                    return "Destination port unreachable.";
+                case IPStatus.DestinationProtocolUnreachable:
+                    return "Destination protocol unreachable.";
+                case IPStatus.PacketTooBig:
+                    return "Packet too big.";
+                case IPStatus.TtlExpired:
+                    return "TTL expired.";
+                case IPStatus.ParameterProblem:
+                    return "Parameter problem.";
+                case IPStatus.SourceQuench:
+                    return "Source quench.";
+                case IPStatus.TimedOut:
+                    return "Request Timed out.";
+                default:
+                    return "Ping failed.";
+            }
+        }
 
 
-        // TODO: maybe need to be started in new Thread?
+        // !TODO: maybe need to be started in new Thread?
         // Runs executable provided by "proc" parameter, which also holds information how this process should be executed
-        public static RunCompletedStatus StartProcess(RunProcess proc)
+        public static RunCompletedStatus ExecuteProcess(RunProcess proc)
         {
             RunCompletedStatus status = new RunCompletedStatus();   // creates new object to return
             status.RunId = proc.RunId;

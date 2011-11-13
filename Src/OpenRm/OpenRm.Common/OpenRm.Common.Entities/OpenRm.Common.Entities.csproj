@@ -63,8 +63,11 @@
     <Compile Include="Network\Messages\PerfmonData.cs" />
     <Compile Include="Network\Messages\RequestMessage.cs" />
     <Compile Include="Network\Messages\ResponseMessage.cs" />
+    <Compile Include="Network\Messages\RunCommonResponse.cs" />
     <Compile Include="Network\Messages\RunCompletedStatus.cs" />
+    <Compile Include="Network\Messages\RunPing.cs" />
     <Compile Include="Network\Messages\RunProcess.cs" />
+    <Compile Include="Network\Messages\RunTraceRoute.cs" />
     <Compile Include="Network\SockAdvClient.cs" />
     <Compile Include="Network\TcpBase.cs" />
     <Compile Include="OpenRmException.cs" />

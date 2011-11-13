@@ -176,7 +176,7 @@ namespace OpenRm.Agent
                     break;
 
                 case (int)EOpCode.RunProcess:
-                    RunCompletedStatus result = OpProcessor.StartProcess((RunProcess)message.Request);
+                    RunCompletedStatus result = OpProcessor.ExecuteProcess((RunProcess)message.Request);
                     responseMsg = new ResponseMessage { Response = result };
                     SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     break;
