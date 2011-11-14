@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using OpenRm.Common.Entities;
@@ -39,14 +40,19 @@ namespace OpenRm.Agent
                     }
 
                     foreach( UnicastIPAddressInformation ip in netInterface.GetIPProperties().UnicastAddresses )
-                        if (ip.Address.ToString() == sourceIP)
-                        {
-                            if (ip.IPv4Mask != null)
-                                ipconf.netMask = ip.IPv4Mask.ToString();
-                            else
-                                ipconf.netMask = "";
-                            break;
-                        }
+                    {
+                        if (ip.Address.ToString() != sourceIP) continue;    //match only interface that connection to server uses
+
+                        if (ip.IPv4Mask != null)
+                            ipconf.netMask = ip.IPv4Mask.ToString();
+                        else
+                            ipconf.netMask = "";        //Loopback has no Network Mask
+
+                        ipconf.mac = netInterface.GetPhysicalAddress().ToString();
+
+                        break;
+                    }
+                        
                 }
             }
         }
@@ -128,16 +134,15 @@ namespace OpenRm.Agent
                 {
                     if (reply.Status == IPStatus.Success)
                     {
-                        result.Add(reply.Address.ToString() + " " +
+                        result.Add(reply.Address.ToString() + "   " +
                             reply.RoundtripTime.ToString(NumberFormatInfo.CurrentInfo) + "ms");
                     }
                     else if (reply.Status == IPStatus.TtlExpired || reply.Status == IPStatus.TimedOut)
                     {
                         if (reply.Status == IPStatus.TtlExpired)
                         {
-                            //add the currently returned address and time latency
-                            result.Add(reply.Address.ToString() + " " +
-                                reply.RoundtripTime.ToString(NumberFormatInfo.CurrentInfo) + "ms");
+                            //add the currently returned address
+                            result.Add(reply.Address.ToString());
                         }
                         else
                         {
@@ -152,7 +157,7 @@ namespace OpenRm.Agent
                         }
                         else
                         {
-                            result.Add("Has reached defined maximum TTL (" + maxTtl.ToString() + ").");
+                            result.Add("Has reached defined maximum TTL (" + maxTtl + ").");
                         }
                     }
                     else
@@ -202,6 +207,32 @@ namespace OpenRm.Agent
                     return "Ping failed.";
             }
         }
+
+
+        //Sends Wake-On-Lan ("magic") packet to the specified MAC address
+        public static void WakeOnLan(string macAddr)
+        {
+            UdpClient client = new UdpClient();
+            // it is typically sent as a UDP datagram to port 7 or 9
+            client.Connect(IPAddress.Broadcast, 7);
+
+            // The magic packet is a broadcast frame containing anywhere within its payload 6 bytes 
+            //  of all 255 (FF FF FF FF FF FF in hexadecimal), followed by 16 repetitions of the target 
+            //  computer's 6-byte MAC address:
+
+            byte[] packet = new byte[17 * 6];
+
+            for (int i = 0; i < 6; i++)
+                packet[i] = 0xFF;
+
+            for (int i = 1; i <= 16; i++)
+                for (int j = 0; j < 6; j++)
+                    packet[i * 6 + j] = byte.Parse(macAddr.Substring(j*2, 2), NumberStyles.HexNumber);
+            
+            // send the magic packet
+            client.Send(packet, packet.Length);
+        }
+
 
 
         // !TODO: maybe need to be started in new Thread?

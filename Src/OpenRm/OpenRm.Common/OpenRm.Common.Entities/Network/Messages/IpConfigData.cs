@@ -5,5 +5,6 @@ namespace OpenRm.Common.Entities.Network.Messages
         public string IpAddress;
         public string netMask;
         public string defaultGateway;
+        public string mac;
     }
 }
