@@ -10,6 +10,8 @@
         RunCompletedStatus,
         RunPing,
         RunTraceRoute,
-        RunCommonResponse
+        RunCommonResponse,
+        SendWakeOnLan
+
     }
 }
