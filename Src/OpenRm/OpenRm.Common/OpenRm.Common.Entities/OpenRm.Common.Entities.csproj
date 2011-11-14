@@ -56,6 +56,7 @@
     <Compile Include="Enums\EOpCode.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Network\Messages\IdentificationData.cs" />
+    <Compile Include="Network\Messages\InstalledPrograms.cs" />
     <Compile Include="Network\Messages\IpConfigData.cs" />
     <Compile Include="Network\Messages\Message.cs" />
     <Compile Include="Network\AsyncUserTokenBase.cs" />

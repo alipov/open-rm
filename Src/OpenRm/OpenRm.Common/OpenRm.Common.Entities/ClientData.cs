@@ -6,10 +6,11 @@ namespace OpenRm.Common.Entities
     // This class holds all data of single client
     public class ClientData
     {
-        //TODO: replace all int/strings/IPaddresses with Common.Entities objects:
-        public IdentificationData Idata { get; set; }    // Computer name is it's identifier
-        public IpConfigData IpConfig { get; set; }
-        public OsInfo OS { get; set; }
+        //TODO: add more objects:
+        public IdentificationData Idata { get; set; }    // Name, Serial number
+        public IpConfigData IpConfig { get; set; }       // IP, Netmask, MAC, Default Gateway
+        public OsInfo OS { get; set; }                   // OS Name, Version, Arcitecture (32/64 bit), RAM size, System Drive name, System Drive size
+        public InstalledPrograms apps { get; set; }      // Add-Remove Programs info
         // ...
 
 
