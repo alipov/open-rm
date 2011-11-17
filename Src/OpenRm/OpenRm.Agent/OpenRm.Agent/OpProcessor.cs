@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.Win32;
 using OpenRm.Common.Entities;
 using System.Management;
 using System.Net.NetworkInformation;
@@ -83,6 +84,35 @@ namespace OpenRm.Agent
             Dictionary<string,string> values = GetWMIdata("Win32_PerfFormattedData_PerfDisk_LogicalDisk", properties, "Name", diskName);
             pf.DiskFree = Int32.Parse(values["FreeMegabytes"]);
             pf.DiskQueue = Int32.Parse(values["AvgDiskQueueLength"]);
+        }
+
+
+        public static List<string> GetInstalledPrograms()
+        {
+            var installedPrograms = new List<string>();
+
+            // look in two registry locations: 1st - for 32-bit application, 2nd - for 64-bit applications
+            var uninstallKey = new string[] { @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                                              @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall" };
+            foreach (string uninstKey in uninstallKey)
+            {
+                using (RegistryKey socketkey = Registry.LocalMachine.OpenSubKey(uninstKey))
+                {
+                    if (socketkey != null)
+                        foreach (string applKeyName in socketkey.GetSubKeyNames())
+                            using (RegistryKey applKey = socketkey.OpenSubKey(applKeyName))
+                            {
+                                if (applKey != null && applKey.GetValue("DisplayName") != null)
+                                    installedPrograms.Add(applKey.GetValue("DisplayName") + "  " + applKey.GetValue("DisplayVersion"));
+                            }
+                }
+            }
+
+            // Remove duplicates and sort in lexiographic order
+            List<string> result = installedPrograms.Distinct().ToList();
+            result.Sort();
+
+            return result;
         }
 
 

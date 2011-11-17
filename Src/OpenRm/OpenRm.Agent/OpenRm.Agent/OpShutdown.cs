@@ -70,7 +70,7 @@ namespace OpenRm.Agent
             }
         }
 
-
+        //To shut down the local computer, the calling thread must have the SE_SHUTDOWN_NAME privilege.
         private static void ElevatePrivileges()
         {
             IntPtr currentProcess = GetCurrentProcess();
