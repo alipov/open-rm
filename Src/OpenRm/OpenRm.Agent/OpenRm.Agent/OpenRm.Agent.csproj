@@ -88,6 +88,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="OpProcessor.cs" />
+    <Compile Include="OpShutdown.cs" />
     <Compile Include="TcpClient.cs" />
     <Compile Include="TypeResolving.cs" />
   </ItemGroup>
