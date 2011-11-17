@@ -171,28 +171,32 @@ namespace OpenRm.Agent
                 case (int)EOpCode.IpConfigData:
                     var ipdata = new IpConfigData();
                     OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.Socket.LocalEndPoint).Address.ToString());       // fill required data
-                    responseMsg = new ResponseMessage {Response = ipdata};
-                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
+                    responseMsg = new ResponseMessage { Response = ipdata };
                     break;
 
                 case (int)EOpCode.RunProcess:
                     RunCompletedStatus result = OpProcessor.ExecuteProcess((RunProcess)message.Request);
                     responseMsg = new ResponseMessage { Response = result };
-                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     break;
 
                 case (int)EOpCode.OsInfo:
                     var os = new OsInfo();
                     OpProcessor.GetInfo(os);
                     responseMsg = new ResponseMessage { Response = os };
-                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
                     break;
 
                 case (int)EOpCode.PerfmonData:
                     var pf = new PerfmonData();
                     OpProcessor.GetInfo(pf, token.Data.OS.SystemDrive);     //provide which disk to monitor
                     responseMsg = new ResponseMessage { Response = pf };
-                    SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
+                    break;
+
+                case (int)EOpCode.InstalledPrograms:
+                    var progs = new InstalledPrograms();
+                    progs.Progs = OpProcessor.GetInstalledPrograms();
+                    responseMsg = new ResponseMessage { Response = progs };
+                    break;
+
                     //...
 
 
@@ -201,9 +205,10 @@ namespace OpenRm.Agent
                     break;
                 default:
                     throw new ArgumentException("WARNING: Got unknown operation code request!");
-
             }
+            SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
         }
+
 
         protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
         {

@@ -5,13 +5,16 @@
         IdentificationData,
         IpConfigData,
         OsInfo,
+        InstalledPrograms,
         PerfmonData,
         RunProcess,
         RunCompletedStatus,
         RunPing,
         RunTraceRoute,
         RunCommonResponse,
-        SendWakeOnLan
+        SendWakeOnLan,
+        Shutdown,
+        Reboot
 
     }
 }

@@ -271,18 +271,35 @@ namespace OpenRm.Server.Host.Network
                 else if (status.ExitCode > 0)
                 {
                     Logger.WriteStr("Remote program executed with exit code: " + status.ExitCode +
-                                "and error message: \"" + status.ErrorMessage + "\"");
+                                    "and error message: \"" + status.ErrorMessage + "\"");
                 }
                 else
                 {
                     throw new ArgumentException("Invalid exit code of remote execution (" + status.ExitCode + ")");
                 }
-                
 
 
+                        //TODO: for testing only:
+                        var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
+                        SendMessage(e, WoxalizerAdapter.SerializeToXml(msg, TypeResolving.AssemblyResolveHandler));
 
+            }
+            else if (message.Response is InstalledPrograms)
+            {
+                var progsList = (InstalledPrograms) message.Response;
+                foreach (string s in progsList.Progs)
+                {
+                    Console.WriteLine(s);
+                }
+              
+      
 
-                //...
+            //}
+            //else if (message.Response is )
+            //{
+            //............................
+            //
+            //...
             }
             else
             {
