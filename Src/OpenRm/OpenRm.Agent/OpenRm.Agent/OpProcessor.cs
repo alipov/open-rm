@@ -117,6 +117,29 @@ namespace OpenRm.Agent
 
 
 
+        //Locks current session. In Windows Vista/7 Agent must be running interactively in order to be able to lock user's session.
+        [DllImport("User32.dll")]
+        internal static extern bool LockWorkStation();
+
+        public static bool LockComputer()
+        {
+            bool lockResult = false;
+            try
+            {
+                lockResult = LockWorkStation();
+                if (lockResult)
+                    Logger.WriteStr(" Computer has been locked by OpenRM Agent.");
+                else
+                    Logger.WriteStr(" Failed to lock computer by OpenRM Agent due to error: " + Marshal.GetLastWin32Error());
+            }
+            catch(Exception ex)
+            {
+                Logger.WriteStr(" Failed to lock computer by OpenRM Agent due to error: " + ex.Message);
+            }
+            return lockResult;
+        }
+
+
         
         /* To get data: 
                 var l = (List<string>)TraceRoute("8.8.8.8");

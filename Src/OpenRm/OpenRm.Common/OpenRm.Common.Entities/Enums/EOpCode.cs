@@ -13,6 +13,7 @@
         RunTraceRoute,
         RunCommonResponse,
         SendWakeOnLan,
+        LockSession,
         Shutdown,
         Reboot
 
