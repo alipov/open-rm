@@ -1,6 +1,8 @@
 ﻿using Microsoft.Practices.Prism.Modularity;
 using Microsoft.Practices.Prism.Regions;
 using Microsoft.Practices.Unity;
+using OpenRm.Common.Entities;
+using OpenRm.Common.Entities.Network;
 using OpenRm.Server.Gui.Inf;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Controllers;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
@@ -27,6 +29,8 @@ namespace OpenRm.Server.Gui.Modules.Monitor
 
         public void Initialize()
         {
+            Logger.CreateLogFile("logs", "server-[date].log");
+
             // Register the AgentDataService concrete type with the container.
             // ContainerControlledLifetimeManager ensures singleton instance of that class.
             _container.RegisterType<IAgentDataService, AgentDataService>
@@ -36,13 +40,17 @@ namespace OpenRm.Server.Gui.Modules.Monitor
             _container.RegisterType<IAgentSummaryRegionController, AgentSummaryRegionController>
                                                     (new ContainerControlledLifetimeManager());
 
+            _container.RegisterType<IMessageClient, GeneralSocketClient>
+                                                    (new ContainerControlledLifetimeManager());
+
             _container.RegisterType<IAgentsListView, AgentsListView>();
             _container.RegisterType<IAgentsListViewModel, AgentsListViewModel>();
             _container.RegisterType<IAgentSummaryView, AgentSummaryView>();
             _container.RegisterType<IAgentSummaryViewModel, AgentSummaryViewModel>();
             _container.RegisterType<IAgentDetailsView, AgentDetailsView>();
             _container.RegisterType<IAgentDetailsViewModel, AgentDetailsViewModel>();
-            
+            _container.RegisterType<IToolbarView, ToolbarView>();
+            _container.RegisterType<IToolbarViewModel, ToolbarViewModel>();
 
             // This is an example of View Discovery which associates the specified view type
             // with a region so that the view will be automatically added to the region when
