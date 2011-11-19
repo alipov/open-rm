@@ -46,6 +46,10 @@
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Unity.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="RibbonControlsLibrary, Version=4.0.0.11019, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\WpfRibbon_v4\RibbonControlsLibrary.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -65,10 +69,12 @@
     <Compile Include="Api\Services\IAgentDataService.cs" />
     <Compile Include="Api\ViewModels\IAgentDetailsViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentsListViewModel.cs" />
+    <Compile Include="Api\ViewModels\IAgentsRibbonTabViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentSummaryViewModel.cs" />
     <Compile Include="Api\ViewModels\IToolbarViewModel.cs" />
     <Compile Include="Api\Views\IAgentDetailsView.cs" />
     <Compile Include="Api\Views\IAgentsListView.cs" />
+    <Compile Include="Api\Views\IAgentsRibbonTabView.cs" />
     <Compile Include="Api\Views\IAgentSummaryView.cs" />
     <Compile Include="Api\Views\IToolbarView.cs" />
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
@@ -89,6 +95,7 @@
     </Compile>
     <Compile Include="Services\AgentDataService.cs" />
     <Compile Include="ViewModels\AgentDetailsViewModel.cs" />
+    <Compile Include="ViewModels\AgentsRibbonTabViewModel.cs" />
     <Compile Include="ViewModels\AgentSummaryViewModel.cs" />
     <Compile Include="ViewModels\AgentsListViewModel.cs" />
     <Compile Include="ViewModels\ToolbarViewModel.cs" />
@@ -97,6 +104,9 @@
     </Compile>
     <Compile Include="Views\AgentsListView.xaml.cs">
       <DependentUpon>AgentsListView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AgentsRibbonTabView.xaml.cs">
+      <DependentUpon>AgentsRibbonTabView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\AgentSummaryView.xaml.cs">
       <DependentUpon>AgentSummaryView.xaml</DependentUpon>
@@ -123,6 +133,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\AgentsRibbonTabView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\AgentSummaryView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -146,6 +160,12 @@
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Network\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\ConnectionManager_48x48.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\RefreshArrow_32x32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

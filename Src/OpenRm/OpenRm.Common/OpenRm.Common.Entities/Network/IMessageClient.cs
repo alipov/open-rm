@@ -9,5 +9,6 @@ namespace OpenRm.Common.Entities.Network
         void Connect(IPEndPoint endPoint, Action<CustomEventArgs> callback);
         void Send(Message message, Action<CustomEventArgs> callback);
         void Disconnect(Action<CustomEventArgs> callback);
+        bool IsConnected { get; }
     }
 }
