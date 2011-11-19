@@ -5,13 +5,13 @@ using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network
 {
-    internal class SockAdvClient
+    public class SockAdvClient
     {
         private readonly Socket _clientSocket;
         private readonly IPEndPoint _hostEndPoint;
         private bool _isConnected;
 
-        internal SockAdvClient(String hostName, Int32 port)
+        public SockAdvClient(String hostName, Int32 port)
         {
             // Get host related information.
             IPHostEntry host = Dns.GetHostEntry(hostName);
@@ -24,7 +24,7 @@ namespace OpenRm.Common.Entities.Network
             _clientSocket = new Socket(_hostEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         }
 
-        internal void Connect(Action<CustomEventArgs> callback)
+        public void Connect(Action<CustomEventArgs> callback)
         {
             var connectArgs = new SocketAsyncEventArgs
                                   {
@@ -36,7 +36,7 @@ namespace OpenRm.Common.Entities.Network
             _clientSocket.ConnectAsync(connectArgs);
         }
 
-        internal void Send(Message message, Action<CustomEventArgs> callback)
+        public void Send(Message message, Action<CustomEventArgs> callback)
         {
             if (!_isConnected)
                 throw new SocketException((Int32)SocketError.NotConnected);
@@ -55,7 +55,7 @@ namespace OpenRm.Common.Entities.Network
             _clientSocket.SendAsync(socketArgs);
         }
 
-        internal void Disconnect(Action<CustomEventArgs> callback)
+        public void Disconnect(Action<CustomEventArgs> callback)
         {
             // Prepare arguments for send/receive operation.
             var socketArgs = new SocketAsyncEventArgs();

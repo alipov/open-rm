@@ -55,6 +55,9 @@
     <Compile Include="Enums\EMessageType.cs" />
     <Compile Include="Enums\EOpCode.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="Network\GeneralSocketClient.cs" />
+    <Compile Include="Network\GeneralUserToken.cs" />
+    <Compile Include="Network\IMessageClient.cs" />
     <Compile Include="Network\Messages\IdentificationData.cs" />
     <Compile Include="Network\Messages\InstalledPrograms.cs" />
     <Compile Include="Network\Messages\IpConfigData.cs" />

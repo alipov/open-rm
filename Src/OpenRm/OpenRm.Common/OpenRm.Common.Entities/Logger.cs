@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using OpenRm.Common.Entities;
 using System.Diagnostics;
 
 namespace OpenRm.Common.Entities
@@ -42,7 +41,7 @@ namespace OpenRm.Common.Entities
         // writes critical event in Application EventLog
         public static void CriticalToEventLog(string str)
         {
-            string sSource = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+            string sSource = Process.GetCurrentProcess().ProcessName;
 
             if (!EventLog.SourceExists(sSource))
                 EventLog.CreateEventSource(sSource, "Application");

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,10 +19,14 @@ namespace OpenRm.Agent
     public static class OpProcessor
     {
 
-        public static void GetInfo(IdentificationData id)
+        public static IdentificationData GetInfo()
         {
-            id.deviceName = System.Environment.MachineName;
-            id.sn = GetWMIdata("Win32_BaseBoard", "SerialNumber");
+            var id = new IdentificationData
+                                    {
+                                        deviceName = Environment.MachineName,
+                                        sn = GetWMIdata("Win32_BaseBoard", "SerialNumber")
+                                    };
+            return id;
         }
 
 

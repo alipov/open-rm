@@ -66,9 +66,11 @@
     <Compile Include="Api\ViewModels\IAgentDetailsViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentsListViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentSummaryViewModel.cs" />
+    <Compile Include="Api\ViewModels\IToolbarViewModel.cs" />
     <Compile Include="Api\Views\IAgentDetailsView.cs" />
     <Compile Include="Api\Views\IAgentsListView.cs" />
     <Compile Include="Api\Views\IAgentSummaryView.cs" />
+    <Compile Include="Api\Views\IToolbarView.cs" />
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
     <Compile Include="MonitorModule.cs" />
@@ -89,6 +91,7 @@
     <Compile Include="ViewModels\AgentDetailsViewModel.cs" />
     <Compile Include="ViewModels\AgentSummaryViewModel.cs" />
     <Compile Include="ViewModels\AgentsListViewModel.cs" />
+    <Compile Include="ViewModels\ToolbarViewModel.cs" />
     <Compile Include="Views\AgentDetailsView.xaml.cs">
       <DependentUpon>AgentDetailsView.xaml</DependentUpon>
     </Compile>

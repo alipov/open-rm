@@ -45,7 +45,6 @@
             </Style>
         </Grid.Resources>
         
-        
         <TextBlock Text="{Binding CurrentEntity.Name}"/>
 
         <!--The Tab control defines a region, TabRegion, into which the EmployeeDetailsView and EmployeeProjectsView will be displayed.-->

@@ -20,7 +20,7 @@ namespace OpenRm.Common.Entities.Network
 
         // Invoked when an asycnhronous receive operation completes.  
         // If the remote host closed the connection, then the socket is closed.
-        protected void ProcessReceive(SocketAsyncEventArgs e)
+        protected virtual void ProcessReceive(SocketAsyncEventArgs e)
         {
             var token = (AsyncUserTokenBase)e.UserToken;
             // Check if the remote host closed the connection
@@ -154,7 +154,7 @@ namespace OpenRm.Common.Entities.Network
         }
 
         // This method is invoked when an asynchronous send operation completes.
-        protected void ProcessSend(SocketAsyncEventArgs e)
+        protected virtual void ProcessSend(SocketAsyncEventArgs e)
         {
             var token = (AsyncUserTokenBase)e.UserToken;
 
