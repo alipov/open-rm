@@ -1,0 +1,16 @@
+﻿<ribbon:RibbonTab x:Class="OpenRm.Server.Gui.Modules.Monitor.Views.AgentsRibbonTabView"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+                  xmlns:ribbon="clr-namespace:Microsoft.Windows.Controls.Ribbon;assembly=RibbonControlsLibrary"
+                  mc:Ignorable="d" 
+                  Header="Agents">
+    
+    <ribbon:RibbonGroup Header="Connection">
+        <ribbon:RibbonButton LargeImageSource="Images\ConnectionManager_48x48.png"  Label="Connect"
+                             Command="{Binding ConnectCommand}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Refresh Agents" />
+    </ribbon:RibbonGroup>
+
+</ribbon:RibbonTab >

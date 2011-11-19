@@ -15,6 +15,14 @@ namespace OpenRm.Common.Entities.Network
         private bool _isConnected;
         private Socket _socket;
 
+        public bool IsConnected 
+        { 
+            get
+            {
+                return _isConnected;
+            }
+        }
+
         // Interval between reconnects to server (when was unable to connect / has been disconnected)    
         private int _retryIntervalCurrent;
 
