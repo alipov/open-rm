@@ -79,6 +79,7 @@
     <Compile Include="Api\Views\IToolbarView.cs" />
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
+    <Compile Include="EventAggregatorMessages\AgentsListUpdated.cs" />
     <Compile Include="MonitorModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

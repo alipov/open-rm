@@ -10,13 +10,13 @@ namespace OpenRm.Common.Entities
     public static class WoxalizerAdapter
     {
         // TODO:  move to another class?
-        public static Byte[] SerializeToXml(Message msg, Func<object, ResolveEventArgs, Assembly> assemblyResolveHandler)
+        public static Byte[] SerializeToXml(Message msg)
         {
             var mem = new MemoryStream();
             var writer = XmlWriter.Create(mem);
             
             //TODO:  how to change this code to generic?
-            using (var woxalizer = new WoxalizerUtil(assemblyResolveHandler))
+            using (var woxalizer = new WoxalizerUtil())
             {
                 if (msg is RequestMessage)
                 {
@@ -41,7 +41,7 @@ namespace OpenRm.Common.Entities
             var mem = new MemoryStream(msg);
             var reader = XmlReader.Create(mem);
 
-            using (var woxalizer = new WoxalizerUtil(assemblyResolveHandler))
+            using (var woxalizer = new WoxalizerUtil())
             {
                 message = (Message)woxalizer.Load(reader);
             }

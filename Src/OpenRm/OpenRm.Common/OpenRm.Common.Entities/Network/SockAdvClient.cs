@@ -42,7 +42,7 @@ namespace OpenRm.Common.Entities.Network
                 throw new SocketException((Int32)SocketError.NotConnected);
 
             // Create a buffer to send.
-            Byte[] sendBuffer = WoxalizerAdapter.SerializeToXml(message, null);
+            Byte[] sendBuffer = WoxalizerAdapter.SerializeToXml(message);
 
             // Prepare arguments for send/receive operation.
             var socketArgs = new SocketAsyncEventArgs();

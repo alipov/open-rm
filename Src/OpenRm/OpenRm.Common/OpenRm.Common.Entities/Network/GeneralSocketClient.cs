@@ -69,8 +69,13 @@ namespace OpenRm.Common.Entities.Network
                 throw new SocketException((int)SocketError.NotConnected);
             
             // Create a buffer to send.
-            Byte[] sendBuffer = WoxalizerAdapter.SerializeToXml(message, null);
+            Byte[] sendBuffer = WoxalizerAdapter.SerializeToXml(message);
 
+            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(sendBuffer));
+
+            // prepare data to send: add prefix that holds length of message
+            Byte[] prefixToAdd = BitConverter.GetBytes(sendBuffer.Length);
+            
             // Prepare arguments for send/receive operation.
             var socketArgs = new SocketAsyncEventArgs
                                  {
@@ -78,9 +83,15 @@ namespace OpenRm.Common.Entities.Network
                                      //UserToken = _userToken
                                  };
             socketArgs.Completed += CommonCallback;
-            socketArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
-            
-            _userToken = new GeneralUserToken(null, callback);
+            //socketArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
+
+            _userToken = new GeneralUserToken(null, callback)
+                             {
+                                 SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length]
+                             };
+
+            prefixToAdd.CopyTo(_userToken.SendingMsg, 0);
+            sendBuffer.CopyTo(_userToken.SendingMsg, MsgPrefixLength);
 
             StartSend(socketArgs);
         }
@@ -267,6 +278,18 @@ namespace OpenRm.Common.Entities.Network
                     _userToken.Callback.Invoke(new CustomEventArgs(SocketError.Fault, null));
                 }
             }
+        }
+
+        protected new void StartReceive(SocketAsyncEventArgs readEventArgs)
+        {
+            readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
+            bool willRaiseEvent = _socket.ReceiveAsync(readEventArgs);
+            if (!willRaiseEvent)
+            {
+                // need to be proceeded synchroniously
+                ProcessReceive(readEventArgs);
+            }
+            Logger.WriteStr("StartReceive has been run");
         }
 
         private void CommonCallback(object sender, SocketAsyncEventArgs args)

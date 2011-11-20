@@ -10,7 +10,8 @@
     <ribbon:RibbonGroup Header="Connection">
         <ribbon:RibbonButton LargeImageSource="Images\ConnectionManager_48x48.png"  Label="Connect"
                              Command="{Binding ConnectCommand}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Refresh Agents" />
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Refresh Agents" 
+                             Command="{Binding RefreshAgentsCommand}"/>
     </ribbon:RibbonGroup>
 
 </ribbon:RibbonTab >

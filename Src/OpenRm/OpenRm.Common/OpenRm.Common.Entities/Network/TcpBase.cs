@@ -127,7 +127,7 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        protected void StartReceive(SocketAsyncEventArgs readEventArgs)
+        protected virtual void StartReceive(SocketAsyncEventArgs readEventArgs)
         {
             readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
             bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
