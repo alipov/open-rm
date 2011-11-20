@@ -89,7 +89,7 @@ namespace OpenRm.Agent
                 //Send authorization info about this client as soon as connection established
                 var idata = OpProcessor.GetInfo(); // fill required data
                 var message = new ResponseMessage {Response = idata};
-                SendMessage(e, WoxalizerAdapter.SerializeToXml(message, TypeResolving.AssemblyResolveHandler));
+                SendMessage(e, WoxalizerAdapter.SerializeToXml(message));
                 
             }
             else
@@ -204,7 +204,7 @@ namespace OpenRm.Agent
                 default:
                     throw new ArgumentException("WARNING: Got unknown operation code request!");
             }
-            SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg, TypeResolving.AssemblyResolveHandler));
+            SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg));
         }
 
         protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)

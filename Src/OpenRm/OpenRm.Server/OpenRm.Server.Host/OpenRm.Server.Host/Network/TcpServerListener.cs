@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Net;
 using System.Net.Sockets;
@@ -6,6 +7,7 @@ using System.Threading;
 using OpenRm.Common.Entities;
 using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
+using System.Linq;
 
 namespace OpenRm.Server.Host.Network
 {
@@ -21,6 +23,9 @@ namespace OpenRm.Server.Host.Network
         Semaphore maxNumberAcceptedClients;             // limit number of clients
         //Logger log;                                     // log file writer
         private int _port;
+
+        //TODO: move it outside of the infrastructure
+        private List<Agent> _agentsList = new List<Agent>();
 
         public TcpServerListener(int port, int maxNumConnections, int receiveBufferSize, Func<object, ResolveEventArgs, Assembly> resolver)
             : base(resolver, receiveBufferSize)
@@ -217,6 +222,21 @@ namespace OpenRm.Server.Host.Network
         protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
         {
             //server recieves requests only from Console!
+
+            if (message.Request is ListAgentsRequest)
+            {
+                var agentsResponse = new ListAgentsResponse()
+                                             {
+                                                 Agents = _agentsList
+                                             };
+
+                var responseMessage = new ResponseMessage()
+                                          {
+                                              Response = agentsResponse
+                                          };
+                SendMessage(e, WoxalizerAdapter.SerializeToXml
+                    (responseMessage));
+            }
         }
 
         protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
@@ -234,10 +254,23 @@ namespace OpenRm.Server.Host.Network
                 //...
 
 
+                // TODO: move this code outside
+                if (!_agentsList.Any(a => a.Name == idata.deviceName))
+                {
+                    var agent = new Agent()
+                                    {
+                                        ID = 1,
+                                        Name = idata.deviceName
+                                    };
+                    _agentsList.Add(agent);
+                }
+
+
                 //TODO: for testing only:
                 //Get IP information
                 var msg = new RequestMessage {OpCode = (int) EOpCode.IpConfigData};
-                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg, TypeResolving.AssemblyResolveHandler));
+                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg));
+
                 
             }
             else if (message.Response is IpConfigData)
@@ -259,7 +292,7 @@ namespace OpenRm.Server.Host.Network
                                };
                 
                 msg.Request = exec;
-                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg, TypeResolving.AssemblyResolveHandler));
+                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg));
             }
             else if (message.Response is RunCompletedStatus)
             {
@@ -281,7 +314,7 @@ namespace OpenRm.Server.Host.Network
 
                         //TODO: for testing only:
                         var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
-                        SendMessage(e, WoxalizerAdapter.SerializeToXml(msg, TypeResolving.AssemblyResolveHandler));
+                        SendMessage(e, WoxalizerAdapter.SerializeToXml(msg));
 
             }
             else if (message.Response is InstalledPrograms)

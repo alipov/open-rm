@@ -74,7 +74,10 @@
       <HintPath>..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Unity.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Windows.Shell, Version=3.5.41019.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Windows.Shell, Version=3.5.41019.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\Bin\Common\ThirdParty\WpfRibbon_v4\Microsoft.Windows.Shell.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="OpenRm.Common.Entities">
       <HintPath>..\..\..\..\..\Bin\Common\OpenRm.Common.Entities.dll</HintPath>
       <Private>False</Private>
