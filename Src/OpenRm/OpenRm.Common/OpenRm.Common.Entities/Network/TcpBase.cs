@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network
@@ -41,7 +42,7 @@ namespace OpenRm.Common.Entities.Network
                 {
                     // Determine how many bytes we want to transfer to the buffer and transfer them 
                     int bytesAvailable = e.BytesTransferred - i;
-                    if (token.MsgData == null)
+                    if (token.RecievedMsgData == null)
                     {
                         // token.msgData is empty so we a dealing with Prefix.
                         // Copy the incoming bytes into token's prefix's buffer
@@ -73,7 +74,7 @@ namespace OpenRm.Common.Entities.Network
                             token.MessageLength = length;
 
                             // Create the data buffer and start reading into it 
-                            token.MsgData = new byte[length];
+                            token.RecievedMsgData = new byte[length];
 
                             // zero prefix counter
                             token.RecievedPrefixPartLength = 0;
@@ -85,12 +86,12 @@ namespace OpenRm.Common.Entities.Network
                         // We're reading into the data buffer  
                         int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.MsgData, token.RecievedMsgPartLength, bytesTransferred);
-                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.MsgData));
+                        Array.Copy(e.Buffer, e.Offset + i, token.RecievedMsgData, token.RecievedMsgPartLength, bytesTransferred);
+                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.RecievedMsgData));
                         i += bytesTransferred;
 
                         token.RecievedMsgPartLength += bytesTransferred;
-                        if (token.RecievedMsgPartLength != token.MsgData.Length)
+                        if (token.RecievedMsgPartLength != token.RecievedMsgData.Length)
                         {
                             // We haven't gotten all the data buffer yet: call Receive again to get more data
                             StartReceive(e);
@@ -99,21 +100,17 @@ namespace OpenRm.Common.Entities.Network
                         else
                         {
                             // we've gotten an entire packet
-                            Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.MsgData));
-                            // TODO:  get token.msgData data and convert to XML, .... . . . ..
+                            Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.RecievedMsgData));
+
+                            //TODO:  maybe to put StartReceive(e) here?
 
                             ProcessReceivedMessage(e);
 
-                            //TODO: delete this block:
-                            //Moved to another place// empty Token's buffers and counters
-                            //token.Clean();
-                            //
-                            ////// it's for testing here:
-                            ////var msg = new ResponseMessage();
-                            ////msg.Response = new IpConfigData();
-                            ////msg.OpCode = (int)EOpCode.IpConfigData;
-                            ////SendMessage(e, SerializeToXml(msg));
+                            // Clean token's recieve buffer
+                            token.CleanForRecieve();
 
+                            // wait for next message
+                            StartReceive(e);
                         }
                     }
                 }
@@ -129,6 +126,7 @@ namespace OpenRm.Common.Entities.Network
 
         protected virtual void StartReceive(SocketAsyncEventArgs readEventArgs)
         {
+            Logger.WriteStr("StartReceive has been run");
             readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
             bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
             if (!willRaiseEvent)
@@ -136,14 +134,13 @@ namespace OpenRm.Common.Entities.Network
                 // need to be proceeded synchroniously
                 ProcessReceive(readEventArgs);
             }
-            Logger.WriteStr("StartReceive has been run");
         }
 
         protected void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
             var token = (AsyncUserTokenBase)e.UserToken;
 
-            Message message = WoxalizerAdapter.DeserializeFromXml(token.MsgData, _assemblyResolveHandler);
+            Message message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData, _assemblyResolveHandler);
 
             if (message is RequestMessage)
                 ProcessReceivedMessageRequest(e, (RequestMessage)message);
@@ -169,19 +166,18 @@ namespace OpenRm.Common.Entities.Network
                     return;
                 }
 
-                Logger.WriteStr(" Message has been sent.");
+                Logger.WriteStr(" Complete message has been sent.");
 
                 // reset token's buffers and counters before reusing the token
-                token.Clean();
+                token.CleanForSend();
 
-                // read the answer send from the client
-                StartReceive(e);
+                ////// read the answer send from the client
+                ////StartReceive(e);
 
             }
             else
             {
                 Logger.WriteStr(" Message has failed to be sent.");
-                //token.Clean();
                 CloseConnection(e);
             }
         }
@@ -191,22 +187,16 @@ namespace OpenRm.Common.Entities.Network
         // The method issues another receive on the socket to read client's answer.
         protected void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
         {
+            var token = (AsyncUserTokenBase)e.UserToken;
+
             //TODO:  maybe remove 3-byte descriptor from beginning of array?
             Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
-
-            var token = (AsyncUserTokenBase)e.UserToken;
 
             // reset token's buffers and counters before reusing the token
             //token.Clean();
 
             // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
-            //if (prefixToAdd.Length != msgPrefixLength)
-            //{
-            //    //TODO:  Do we need this check??? if yes - throw Exception
-            //    Logger.WriteStr("ERROR: prefixToAdd.Length is not the same size of msgPrefixLength! Check your OS platform...");
-            //    return;
-            //}
 
             // prepare complete data and store it into token
             token.SendingMsg = new Byte[MsgPrefixLength + msgToSend.Length];

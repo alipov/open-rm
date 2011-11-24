@@ -15,31 +15,29 @@ namespace OpenRm.Server.Host.Network
     {
         //public const int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
         public int maxNumConnections;              // holds maximum number of connections, defined in program
-        //public int receiveBufferSize;
-        public const int opsToPreAlloc = 2;        // read, write (don't alloc buffer space for accepts)
+        public const int opsToPreAlloc = 2;        // separate read and write operations - allocate separate Args
+        SocketAsyncEventArgsPool argsReadWritePool;     // pool of reusable SocketAsyncEventArgs objects for write and read socket operations
         BufferManager bufferManager;        // represents a large reusable set of buffers for all socket operations
         Socket listenSocket;                // the socket used to listen for incoming connection requests
-        SocketAsyncEventArgsPool argsReadWritePool;     // pool of reusable SocketAsyncEventArgs objects for write, read and accept socket operations
-        Semaphore maxNumberAcceptedClients;             // limit number of clients
-        //Logger log;                                     // log file writer
+        Semaphore maxNumberConnectedClients;             // limit number of clients
         private int _port;
 
         //TODO: move it outside of the infrastructure
         private List<Agent> _agentsList = new List<Agent>();
 
+
         public TcpServerListener(int port, int maxNumConnections, int receiveBufferSize, Func<object, ResolveEventArgs, Assembly> resolver)
             : base(resolver, receiveBufferSize)
         {
             this.maxNumConnections = maxNumConnections;
-            //this.receiveBufferSize = receiveBufferSize;
-            //this.log = log;
 
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
             // write posted to the socket simultaneously  
             bufferManager = new BufferManager(receiveBufferSize * maxNumConnections * opsToPreAlloc, receiveBufferSize);
-
-            argsReadWritePool = new SocketAsyncEventArgsPool(maxNumConnections);
-            maxNumberAcceptedClients = new Semaphore(maxNumConnections, maxNumConnections);
+            // allocate pool of SocketAsyncEventArgs for sending and recieveing data
+            argsReadWritePool = new SocketAsyncEventArgsPool(maxNumConnections * opsToPreAlloc);
+            // set limiter of connected clients' number
+            maxNumberConnectedClients = new Semaphore(maxNumConnections, maxNumConnections);
 
             _port = port;
 
@@ -56,19 +54,13 @@ namespace OpenRm.Server.Host.Network
             bufferManager.InitBuffer();
 
             // preallocate pool of SocketAsyncEventArgs objects
-            SocketAsyncEventArgs readWriteArg;
-
-            for (int i = 0; i < maxNumConnections; i++)
+            for (int i = 0; i < maxNumConnections*opsToPreAlloc; i++)
             {
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
-                readWriteArg = new SocketAsyncEventArgs();
+                SocketAsyncEventArgs readWriteArg = new SocketAsyncEventArgs();
                 readWriteArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-                var token = new HostAsyncUserToken() {Data = new ClientData()};
-                readWriteArg.UserToken = token;
                 
-
-
-                // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
+                // assign a byte buffer from the buffer pool to the SocketAsyncEventArg objects
                 bufferManager.SetBuffer(readWriteArg);
 
                 // add SocketAsyncEventArg to the pool
@@ -114,7 +106,7 @@ namespace OpenRm.Server.Host.Network
                 acceptEventArg.AcceptSocket = null;
             }
 
-            maxNumberAcceptedClients.WaitOne();
+            maxNumberConnectedClients.WaitOne();
             bool willRaiseEvent = listenSocket.AcceptAsync(acceptEventArg);
             if (!willRaiseEvent)
             {
@@ -138,29 +130,56 @@ namespace OpenRm.Server.Host.Network
                 return;
             }
 
-            //TODO: deleteme
-            //StartAccept(null);
-
             Logger.WriteStr("Client connection accepted. Processing Accept from client " + e.AcceptSocket.RemoteEndPoint.ToString());
 
-            // Get the socket for the accepted client connection and put it into the ReadEventArg object user token
+            // Get Arg from the Pool, for recieving
             SocketAsyncEventArgs readEventArgs = argsReadWritePool.Pop();
             if (readEventArgs != null)
             {
-                ((HostAsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
+                // create user's token
+                var token = new HostAsyncUserToken();
+                readEventArgs.UserToken = token;
+
+                // store this object in token for fast reusing
+                token.readEventArgs = readEventArgs;
+
+                // Get the socket for the accepted client connection and put it into the readEventArg object user token
+                token.Socket = e.AcceptSocket;
                 readEventArgs.AcceptSocket = e.AcceptSocket;
-                e.AcceptSocket = null;                          // We'll reuse Accept SocketAsyncEventArgs object
 
-                // As soon as the client is connected, post a receive to the connection, to get client's identification info
-                StartReceive(readEventArgs);
+                // Get another Arg from the Pool, for sending.
+                SocketAsyncEventArgs writeEventArgs = argsReadWritePool.Pop();
 
+                if (writeEventArgs != null)
+                {                
+                    // point it' UserToken to the same token
+                    writeEventArgs.UserToken = token;
+                    writeEventArgs.AcceptSocket = e.AcceptSocket;
+
+                    // Link writeEventArgs to readEventArgs in the token
+                    token.writeEventArgs = writeEventArgs;
+
+                    // Initialize agent's data/info holder
+                    token.agentData = new ClientData();
+
+                    /* !!! */
+                    // As soon as the client is connected, post a receive to the connection, to get client's identification info
+                    StartReceive(readEventArgs);
+
+                }
+                else
+                {
+                    Logger.WriteStr("There is no more SocketAsyncEventArgs available in write pool! Cannot continue. Close connection.");
+                    CloseConnection(e);
+                }
             }
             else
             {
-                Logger.WriteStr("There is no more SocketAsyncEventArgs available in r/w pool");
+                Logger.WriteStr("There is no more SocketAsyncEventArgs available in read pool! Cannot continue. Close connection.");
             }
 
             // Accept the next connection request. We'll reuse Accept SocketAsyncEventArgs object.
+            e.AcceptSocket = null;
             StartAccept(e);
         }
 
@@ -186,6 +205,9 @@ namespace OpenRm.Server.Host.Network
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
+            // don't let sending simultatiously with ONE SocketAsyncEventArgs object
+            token.writeSemaphore.WaitOne();           
+
             int bytesToTransfer = Math.Min(ReceiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
             Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
             e.SetBuffer(e.Offset, bytesToTransfer);
@@ -195,12 +217,15 @@ namespace OpenRm.Server.Host.Network
             {
                 ProcessSend(e);
             }
+
+            // release lock
+            token.writeSemaphore.Release();
         }
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
-            var token = e.UserToken as HostAsyncUserToken;
-            String clientEP = token.Socket.RemoteEndPoint.ToString();
+            var token = (HostAsyncUserToken)e.UserToken;
+            String ClientEP = token.Socket.RemoteEndPoint.ToString();   //get name before we close the connection
 
             // close the socket associated with the client
             try
@@ -210,14 +235,28 @@ namespace OpenRm.Server.Host.Network
             // throws if client process has already closed
             catch (Exception) { }
             token.Socket.Close();
-            maxNumberAcceptedClients.Release();
-            token.Clean();
 
-            Logger.WriteStr("A client " + clientEP + " has been disconnected from the server.");
+            Logger.WriteStr("A client " + ClientEP + " has been disconnected from the server.");
 
-            // Free the SocketAsyncEventArg so they can be reused by another client
-            argsReadWritePool.Push(e);
+            // Free the SocketAsyncEventArgs so they can be reused by another client, and return them back to pool
+            var readArgs = token.readEventArgs;
+            var writeArgs = token.writeEventArgs;
+            if (readArgs != null)
+            {
+                readArgs.UserToken = null;
+                argsReadWritePool.Push(readArgs);
+            }
+            if (writeArgs != null)
+            {
+                writeArgs.UserToken = null;
+                argsReadWritePool.Push(writeArgs);
+            }
+
+            // decrease number of connected clients
+            maxNumberConnectedClients.Release();
         }
+
+
 
         protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
         {
@@ -243,8 +282,8 @@ namespace OpenRm.Server.Host.Network
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
-            if(token.Data == null)
-                token.Data = new ClientData();
+            //TODO: remove
+            Logger.WriteStr(" Sending to: " + ((HostAsyncUserToken)token.writeEventArgs.UserToken).Socket.LocalEndPoint.ToString() );
 
             if (message.Response is IdentificationData)
             {
@@ -269,14 +308,14 @@ namespace OpenRm.Server.Host.Network
                 //TODO: for testing only:
                 //Get IP information
                 var msg = new RequestMessage {OpCode = (int) EOpCode.IpConfigData};
-                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg));
+                SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
 
                 
             }
             else if (message.Response is IpConfigData)
             {
                 var ipConf = (IpConfigData) message.Response;
-                token.Data.IpConfig = ipConf;       //store in "database"
+                token.agentData.IpConfig = ipConf;       //store in "database"
 
 
                 //TODO: move to another place
@@ -292,7 +331,7 @@ namespace OpenRm.Server.Host.Network
                                };
                 
                 msg.Request = exec;
-                SendMessage(e, WoxalizerAdapter.SerializeToXml(msg));
+                SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
             }
             else if (message.Response is RunCompletedStatus)
             {
@@ -314,7 +353,7 @@ namespace OpenRm.Server.Host.Network
 
                         //TODO: for testing only:
                         var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
-                        SendMessage(e, WoxalizerAdapter.SerializeToXml(msg));
+                        SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
 
             }
             else if (message.Response is InstalledPrograms)
@@ -410,7 +449,7 @@ namespace OpenRm.Server.Host.Network
         //{
         //    var token = (HostAsyncUserToken)e.UserToken;
 
-        //    Message message = WoxalizerAdapter.DeserializeFromXml(token.MsgData, TypeResolving.AssemblyResolveHandler);
+        //    Message message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData, TypeResolving.AssemblyResolveHandler);
 
         //        //// TODO: why do not write: "if (message is RequestMessage)" ...  - so we don't need MessageType!
         //        ////switch ((EMessageType)message.MessageType)
@@ -469,7 +508,7 @@ namespace OpenRm.Server.Host.Network
         //                {
         //                    // Determine how many bytes we want to transfer to the buffer and transfer them 
         //                    int bytesAvailable = e.BytesTransferred - i;
-        //                    if (token.MsgData == null)
+        //                    if (token.RecievedMsgData == null)
         //                    {
         //                        // token.msgData is empty so we a dealing with Prefix.
         //                        // Copy the incoming bytes into token's prefix's buffer
@@ -501,7 +540,7 @@ namespace OpenRm.Server.Host.Network
         //                            token.MessageLength = length;
 
         //                            // Create the data buffer and start reading into it 
-        //                            token.MsgData = new byte[length];
+        //                            token.RecievedMsgData = new byte[length];
 
         //                            // zero prefix counter
         //                            token.RecievedPrefixPartLength = 0;
@@ -513,12 +552,12 @@ namespace OpenRm.Server.Host.Network
         //                        // We're reading into the data buffer  
         //                        int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
         //                        int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-        //                        Array.Copy(e.Buffer, e.Offset + i, token.MsgData, token.RecievedMsgPartLength, bytesTransferred);
-        //                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.MsgData));
+        //                        Array.Copy(e.Buffer, e.Offset + i, token.RecievedMsgData, token.RecievedMsgPartLength, bytesTransferred);
+        //                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.RecievedMsgData));
         //                        i += bytesTransferred;
 
         //                        token.RecievedMsgPartLength += bytesTransferred;
-        //                        if (token.RecievedMsgPartLength != token.MsgData.Length)
+        //                        if (token.RecievedMsgPartLength != token.RecievedMsgData.Length)
         //                        {
         //                            // We haven't gotten all the data buffer yet: call Receive again to get more data
         //                            StartReceive(e);
@@ -527,7 +566,7 @@ namespace OpenRm.Server.Host.Network
         //                        else
         //                        {
         //                            // we've gotten an entire packet
-        //                            Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.MsgData));
+        //                            Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.RecievedMsgData));
         //// TODO:  get token.msgData data and convert to XML, .... . . . ..
 
         //                            ProcessReceivedMessage(e);

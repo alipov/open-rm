@@ -90,12 +90,14 @@ namespace OpenRm.Agent
                 var idata = OpProcessor.GetInfo(); // fill required data
                 var message = new ResponseMessage {Response = idata};
                 SendMessage(e, WoxalizerAdapter.SerializeToXml(message));
-                
+
+                //TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                Thread.Sleep(2000);
+                StartReceive(e);
             }
             else
             {
                 int ex = (int)e.SocketError;
-                Console.WriteLine("Cannot connect to server " + e.RemoteEndPoint.ToString() + ". Will try again in " + _retryIntervalCurrent + " seconds");
                 Logger.WriteStr("Cannot connect to server " + e.RemoteEndPoint.ToString() + ". Will try again in " + _retryIntervalCurrent + " seconds");
                 Logger.WriteStr("   (Exception: " + ex.ToString() + ")");
 
@@ -140,7 +142,8 @@ namespace OpenRm.Agent
 
             Logger.WriteStr("Client disconnected from server.");
 
-            token.Clean();
+            token.CleanForRecieve();
+            token.CleanForSend();
             token.Socket.Close();
 
             if (App.agentStarted)
@@ -185,7 +188,7 @@ namespace OpenRm.Agent
 
                 case (int)EOpCode.PerfmonData:
                     var pf = new PerfmonData();
-                    OpProcessor.GetInfo(pf, token.Data.OS.SystemDrive);     //provide which disk to monitor
+                    OpProcessor.GetInfo(pf, token.agentData.OS.SystemDrive);     //provide which disk to monitor
                     responseMsg = new ResponseMessage { Response = pf };
                     break;
 
