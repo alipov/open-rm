@@ -34,16 +34,16 @@ namespace OpenRm.Server.Host.Network
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
             // write posted to the socket simultaneously  
             bufferManager = new BufferManager(receiveBufferSize * maxNumConnections * opsToPreAlloc, receiveBufferSize);
-            // allocate pool of SocketAsyncEventArgs for sending and recieveing data
+            // allocate pool of SocketAsyncEventArgs for sending and recieveing Args objects 
             argsReadWritePool = new SocketAsyncEventArgsPool(maxNumConnections * opsToPreAlloc);
             // set limiter of connected clients' number
             maxNumberConnectedClients = new Semaphore(maxNumConnections, maxNumConnections);
 
             _port = port;
 
+            //allocate resources
             Init();
-            Logger.WriteStr("Init level completed");
-            //Start(localEndPoint);
+            
         }
 
         // Initializes the server by preallocating reusable buffers and context objects. 
@@ -87,7 +87,7 @@ namespace OpenRm.Server.Host.Network
             // Pause here 
             Console.WriteLine("Press any key to terminate the server process....");
             Console.ReadKey();
-            Logger.WriteStr("TCP terminated.");
+            Logger.WriteStr("Server terminated.");
         }
 
         // Begins an operation to accept a connection request from the client 
@@ -106,7 +106,11 @@ namespace OpenRm.Server.Host.Network
                 acceptEventArg.AcceptSocket = null;
             }
 
+            // The count on a semaphore is decremented each time a thread enters the semaphore, 
+            // and incremented when a thread releases the semaphore. When the count is zero, subsequent 
+            // requests block until other threads release the semaphore.
             maxNumberConnectedClients.WaitOne();
+
             bool willRaiseEvent = listenSocket.AcceptAsync(acceptEventArg);
             if (!willRaiseEvent)
             {
@@ -152,7 +156,7 @@ namespace OpenRm.Server.Host.Network
 
                 if (writeEventArgs != null)
                 {                
-                    // point it' UserToken to the same token
+                    // point it's UserToken to the same token
                     writeEventArgs.UserToken = token;
                     writeEventArgs.AcceptSocket = e.AcceptSocket;
 
@@ -176,6 +180,8 @@ namespace OpenRm.Server.Host.Network
             else
             {
                 Logger.WriteStr("There is no more SocketAsyncEventArgs available in read pool! Cannot continue. Close connection.");
+                // increase maxNumberConnectedClients simaphore back because it has been decreased in StartAccept
+                maxNumberConnectedClients.Release();
             }
 
             // Accept the next connection request. We'll reuse Accept SocketAsyncEventArgs object.
@@ -201,26 +207,27 @@ namespace OpenRm.Server.Host.Network
             }
         }
 
-        protected override void StartSend(SocketAsyncEventArgs e)
-        {
-            var token = (HostAsyncUserToken)e.UserToken;
+        // Moved to TcpBase.cs:
+        //protected override void StartSend(SocketAsyncEventArgs e)
+        //{
+        //    var token = (HostAsyncUserToken)e.UserToken;
 
-            // don't let sending simultatiously with ONE SocketAsyncEventArgs object
-            token.writeSemaphore.WaitOne();           
+        //    // don't let sending simultatiously with ONE SocketAsyncEventArgs object
+        //    token.writeSemaphore.WaitOne();           
 
-            int bytesToTransfer = Math.Min(ReceiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
-            Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
-            e.SetBuffer(e.Offset, bytesToTransfer);
+        //    int bytesToTransfer = Math.Min(ReceiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
+        //    Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
+        //    e.SetBuffer(e.Offset, bytesToTransfer);
 
-            bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
-            if (!willRaiseEvent)
-            {
-                ProcessSend(e);
-            }
+        //    bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
+        //    if (!willRaiseEvent)
+        //    {
+        //        ProcessSend(e);
+        //    }
 
-            // release lock
-            token.writeSemaphore.Release();
-        }
+        //    // release lock
+        //    token.writeSemaphore.Release();
+        //}
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
@@ -257,7 +264,7 @@ namespace OpenRm.Server.Host.Network
         }
 
 
-
+        //TODO:  maybe to make processing with additional Thread?
         protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
         {
             //server recieves requests only from Console!
@@ -277,6 +284,7 @@ namespace OpenRm.Server.Host.Network
                     (responseMessage));
             }
         }
+
 
         protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
         {
