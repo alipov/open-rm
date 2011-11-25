@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Net;
 using System.Net.Sockets;
@@ -11,9 +12,14 @@ namespace OpenRm.Agent
 {    
     internal class TcpClient : TcpBase
     {
-        // buffer for sending/receiving data by TCP layer. 
-        // Note that it has fixed size (same as for server, but also can be different)
-        private readonly byte[] _sendReceiveBuffer;
+        // SocketAsyncEventArgs objects for write and read socket operations
+        private SocketAsyncEventArgs readEventArgs;         
+        private SocketAsyncEventArgs writeEventArgs;
+
+        // buffers for sending/receiving data by TCP layer. 
+        // it has fixed size (the same as in server, but it can be different)
+        private byte[] _sendBuffer;
+        private byte[] _recieveBuffer;
                                                         
         // Interval between reconnects to server (when was unable to connect / has been disconnected)    
         private int _retryIntervalCurrent;
@@ -33,32 +39,50 @@ namespace OpenRm.Agent
             : base(resolver, bufferSize)
         {
             // Initialize buffer for sending/receiving data by TCP layer. 
-            _sendReceiveBuffer = new byte[bufferSize];
+            _sendBuffer = new byte[bufferSize];
+            _recieveBuffer = new byte[bufferSize];
             _serverIp = serverIp;
             _serverPort = serverPort;
         }
 
         public override void Start()
         {
+            // Create two Args objects - one for sending, one for recieving data
             var socket = new Socket((IPAddress.Parse(_serverIp)).AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            var sockArgs = new SocketAsyncEventArgs();
-            sockArgs.Completed += SocketEventArg_Completed;
-            sockArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverIp), _serverPort);
-            sockArgs.UserToken = new AgentAsyncUserToken();
-            ((AgentAsyncUserToken)sockArgs.UserToken).Socket = socket;
-            sockArgs.AcceptSocket = socket;
+            readEventArgs = new SocketAsyncEventArgs();
+            writeEventArgs = new SocketAsyncEventArgs();
+            readEventArgs.Completed += IO_Completed;
+            writeEventArgs.Completed += IO_Completed;
+            readEventArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverIp), _serverPort);
+            writeEventArgs.RemoteEndPoint = readEventArgs.RemoteEndPoint;
 
-            socket.ConnectAsync(sockArgs);
+            // point Args UserTokens to the same token
+            var token = new AgentAsyncUserToken();
+            readEventArgs.UserToken = token;
+            writeEventArgs.UserToken = token;
 
-            //EstablishConnection();
+            token.Socket = socket;
+            readEventArgs.AcceptSocket = socket;
+            writeEventArgs.AcceptSocket = socket;
+
+            // Save links to Args objects in the token
+            token.readEventArgs = readEventArgs;
+            token.writeEventArgs = writeEventArgs;
+
+            // Set buffers
+            readEventArgs.SetBuffer(_recieveBuffer, 0, _recieveBuffer.Length);
+            writeEventArgs.SetBuffer(_sendBuffer, 0, _sendBuffer.Length);
+
+            socket.ConnectAsync(readEventArgs);
 
             // pause current thread
             _clientDone.WaitOne();
         }
 
+
         // A single callback is used for all socket operations. This method forwards execution on to the correct handler 
         // based on the type of completed operation.
-        private void SocketEventArg_Completed(object sender, SocketAsyncEventArgs e)
+        private void IO_Completed(object sender, SocketAsyncEventArgs e)
         {
             switch (e.LastOperation)
             {
@@ -77,22 +101,27 @@ namespace OpenRm.Agent
             }
         }
 
-
         // Called when a ConnectAsync operation completes
         private void ProcessConnect(SocketAsyncEventArgs e)
         {
             if (e.SocketError == SocketError.Success)
             {
-                Logger.WriteStr("Successfully connected to the server on " + ((AgentAsyncUserToken)(e.UserToken)).Socket.LocalEndPoint.ToString());
+                var token = (AgentAsyncUserToken) e.UserToken;
+                Logger.WriteStr("Successfully connected to the server on " + token.Socket.LocalEndPoint.ToString());
                 _retryIntervalCurrent = RetryIntervalInitial;          // set it to initial value
 
                 //Send authorization info about this client as soon as connection established
                 var idata = OpProcessor.GetInfo(); // fill required data
                 var message = new ResponseMessage {Response = idata};
-                SendMessage(e, WoxalizerAdapter.SerializeToXml(message));
+                //TODO: remove
+                Thread.Sleep(60000);
 
-                //TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                Thread.Sleep(2000);
+                SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(message));
+
+                //////TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                ////Thread.Sleep(2000);
+
+                // Start waiting for incoming data
                 StartReceive(e);
             }
             else
@@ -112,21 +141,6 @@ namespace OpenRm.Agent
             }
         }
 
-        protected override void StartSend(SocketAsyncEventArgs e)
-        {
-            var token = (AgentAsyncUserToken)e.UserToken;
-
-            int bytesToTransfer = Math.Min(_sendReceiveBuffer.Length, token.SendingMsg.Length - token.SendingMsgBytesSent);
-            e.SetBuffer(_sendReceiveBuffer, 0, bytesToTransfer);
-            Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
-
-            bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
-            if (!willRaiseEvent)
-            {
-                ProcessSend(e);
-            }
-        }
-
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
@@ -139,27 +153,14 @@ namespace OpenRm.Agent
             }
             // throws if server has already closed connection
             catch (Exception) { }
-
-            Logger.WriteStr("Client disconnected from server.");
-
-            token.CleanForRecieve();
-            token.CleanForSend();
             token.Socket.Close();
 
-            if (App.agentStarted)
-            {
-                Logger.WriteStr("Client should be running so just try to reconnect to server...");
-                _retryIntervalCurrent = RetryIntervalInitial;  //reset to initial value
+            Logger.WriteStr("Client disconnected from server. Will reconnect now...");
+
+            _retryIntervalCurrent = RetryIntervalInitial;  //reset to initial value
                 
-                //Reconnect to server
-                Start();
-            }
-            else
-            {
-                token.Socket.Close();
-                _clientDone.Reset();
-                Console.WriteLine("Client has been terminated.");
-            }
+            //Reconnect to server
+            Start();
         }
 
         protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)

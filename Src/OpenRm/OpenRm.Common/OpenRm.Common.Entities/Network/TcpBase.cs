@@ -19,11 +19,28 @@ namespace OpenRm.Common.Entities.Network
             ReceiveBufferSize = bufferSize;
         }
 
+
+        protected virtual void StartReceive(SocketAsyncEventArgs readEventArgs)
+        {
+            Logger.WriteStr("StartReceive has been run");
+
+            var token = (AsyncUserTokenBase)readEventArgs.UserToken;
+
+            readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
+            bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
+            if (!willRaiseEvent)
+            {
+                // need to be proceeded synchroniously
+                ProcessReceive(readEventArgs);
+            }
+        }
+
         // Invoked when an asycnhronous receive operation completes.  
         // If the remote host closed the connection, then the socket is closed.
         protected virtual void ProcessReceive(SocketAsyncEventArgs e)
         {
             var token = (AsyncUserTokenBase)e.UserToken;
+
             // Check if the remote host closed the connection
             //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
@@ -67,6 +84,14 @@ namespace OpenRm.Common.Entities.Network
                             int length = BitConverter.ToInt32(token.PrefixData, 0);
                             Logger.WriteStr(" Got prefix representing value: " + length);
 
+                            if (length == 0)
+                            {
+                                Logger.WriteStr("We've got keep-alive / empty message");
+                                //TODO: remove Sleep:
+                                Thread.Sleep(10000);
+                                break;  //exit while
+                            }
+
                             if (length < 0)
                                 throw new System.Net.ProtocolViolationException("Invalid message prefix");
 
@@ -102,15 +127,13 @@ namespace OpenRm.Common.Entities.Network
                             // we've gotten an entire packet
                             Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint.ToString() + ": " + Encoding.ASCII.GetString(token.RecievedMsgData));
 
-                            //TODO:  maybe to put StartReceive(e) here?
-
-                            ProcessReceivedMessage(e);
+                            ProcessReceivedMessage(e);    
 
                             // Clean token's recieve buffer
                             token.CleanForRecieve();
 
                             // wait for next message
-                            StartReceive(e);
+/////////////////////                            StartReceive(e);
                         }
                     }
                 }
@@ -124,17 +147,6 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        protected virtual void StartReceive(SocketAsyncEventArgs readEventArgs)
-        {
-            Logger.WriteStr("StartReceive has been run");
-            readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
-            bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
-            if (!willRaiseEvent)
-            {
-                // need to be proceeded synchroniously
-                ProcessReceive(readEventArgs);
-            }
-        }
 
         protected void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
@@ -149,6 +161,29 @@ namespace OpenRm.Common.Entities.Network
             else
                 throw new ArgumentException("Cannot determinate Message type!");
         }
+
+
+        protected virtual void StartSend(SocketAsyncEventArgs e)
+        {
+            var token = (AsyncUserTokenBase)e.UserToken;
+
+            // don't let sending simultatiously with ONE SocketAsyncEventArgs object
+            token.writeSemaphore.WaitOne();
+
+            int bytesToTransfer = Math.Min(ReceiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
+            Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
+            e.SetBuffer(e.Offset, bytesToTransfer);
+
+            bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
+            if (!willRaiseEvent)
+            {
+                ProcessSend(e);
+            }
+
+            // release lock
+            token.writeSemaphore.Release();
+        }
+
 
         // This method is invoked when an asynchronous send operation completes.
         protected virtual void ProcessSend(SocketAsyncEventArgs e)
@@ -171,6 +206,9 @@ namespace OpenRm.Common.Entities.Network
                 // reset token's buffers and counters before reusing the token
                 token.CleanForSend();
 
+                // let process another send operation
+                token.writeSemaphore.Release();
+
                 ////// read the answer send from the client
                 ////StartReceive(e);
 
@@ -189,6 +227,9 @@ namespace OpenRm.Common.Entities.Network
         {
             var token = (AsyncUserTokenBase)e.UserToken;
 
+            // do not let sending simultaniously using the same Args object 
+            token.writeSemaphore.WaitOne();
+
             //TODO:  maybe remove 3-byte descriptor from beginning of array?
             Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
 
@@ -206,7 +247,6 @@ namespace OpenRm.Common.Entities.Network
             StartSend(e);
         }
 
-        protected abstract void StartSend(SocketAsyncEventArgs e);
         protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);
         protected abstract void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message);
         protected abstract void CloseConnection(SocketAsyncEventArgs e);
