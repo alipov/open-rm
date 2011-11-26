@@ -53,7 +53,8 @@ namespace OpenRm.Agent
             writeArgs = new SocketAsyncEventArgs();
             readArgs.Completed += SocketEventArg_Completed;
             writeArgs.Completed += SocketEventArg_Completed;
-            writeArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverIp), _serverPort);
+            readArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverIp), _serverPort);
+            writeArgs.RemoteEndPoint = readArgs.RemoteEndPoint;
 
             // point Args UserTokens to the same token
             var token = new AgentAsyncUserToken();
@@ -114,10 +115,10 @@ namespace OpenRm.Agent
                 //Send authorization info about this client as soon as connection established
                 var idata = OpProcessor.GetInfo(); // fill required data
                 var message = new ResponseMessage {Response = idata};
-                SendMessage(e, WoxalizerAdapter.SerializeToXml(message));
+                SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(message));
                 
                 //Start waiting for incoming data
-                StartReceive(token.readEventArgs);
+                WaitForReceiveMessage(token.readEventArgs);
 
             }
             else
@@ -163,9 +164,9 @@ namespace OpenRm.Agent
             
         }
 
-        protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
+        protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs readEventArgs, RequestMessage message)
         {
-            var token = (AgentAsyncUserToken)e.UserToken;
+            var token = (AgentAsyncUserToken) readEventArgs.UserToken;
 
             ResponseMessage responseMsg;
             switch (message.OpCode)
@@ -208,7 +209,7 @@ namespace OpenRm.Agent
                 default:
                     throw new ArgumentException("WARNING: Got unknown operation code request!");
             }
-            SendMessage(e, WoxalizerAdapter.SerializeToXml(responseMsg));
+            SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(responseMsg));
         }
 
         protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
