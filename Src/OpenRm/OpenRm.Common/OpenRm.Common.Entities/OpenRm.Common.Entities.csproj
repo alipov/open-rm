@@ -61,8 +61,8 @@
     <Compile Include="Network\Messages\IdentificationData.cs" />
     <Compile Include="Network\Messages\InstalledPrograms.cs" />
     <Compile Include="Network\Messages\IpConfigData.cs" />
-    <Compile Include="Network\Messages\ListAgentsRequestMessage.cs" />
-    <Compile Include="Network\Messages\ListAgentsResponseMessage.cs" />
+    <Compile Include="Network\Messages\ListAgentsRequest.cs" />
+    <Compile Include="Network\Messages\ListAgentsResponse.cs" />
     <Compile Include="Network\Messages\LockSession.cs" />
     <Compile Include="Network\Messages\Message.cs" />
     <Compile Include="Network\AsyncUserTokenBase.cs" />

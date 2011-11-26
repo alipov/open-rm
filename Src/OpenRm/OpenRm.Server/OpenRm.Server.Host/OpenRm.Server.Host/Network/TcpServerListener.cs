@@ -83,11 +83,6 @@ namespace OpenRm.Server.Host.Network
 
             // post accepts on the listening socket
             StartAccept(null);
-
-            // Pause here 
-            Console.WriteLine("Press any key to terminate the server process....");
-            Console.ReadKey();
-            Logger.WriteStr("Server terminated.");
         }
 
         // Begins an operation to accept a connection request from the client 

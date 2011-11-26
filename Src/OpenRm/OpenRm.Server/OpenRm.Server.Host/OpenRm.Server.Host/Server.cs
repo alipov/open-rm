@@ -37,7 +37,10 @@ namespace OpenRm.Server.Host
                 var srv = new TcpServerListener(ListenPort, MaxNumConnections, ReceiveBufferSize, TypeResolving.AssemblyResolveHandler);
                 srv.Start();
 
-                Logger.WriteStr("Server terminated");
+                // Pause here 
+                Console.WriteLine("Press any key to terminate the server process....");
+                Console.ReadKey();
+                Logger.WriteStr("TCP terminated.");
             }
         }
 
