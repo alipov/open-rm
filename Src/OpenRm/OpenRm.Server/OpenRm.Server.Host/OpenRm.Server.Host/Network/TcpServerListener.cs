@@ -163,7 +163,22 @@ namespace OpenRm.Server.Host.Network
 
                     /* !!! */
                     // As soon as the client is connected, post a receive to the connection, to get client's identification info
-                    StartReceive(readEventArgs);
+                    WaitForReceiveMessage(readEventArgs);
+
+                    //TODO: remove:
+                    Thread.Sleep(10000);
+                    var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                    var exec = new RunProcess
+                    {
+                        RunId = HostAsyncUserToken.RunId,
+                        Cmd = "write.exe",  //Wordpad
+                        Args = "",
+                        WorkDir = "c:\\",
+                        TimeOut = 180000,        //ms
+                        Hidden = true
+                    };
+                    msg.Request = exec;
+                    SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
 
                 }
                 else
@@ -202,27 +217,6 @@ namespace OpenRm.Server.Host.Network
             }
         }
 
-        // Moved to TcpBase.cs:
-        //protected override void StartSend(SocketAsyncEventArgs e)
-        //{
-        //    var token = (HostAsyncUserToken)e.UserToken;
-
-        //    // don't let sending simultatiously with ONE SocketAsyncEventArgs object
-        //    token.writeSemaphore.WaitOne();           
-
-        //    int bytesToTransfer = Math.Min(ReceiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
-        //    Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
-        //    e.SetBuffer(e.Offset, bytesToTransfer);
-
-        //    bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
-        //    if (!willRaiseEvent)
-        //    {
-        //        ProcessSend(e);
-        //    }
-
-        //    // release lock
-        //    token.writeSemaphore.Release();
-        //}
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
@@ -335,20 +329,20 @@ namespace OpenRm.Server.Host.Network
                 token.agentData.IpConfig = ipConf;       //store in "database"
 
 
-                //TODO: move to another place
-                var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                var exec = new RunProcess
-                               {
-                                   RunId = HostAsyncUserToken.RunId,
-                                   Cmd = "notepad.exe",
-                                   Args = "",
-                                   WorkDir = "c:\\",
-                                   TimeOut = 180000,        //ms
-                                   Hidden = true
-                               };
+                ////TODO: move to another place
+                //var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                //var exec = new RunProcess
+                //               {
+                //                   RunId = HostAsyncUserToken.RunId,
+                //                   Cmd = "notepad.exe",
+                //                   Args = "",
+                //                   WorkDir = "c:\\",
+                //                   TimeOut = 180000,        //ms
+                //                   Hidden = true
+                //               };
                 
-                msg.Request = exec;
-                SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
+                //msg.Request = exec;
+                //SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
             }
             else if (message.Response is RunCompletedStatus)
             {
@@ -368,9 +362,9 @@ namespace OpenRm.Server.Host.Network
                 }
 
 
-                        //TODO: for testing only:
-                        var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
-                        SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
+                        ////TODO: for testing only:
+                        //var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
+                        //SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
 
             }
             else if (message.Response is InstalledPrograms)
