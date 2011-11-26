@@ -6,6 +6,7 @@ using Microsoft.Practices.Prism.UnityExtensions;
 using Microsoft.Practices.Unity;
 using Microsoft.Windows.Controls.Ribbon;
 using OpenRm.Server.Gui.CustomAdapters;
+using OpenRm.Server.Gui.Inf.GuiDispatcher;
 
 namespace OpenRm.Server.Gui
 {
@@ -13,6 +14,10 @@ namespace OpenRm.Server.Gui
     {
         protected override DependencyObject CreateShell()
         {
+            // UI dispatcher will be used for invoking callbacks from async operations.
+            var uiDispatcher = new UiDispatcher();
+            Container.RegisterInstance<IDispatcher>(uiDispatcher);
+
             return Container.Resolve<ShellRibbon>();
             //return Container.Resolve<Shell>();
         }
