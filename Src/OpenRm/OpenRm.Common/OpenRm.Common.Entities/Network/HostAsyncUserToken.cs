@@ -1,17 +1,16 @@
-﻿using System.Net.Sockets;
-using OpenRm.Common.Entities;
-using OpenRm.Common.Entities.Network;
+﻿using System;
+using OpenRm.Common.Entities.Network.Messages;
 
-namespace OpenRm.Server.Host.Network
+namespace OpenRm.Common.Entities.Network
 {
-    internal class HostAsyncUserToken : AsyncUserTokenBase
+    public class HostAsyncUserToken : AsyncUserTokenBase
     {
-        public HostAsyncUserToken() : base(null, null) {}
+        public HostAsyncUserToken() : base(null, null) { }
 
         //public HostAsyncUserToken(Socket socket, ClientData data, int msgPrefixLength = 4)
         //    : base(socket, data, msgPrefixLength)
         //{
-            
+
         //}
 
         static HostAsyncUserToken()
@@ -27,5 +26,8 @@ namespace OpenRm.Server.Host.Network
                 return _runId++;
             }
         }
+
+        public Action<HostCustomEventArgs> Callback { get; set; }
+        public IdentificationData ClientData { get; set; }
     }
 }
