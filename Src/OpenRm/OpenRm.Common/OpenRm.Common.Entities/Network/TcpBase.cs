@@ -133,10 +133,12 @@ namespace OpenRm.Common.Entities.Network
                             token.CleanForRecieve();
 
                             // wait for next message
-/////////////////////                            StartReceive(e);
+                            StartReceive(e);
                         }
                     }
-                }
+                }   //end while
+
+                //release 
             }
             else
             {
@@ -158,7 +160,7 @@ namespace OpenRm.Common.Entities.Network
                 ProcessReceivedMessageRequest(e, (RequestMessage)message);
             else if (message is ResponseMessage)
                 ProcessReceivedMessageResponse(e, (ResponseMessage)message);
-            else
+            else    
                 throw new ArgumentException("Cannot determinate Message type!");
         }
 
@@ -166,9 +168,6 @@ namespace OpenRm.Common.Entities.Network
         protected virtual void StartSend(SocketAsyncEventArgs e)
         {
             var token = (AsyncUserTokenBase)e.UserToken;
-
-            // don't let sending simultatiously with ONE SocketAsyncEventArgs object
-            token.writeSemaphore.WaitOne();
 
             int bytesToTransfer = Math.Min(ReceiveBufferSize, token.SendingMsg.Length - token.SendingMsgBytesSent);
             Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
@@ -180,8 +179,6 @@ namespace OpenRm.Common.Entities.Network
                 ProcessSend(e);
             }
 
-            // release lock
-            token.writeSemaphore.Release();
         }
 
 
@@ -209,7 +206,8 @@ namespace OpenRm.Common.Entities.Network
                 // let process another send operation
                 token.writeSemaphore.Release();
 
-                ////// read the answer send from the client
+                //TODO: remove
+                //// read the answer send from the client
                 ////StartReceive(e);
 
             }
