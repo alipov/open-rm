@@ -159,10 +159,8 @@ namespace OpenRm.Common.Entities.Network.Server
                     // Initialize agent's data/info holder
                     token.agentData = new ClientData();
 
-                    /* !!! */
                     // As soon as the client is connected, post a receive to the connection, to get client's identification info
-                    StartReceive(readEventArgs);
-
+                    WaitForReceiveMessage(readEventArgs);
                 }
                 else
                 {
@@ -217,7 +215,7 @@ namespace OpenRm.Common.Entities.Network.Server
             var messageToSend = WoxalizerAdapter.SerializeToXml(message);
 
             // do not let sending simultaniously using the same Args object 
-            token.writeSemaphore.WaitOne();
+            //token.writeSemaphore.WaitOne();
 
             //TODO:  maybe remove 3-byte descriptor from beginning of array?
             Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(messageToSend));
