@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Threading;
 using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network.Server
 {
-    internal class TcpServerListener : TcpBase
+    internal class TcpServerListener : NonInterfacedClientBase
     {
         //public const int msgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
         public int maxNumConnections;              // holds maximum number of connections, defined in program
@@ -24,8 +23,8 @@ namespace OpenRm.Common.Entities.Network.Server
         private List<Agent> _agentsList = new List<Agent>();
 
 
-        public TcpServerListener(int port, int maxNumConnections, int receiveBufferSize, Func<object, ResolveEventArgs, Assembly> resolver)
-            : base(resolver, receiveBufferSize)
+        public TcpServerListener(int port, int maxNumConnections, int receiveBufferSize)
+            : base(receiveBufferSize)
         {
             this.maxNumConnections = maxNumConnections;
 
@@ -68,7 +67,7 @@ namespace OpenRm.Common.Entities.Network.Server
         }
 
         // Starts the server such that it is listening for incoming connection requests.    
-        public override void Start()
+        public void Start()
         {
             var localEndPoint = new IPEndPoint(IPAddress.Any, _port);
             

@@ -1,9 +1,7 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
-using System.Threading;
-using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -11,11 +9,11 @@ namespace OpenRm.Common.Entities.Network
     {
         protected const int MsgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
         protected int ReceiveBufferSize;
-        private readonly Func<object, ResolveEventArgs, Assembly> _assemblyResolveHandler;
+        //private readonly Func<object, ResolveEventArgs, Assembly> _assemblyResolveHandler;
 
-        protected TcpBase(Func<object, ResolveEventArgs, Assembly> assemblyResolveHandler, int bufferSize)
+        protected TcpBase(int bufferSize)
         {
-            _assemblyResolveHandler = assemblyResolveHandler;
+            //_assemblyResolveHandler = assemblyResolveHandler;
             ReceiveBufferSize = bufferSize;
         }
 
@@ -27,17 +25,10 @@ namespace OpenRm.Common.Entities.Network
 
             Logger.WriteStr(" Waiting for new data to arrive...");
             StartReceive(readEventArgs);
-
         }
 
         protected virtual void StartReceive(SocketAsyncEventArgs readEventArgs)
         {
-            
-
-            //var token = (AsyncUserTokenBase)readEventArgs.UserToken;
-            //if (token.RecievedPrefixPartLength == 0)
-            //    token.readSemaphore.WaitOne();
-
             readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
 
             bool willRaiseEvent = readEventArgs.AcceptSocket.ReceiveAsync(readEventArgs);
@@ -105,7 +96,7 @@ namespace OpenRm.Common.Entities.Network
                         }
 
                         if (length < 0)
-                            throw new System.Net.ProtocolViolationException("Invalid message prefix");
+                            throw new ProtocolViolationException("Invalid message prefix");
 
                         // Save prefix value into token
                         token.MessageLength = length;
@@ -151,7 +142,6 @@ namespace OpenRm.Common.Entities.Network
 
                 // start waiting for next message
                 WaitForReceiveMessage(e);
-               
             }
             else
             {
@@ -162,21 +152,7 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-
-        protected void ProcessReceivedMessage(SocketAsyncEventArgs e)
-        {
-            var token = (AsyncUserTokenBase)e.UserToken;
-
-            Message message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData, _assemblyResolveHandler);
-
-            if (message is RequestMessage)
-                ProcessReceivedMessageRequest(e, (RequestMessage)message);
-            else if (message is ResponseMessage)
-                ProcessReceivedMessageResponse(e, (ResponseMessage)message);
-            else    
-                throw new ArgumentException("Cannot determinate Message type!");
-        }
-
+        protected abstract void ProcessReceivedMessage(SocketAsyncEventArgs e);
 
         protected virtual void StartSend(SocketAsyncEventArgs e)
         {
@@ -191,7 +167,6 @@ namespace OpenRm.Common.Entities.Network
             {
                 ProcessSend(e);
             }
-
         }
 
 
@@ -258,10 +233,24 @@ namespace OpenRm.Common.Entities.Network
             StartSend(e);
         }
 
-        protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);
-        protected abstract void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message);
+        //protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);
+        //protected abstract void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message);
         protected abstract void CloseConnection(SocketAsyncEventArgs e);
 
-        public abstract void Start();
+        //public abstract void Start();
+
+        //protected void ProcessReceivedMessage(SocketAsyncEventArgs e)
+        //{
+        //    var token = (AsyncUserTokenBase)e.UserToken;
+
+        //    Message message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData, _assemblyResolveHandler);
+
+        //    if (message is RequestMessage)
+        //        ProcessReceivedMessageRequest(e, (RequestMessage)message);
+        //    else if (message is ResponseMessage)
+        //        ProcessReceivedMessageResponse(e, (ResponseMessage)message);
+        //    else    
+        //        throw new ArgumentException("Cannot determinate Message type!");
+        //}
     }
 }

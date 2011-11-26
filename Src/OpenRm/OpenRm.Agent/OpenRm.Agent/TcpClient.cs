@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -9,7 +8,7 @@ using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Agent
 {    
-    internal class TcpClient : TcpBase
+    internal class TcpClient : NonInterfacedClientBase
     {
         // SocketAsyncEventArgs objects for write and read socket operations
         private SocketAsyncEventArgs readArgs;
@@ -31,11 +30,11 @@ namespace OpenRm.Agent
 
         private readonly ManualResetEvent _clientDone = new ManualResetEvent(false);
 
-        public TcpClient(string serverIp, int serverPort, Func<object, ResolveEventArgs, Assembly> resolver)
-            : this(serverIp, serverPort, 64, resolver) { }
+        public TcpClient(string serverIp, int serverPort)
+            : this(serverIp, serverPort, 64) { }
 
-        public TcpClient(string serverIp, int serverPort, int bufferSize, Func<object, ResolveEventArgs, Assembly> resolver)
-            : base(resolver, bufferSize)
+        public TcpClient(string serverIp, int serverPort, int bufferSize)
+            : base(bufferSize)
         {
             // Initialize buffers for sending and receiving data by TCP layer. 
             _sendBuffer = new byte[bufferSize];
@@ -44,7 +43,7 @@ namespace OpenRm.Agent
             _serverPort = serverPort;
         }
 
-        public override void Start()
+        public void Start()
         {
             var socket = new Socket((IPAddress.Parse(_serverIp)).AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
@@ -216,5 +215,7 @@ namespace OpenRm.Agent
         {
             //TODO: what info client needs from server?
         }
+
+
     }
 }
