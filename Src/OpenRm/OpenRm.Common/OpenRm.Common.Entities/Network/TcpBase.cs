@@ -112,7 +112,7 @@ namespace OpenRm.Common.Entities.Network
                         int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
                         Array.Copy(e.Buffer, e.Offset + i, token.RecievedMsgData, token.RecievedMsgPartLength, bytesTransferred);
-                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(token.RecievedMsgData));
+                        Logger.WriteStr("message till now: " + Encoding.UTF8.GetString(token.RecievedMsgData));
                         i += bytesTransferred;
 
                         token.RecievedMsgPartLength += bytesTransferred;
