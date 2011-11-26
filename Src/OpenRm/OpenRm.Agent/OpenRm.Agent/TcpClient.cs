@@ -117,7 +117,7 @@ namespace OpenRm.Agent
                 SendMessage(e, WoxalizerAdapter.SerializeToXml(message));
                 
                 //Start waiting for incoming data
-                //StartReceive(token.readEventArgs);
+                StartReceive(token.readEventArgs);
 
             }
             else
