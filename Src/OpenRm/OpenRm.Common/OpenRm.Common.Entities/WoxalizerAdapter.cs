@@ -33,6 +33,26 @@ namespace OpenRm.Common.Entities
             return mem.ToArray();
         }
 
+        public static Message DeserializeFromXml(Byte[] msg)
+        {
+            Message message = null;
+            var mem = new MemoryStream(msg);
+            var reader = XmlReader.Create(mem);
+
+            using (var woxalizer = new WoxalizerUtil())
+            {
+                try
+                {
+                    message = (Message)woxalizer.Load(reader);
+                }
+                catch (Exception)
+                {
+                    Logger.WriteStr("Cannot deserilize recieved object!");
+                }
+            }
+            return message;
+        }
+
         public static Message DeserializeFromXml(Byte[] msg, Func<object, ResolveEventArgs, Assembly> assemblyResolveHandler)
         {
             Message message = null;

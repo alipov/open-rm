@@ -1,15 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
-using OpenRm.Common.Entities;
-using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
-using System.Linq;
 
-namespace OpenRm.Server.Host.Network
+namespace OpenRm.Common.Entities.Network.Server
 {
     internal class TcpServerListener : TcpBase
     {
@@ -58,7 +56,7 @@ namespace OpenRm.Server.Host.Network
             {
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
                 SocketAsyncEventArgs readWriteArg = new SocketAsyncEventArgs();
-                readWriteArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
+                readWriteArg.Completed += IO_Completed;
                 
                 // assign a byte buffer from the buffer pool to the SocketAsyncEventArg objects
                 bufferManager.SetBuffer(readWriteArg);
@@ -79,7 +77,8 @@ namespace OpenRm.Server.Host.Network
             listenSocket.Bind(localEndPoint);
             // start the server with a listen backlog of 100 connections
             listenSocket.Listen(100);
-            Logger.WriteStr("TCP server started. Listening on " + localEndPoint.Address + ":" + localEndPoint.Port);
+            Logger.WriteStr(string.Format("TCP server started. Listening on {0}:{1}", 
+                                                localEndPoint.Address, localEndPoint.Port));
 
             // post accepts on the listening socket
             StartAccept(null);
@@ -93,7 +92,7 @@ namespace OpenRm.Server.Host.Network
             {
                 // We need to create Accept SocketAsyncEventArgs object on first run of StartAccept
                 acceptEventArg = new SocketAsyncEventArgs();
-                acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
+                acceptEventArg.Completed += OnAcceptAsyncCompleted;
             }
             else
             {
@@ -114,7 +113,7 @@ namespace OpenRm.Server.Host.Network
         }
 
         // This method is the callback method associated with Socket.AcceptAsync operations and is invoked when an accept operation is complete
-        void AcceptEventArg_Completed(object sender, SocketAsyncEventArgs e)
+        private void OnAcceptAsyncCompleted(object sender, SocketAsyncEventArgs e)
         {
             ProcessAccept(e);
         }
@@ -390,6 +389,9 @@ namespace OpenRm.Server.Host.Network
             }
                 
         }
+
+
+        
 
         #region ToDelete
 
