@@ -13,28 +13,18 @@ namespace OpenRm.Server.Host
     internal class Server
     {
         // these variables will be read from app.config
-        private static int _listenPort;
-        private static int _maxNumConnections;     //maximum number of connections
-        private static string _logFilenamePattern;
+        private int _listenPort;
+        private int _maxNumConnections;     //maximum number of connections
+        private string _logFilenamePattern;
 
-        private static HostAsyncUserToken _console;
-        private static Dictionary<int, HostAsyncUserToken> _agents;
-        private static int _agentsCount;
-        private static TcpServerListenerAdv _server;
+        private HostAsyncUserToken _console;
+        private Dictionary<int, HostAsyncUserToken> _agents;
+        private int _agentsCount;
+        private IMessageServer _server;
 
         private const int ReceiveBufferSize = 64; //recieve buffer size for tcp connection
-
-        static void Main()
-        {
-            // Done because exception was thrown before Main. Solution found here:
-            // http://www.codeproject.com/Questions/184743/AssemblyResolve-event-not-hit
-            TypeResolving.RegisterTypeResolving();
-
-            //Main code
-            StartHost();
-        }
-
-        private static void StartHost()
+        
+        public void Run()
         {
             if (ReadConfigFile())
             {
@@ -43,9 +33,9 @@ namespace OpenRm.Server.Host
 
                 _agents = new Dictionary<int, HostAsyncUserToken>();
 
-                _server = new TcpServerListenerAdv(_listenPort, _maxNumConnections, ReceiveBufferSize, TypeResolving.AssemblyResolveHandler);
+                _server = new TcpServerListenerAdv(_listenPort, _maxNumConnections, ReceiveBufferSize);
                 //var srv = new TcpServerListener(_listenPort, _maxNumConnections, ReceiveBufferSize, TypeResolving.AssemblyResolveHandler);
-                _server.Start(ProcessReceivedMessage);
+                _server.Start(OnReceiveCompleted);
 
                 // Pause here 
                 Console.WriteLine("Press any key to terminate the server process....");
@@ -54,7 +44,7 @@ namespace OpenRm.Server.Host
             }
         }
 
-        private static void ProcessReceivedMessage(HostCustomEventArgs args)
+        private void OnReceiveCompleted(HostCustomEventArgs args)
         {
             if (args.Result is RequestMessage)
                 ProcessReceivedMessageRequest(args);
@@ -64,7 +54,7 @@ namespace OpenRm.Server.Host
                 throw new ArgumentException("Cannot determinate Message type!");
         }
 
-        private static void ProcessReceivedMessageRequest(HostCustomEventArgs args)
+        private void ProcessReceivedMessageRequest(HostCustomEventArgs args)
         {
             //server recieves requests only from Console!
             var message = (RequestMessage) args.Result;
@@ -99,7 +89,7 @@ namespace OpenRm.Server.Host
         }
 
 
-        private static void ProcessReceivedMessageResponse(HostCustomEventArgs args)
+        private void ProcessReceivedMessageResponse(HostCustomEventArgs args)
         {
             var message = (ResponseMessage) args.Result;
 
@@ -203,7 +193,7 @@ namespace OpenRm.Server.Host
 
 
         // read configuration from config file 
-        private static bool ReadConfigFile()
+        private bool ReadConfigFile()
         {
             try {
                 _listenPort = Int32.Parse(ConfigurationManager.AppSettings["ListenOnPort"]);

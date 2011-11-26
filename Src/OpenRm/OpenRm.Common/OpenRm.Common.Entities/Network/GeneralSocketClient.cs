@@ -30,7 +30,7 @@ namespace OpenRm.Common.Entities.Network
         private const int RetryIntervalMaximum = 60; // 60 sec.
 
         public GeneralSocketClient()
-            : base (null, 64) // TODO: remove the hardcoded value
+            : base (64) // TODO: remove the hardcoded value
         {
             // Initialize buffer for sending/receiving data by TCP layer. 
             _sendReceiveBuffer = new byte[64];
@@ -126,6 +126,11 @@ namespace OpenRm.Common.Entities.Network
                 callback.Invoke(new CustomEventArgs(args.SocketError, null));
         }
 
+
+        protected override void ProcessReceivedMessage(SocketAsyncEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
 
         protected override void StartSend(SocketAsyncEventArgs args)
         {
@@ -355,22 +360,6 @@ namespace OpenRm.Common.Entities.Network
         #region ToDelete
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public override void Start()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)
         {
             throw new NotImplementedException();
         }

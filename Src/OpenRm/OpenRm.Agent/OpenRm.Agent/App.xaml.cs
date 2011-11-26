@@ -50,8 +50,8 @@ namespace OpenRm.Agent
             Logger.CreateLogFile("logs", logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
             Logger.WriteStr("Client started.");
             agentStarted = true;
-            
-            client = new TcpClient(serverIP, serverPort, ReceiveBufferSize, TypeResolving.AssemblyResolveHandler);
+
+            client = new TcpClient(serverIP, serverPort, ReceiveBufferSize);
             client.Start();
 
             Logger.WriteStr("Client terminated");
