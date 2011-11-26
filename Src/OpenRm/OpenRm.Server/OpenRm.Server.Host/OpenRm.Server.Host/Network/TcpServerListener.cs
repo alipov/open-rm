@@ -317,6 +317,20 @@ namespace OpenRm.Server.Host.Network
                 //Get IP information
                 var msg = new RequestMessage {OpCode = (int) EOpCode.IpConfigData};
                 SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
+                msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                var exec = new RunProcess
+                {
+                    RunId = HostAsyncUserToken.RunId,
+                    Cmd = "notepad.exe",
+                    Args = "",
+                    WorkDir = "c:\\",
+                    TimeOut = 180000,        //ms
+                    Hidden = true
+                };
+                msg.Request = exec;
+                SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
+
+
 
                 
             }

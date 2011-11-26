@@ -201,7 +201,7 @@ namespace OpenRm.Common.Entities.Network
                 {
                     // Determine how many bytes we want to transfer to the buffer and transfer them 
                     int bytesAvailable = e.BytesTransferred - i;
-                    if (_userToken.MsgData == null)
+                    if (_userToken.RecievedMsgData == null)
                     {
                         // token.msgData is empty so we a dealing with Prefix.
                         // Copy the incoming bytes into token's prefix's buffer
@@ -232,7 +232,7 @@ namespace OpenRm.Common.Entities.Network
                         _userToken.MessageLength = length;
 
                         // Create the data buffer and start reading into it 
-                        _userToken.MsgData = new byte[length];
+                        _userToken.RecievedMsgData = new byte[length];
 
                         // zero prefix counter
                         _userToken.RecievedPrefixPartLength = 0;
@@ -242,12 +242,12 @@ namespace OpenRm.Common.Entities.Network
                         // We're reading into the data buffer  
                         int bytesRequested = _userToken.MessageLength - _userToken.RecievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, _userToken.MsgData, _userToken.RecievedMsgPartLength, bytesTransferred);
-                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(_userToken.MsgData));
+                        Array.Copy(e.Buffer, e.Offset + i, _userToken.RecievedMsgData, _userToken.RecievedMsgPartLength, bytesTransferred);
+                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(_userToken.RecievedMsgData));
                         i += bytesTransferred;
 
                         _userToken.RecievedMsgPartLength += bytesTransferred;
-                        if (_userToken.RecievedMsgPartLength != _userToken.MsgData.Length)
+                        if (_userToken.RecievedMsgPartLength != _userToken.RecievedMsgData.Length)
                         {
                             // We haven't gotten all the data buffer yet: call Receive again to get more data
                             StartReceive(e);
@@ -256,10 +256,10 @@ namespace OpenRm.Common.Entities.Network
 
                         // we've gotten an entire packet
                         Logger.WriteStr(string.Format("Got complete message from {0}: {1}", 
-                            _socket.RemoteEndPoint, Encoding.ASCII.GetString(_userToken.MsgData)));
+                            _socket.RemoteEndPoint, Encoding.ASCII.GetString(_userToken.RecievedMsgData)));
 
                         //ProcessReceivedMessage(e);
-                        Message message = WoxalizerAdapter.DeserializeFromXml(_userToken.MsgData, null);
+                        Message message = WoxalizerAdapter.DeserializeFromXml(_userToken.RecievedMsgData, null);
                         if (_userToken.Callback != null)
                         {
                             _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, message));
