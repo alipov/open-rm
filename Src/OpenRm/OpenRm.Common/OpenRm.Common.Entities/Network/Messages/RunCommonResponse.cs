@@ -1,6 +1,6 @@
 ﻿namespace OpenRm.Common.Entities.Network.Messages
 {
-    public class RunCommonResponse
+    public class RunCommonResponse : ResponseBase
     {
         public int RunId;    // sequence number for identification only
         public string Answer;

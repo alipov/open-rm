@@ -2,7 +2,7 @@
 
 namespace OpenRm.Common.Entities.Network.Messages
 {
-    public class InstalledPrograms : ResponseBase
+    public class InstalledProgramsResponse : ResponseBase
     {
         public List<string> Progs;
     }
