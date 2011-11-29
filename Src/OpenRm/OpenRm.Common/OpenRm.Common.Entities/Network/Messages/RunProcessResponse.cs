@@ -1,6 +1,6 @@
 namespace OpenRm.Common.Entities.Network.Messages
 {
-    public class RunCompletedStatus : ResponseBase
+    public class RunProcessResponse : ResponseBase
     {
         public int RunId;
         public int ExitCode = -1;

@@ -8,7 +8,7 @@ namespace OpenRm.Agent.Actions
     {
         public static ResponseBase Run()
         {
-            OsInfo os = new OsInfo();
+            OsInfoResponse os = new OsInfoResponse();
 
             //retrieve all data in one call because WMI call usually takes some time...
             string[] properties = new string[] { "Caption", "Version", "OSArchitecture", "TotalVisibleMemorySize", "FreePhysicalMemory" };

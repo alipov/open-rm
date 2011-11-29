@@ -166,7 +166,7 @@ namespace OpenRm.Common.Entities.Network.Server
                     //TODO: remove:
                     Thread.Sleep(10000);
                     var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                    var exec = new RunProcess
+                    var exec = new RunProcessRequest
                     {
                         RunId = HostAsyncUserToken.RunId,
                         Cmd = "write.exe",  //Wordpad
@@ -280,9 +280,9 @@ namespace OpenRm.Common.Entities.Network.Server
             //TODO: remove
             Logger.WriteStr(" Sending to: " + ((HostAsyncUserToken)token.writeEventArgs.UserToken).Socket.LocalEndPoint.ToString() );
 
-            if (message.Response is IdentificationData)
+            if (message.Response is IdentificationDataResponse)
             {
-                var idata = (IdentificationData) message.Response;
+                var idata = (IdentificationDataResponse) message.Response;
                 Logger.WriteStr(" * New client has connected: " + idata.deviceName);
                 // ...create ClientData (if does not exist already) and add to token
                 //...
@@ -305,7 +305,7 @@ namespace OpenRm.Common.Entities.Network.Server
                 var msg = new RequestMessage {OpCode = (int) EOpCode.IpConfigData};
                 SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
                 msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                var exec = new RunProcess
+                var exec = new RunProcessRequest
                 {
                     RunId = HostAsyncUserToken.RunId,
                     Cmd = "notepad.exe",
@@ -321,9 +321,9 @@ namespace OpenRm.Common.Entities.Network.Server
 
                 
             }
-            else if (message.Response is IpConfigData)
+            else if (message.Response is IpConfigResponse)
             {
-                var ipConf = (IpConfigData) message.Response;
+                var ipConf = (IpConfigResponse) message.Response;
                 token.agentData.IpConfig = ipConf;       //store in "database"
 
 
@@ -342,9 +342,9 @@ namespace OpenRm.Common.Entities.Network.Server
                 //msg.Request = exec;
                 //SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
             }
-            else if (message.Response is RunCompletedStatus)
+            else if (message.Response is RunProcessResponse)
             {
-                var status = (RunCompletedStatus) message.Response;
+                var status = (RunProcessResponse) message.Response;
                 if (status.ExitCode == 0)
                 {
                     Logger.WriteStr("Remote successfully executed");
@@ -365,9 +365,9 @@ namespace OpenRm.Common.Entities.Network.Server
                         //SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(msg));
 
             }
-            else if (message.Response is InstalledPrograms)
+            else if (message.Response is InstalledProgramsResponse)
             {
-                var progsList = (InstalledPrograms) message.Response;
+                var progsList = (InstalledProgramsResponse) message.Response;
                 foreach (string s in progsList.Progs)
                 {
                     Console.WriteLine(s);

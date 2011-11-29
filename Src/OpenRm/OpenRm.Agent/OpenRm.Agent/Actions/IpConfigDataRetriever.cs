@@ -7,7 +7,7 @@ namespace OpenRm.Agent.Actions
     {
         public static ResponseBase Run(string sourceIP)
         {
-            IpConfigData ipconf = new IpConfigData();
+            IpConfigResponse ipconf = new IpConfigResponse();
             ipconf.IpAddress = sourceIP;        // IP got from socket info
 
             foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())

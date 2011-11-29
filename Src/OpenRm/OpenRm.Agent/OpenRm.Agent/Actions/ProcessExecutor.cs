@@ -8,9 +8,9 @@ namespace OpenRm.Agent.Actions
     class ProcessExecutor
     {
         // Runs executable provided by "proc" parameter, which also holds information how this process should be executed
-        public static ResponseBase Run(RunProcess proc)
+        public static ResponseBase Run(RunProcessRequest proc)
         {
-            RunCompletedStatus status = new RunCompletedStatus();   // creates new object to return
+            RunProcessResponse status = new RunProcessResponse();   // creates new object to return
             status.RunId = proc.RunId;
 
             Thread.Sleep(proc.Delay);

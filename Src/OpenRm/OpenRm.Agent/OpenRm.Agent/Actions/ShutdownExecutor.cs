@@ -35,7 +35,7 @@ namespace OpenRm.Agent.Actions
         internal static extern int LookupPrivilegeValue(string systemName, string name, ref long luid);
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        internal static extern int AdjustTokenPrivileges(IntPtr tokenHandle, bool disableAllPrivileges, ref OpShutdown.TokenPrivileges newState, int bufferLength, IntPtr previousState, IntPtr length);
+        internal static extern int AdjustTokenPrivileges(IntPtr tokenHandle, bool disableAllPrivileges, ref TokenPrivileges newState, int bufferLength, IntPtr previousState, IntPtr length);
 
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool InitiateSystemShutdownEx(
@@ -48,9 +48,9 @@ namespace OpenRm.Agent.Actions
 
 
         // Shutdown system
-        public static ResponseBase Run(int runId)
+        public static ResponseBase Run(ShutdownRequest request)
         {
-            var res = new RunCommonResponse(runId, "Shutdown process started");
+            var res = new ShutdownResponse(request.RunId, "Shutdown process started");
             try
             {
                 PerformShutdown("Shutdown", false);
@@ -85,7 +85,7 @@ namespace OpenRm.Agent.Actions
             int result = OpenProcessToken(currentProcess, AdjustPrivileges | TokenQuery, ref tokenHandle);
             if (result == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            OpShutdown.TokenPrivileges tokenPrivileges;
+            TokenPrivileges tokenPrivileges;
             tokenPrivileges.PrivilegeCount = 1;
             tokenPrivileges.Luid = 0;
             tokenPrivileges.Attributes = PrivilegeEnabled;

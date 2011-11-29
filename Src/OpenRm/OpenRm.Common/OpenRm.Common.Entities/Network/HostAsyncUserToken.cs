@@ -28,6 +28,6 @@ namespace OpenRm.Common.Entities.Network
         }
 
         public Action<HostCustomEventArgs> Callback { get; set; }
-        public IdentificationData ClientData { get; set; }
+        public IdentificationDataResponse ClientData { get; set; }
     }
 }

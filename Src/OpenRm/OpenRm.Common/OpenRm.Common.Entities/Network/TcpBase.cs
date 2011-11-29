@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -27,6 +28,7 @@ namespace OpenRm.Common.Entities.Network
             StartReceive(readEventArgs);
         }
 
+
         protected virtual void StartReceive(SocketAsyncEventArgs readEventArgs)
         {
             readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
@@ -38,6 +40,7 @@ namespace OpenRm.Common.Entities.Network
                 ProcessReceive(readEventArgs);
             }
         }
+
 
         // Invoked when an asycnhronous receive operation completes.  
         // If the remote host closed the connection, then the socket is closed.
@@ -118,7 +121,7 @@ namespace OpenRm.Common.Entities.Network
                         i += bytesTransferred;
 
                         token.RecievedMsgPartLength += bytesTransferred;
-                        if (token.RecievedMsgPartLength != token.RecievedMsgData.Length)
+                        if (token.RecievedMsgPartLength < token.RecievedMsgData.Length)
                         {
                             // We haven't gotten all the data buffer yet: call Receive again to get more data
                             StartReceive(e);
@@ -152,7 +155,32 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        protected abstract void ProcessReceivedMessage(SocketAsyncEventArgs e);
+        
+
+        // Prepares data to be sent and calls sending method. 
+        // It can process large messages by cutting them into small ones.
+        // The method issues another receive on the socket to read client's answer.
+        public void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
+        {
+            var token = (AsyncUserTokenBase)e.UserToken;
+
+            // do not let sending simultaniously using the same Args object 
+            token.writeSemaphore.WaitOne();
+
+            //TODO:  maybe remove 3-byte descriptor from beginning of array?
+            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
+
+            // prepare data to send: add prefix that holds length of message
+            Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
+
+            // prepare complete data and store it into token
+            token.SendingMsg = new Byte[MsgPrefixLength + msgToSend.Length];
+            prefixToAdd.CopyTo(token.SendingMsg, 0);
+            msgToSend.CopyTo(token.SendingMsg, MsgPrefixLength);
+
+            StartSend(e);
+        }
+
 
         protected virtual void StartSend(SocketAsyncEventArgs e)
         {
@@ -206,33 +234,7 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        // Prepares data to be sent and calls sending method. 
-        // It can process large messages by cutting them into small ones.
-        // The method issues another receive on the socket to read client's answer.
-        protected void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
-        {
-            var token = (AsyncUserTokenBase)e.UserToken;
-
-            // do not let sending simultaniously using the same Args object 
-            token.writeSemaphore.WaitOne();
-
-            //TODO:  maybe remove 3-byte descriptor from beginning of array?
-            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
-
-            // reset token's buffers and counters before reusing the token
-            //token.Clean();
-
-            // prepare data to send: add prefix that holds length of message
-            Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
-
-            // prepare complete data and store it into token
-            token.SendingMsg = new Byte[MsgPrefixLength + msgToSend.Length];
-            prefixToAdd.CopyTo(token.SendingMsg, 0);
-            msgToSend.CopyTo(token.SendingMsg, MsgPrefixLength);
-
-            StartSend(e);
-        }
-
+        protected abstract void ProcessReceivedMessage(SocketAsyncEventArgs e);
         //protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);
         //protected abstract void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message);
         protected abstract void CloseConnection(SocketAsyncEventArgs e);

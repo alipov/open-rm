@@ -1,13 +1,15 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Agent.Actions
 {
     public static class WakeOnLanExecutor
     {
         //Sends Wake-On-Lan ("magic") packet to the specified MAC address
-        public static void Run(string macAddr)
+        public static ResponseBase Run(WakeOnLanRequest request)
         {
             UdpClient client = new UdpClient();
             // it is typically sent as a UDP datagram to port 7 or 9
@@ -24,10 +26,19 @@ namespace OpenRm.Agent.Actions
 
             for (int i = 1; i <= 16; i++)
                 for (int j = 0; j < 6; j++)
-                    packet[i * 6 + j] = byte.Parse(macAddr.Substring(j * 2, 2), NumberStyles.HexNumber);
+                    packet[i * 6 + j] = byte.Parse(request.Mac.Substring(j * 2, 2), NumberStyles.HexNumber);
 
-            // send the magic packet
-            client.Send(packet, packet.Length);
+            try
+            {
+                // send the magic packet
+                client.Send(packet, packet.Length);
+                return new WakeOnLanResponse(true);
+            }
+            catch (Exception)
+            {
+                return new WakeOnLanResponse(false);
+            }
+            
         }
 
     }

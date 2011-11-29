@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using OpenRm.Common.Entities.Network.Messages;
@@ -215,9 +214,8 @@ namespace OpenRm.Common.Entities.Network.Server
             var messageToSend = WoxalizerAdapter.SerializeToXml(message);
 
             // do not let sending simultaniously using the same Args object 
-            //token.writeSemaphore.WaitOne();
+            token.writeSemaphore.WaitOne();
 
-            //TODO:  maybe remove 3-byte descriptor from beginning of array?
             Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(messageToSend));
 
             // reset token's buffers and counters before reusing the token

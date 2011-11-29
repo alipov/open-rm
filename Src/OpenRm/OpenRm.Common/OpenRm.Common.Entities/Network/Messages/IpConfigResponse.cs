@@ -1,6 +1,6 @@
 namespace OpenRm.Common.Entities.Network.Messages
 {
-    public class IpConfigData : ResponseBase
+    public class IpConfigResponse : ResponseBase
     {
         public string IpAddress;
         public string netMask;
