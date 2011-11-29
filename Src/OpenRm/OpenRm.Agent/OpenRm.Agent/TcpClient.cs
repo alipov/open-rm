@@ -112,10 +112,9 @@ namespace OpenRm.Agent
                 token.readEventArgs.SetBuffer(_receiveBuffer, 0, _receiveBuffer.Length);
 
                 //Send authorization info about this client as soon as connection established
-                var idata = OpProcessor.GetInfo(); // fill required data
-                var message = new ResponseMessage {Response = idata};
-                SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(message));
-                
+                var action = new ActionExecutor();
+                action.PerformAction(token, new IdentificationDataRequest());
+
                 //Start waiting for incoming data
                 WaitForReceiveMessage(token.readEventArgs);
 
@@ -163,52 +162,13 @@ namespace OpenRm.Agent
             
         }
 
-        protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs readEventArgs, RequestMessage message)
+        protected override void ProcessReceivedMessageRequest(SocketAsyncEventArgs readEventArgs, RequestMessage msg)
         {
             var token = (AgentAsyncUserToken) readEventArgs.UserToken;
 
-            ResponseMessage responseMsg;
-            switch (message.OpCode)
-            {
-                case (int)EOpCode.IpConfigData:
-                    var ipdata = new IpConfigData();
-                    OpProcessor.GetInfo(ipdata, ((IPEndPoint)token.Socket.LocalEndPoint).Address.ToString());       // fill required data
-                    responseMsg = new ResponseMessage { Response = ipdata };
-                    break;
+            Thread sendingThread = new Thread(() => ActionExecutor.PerformAction(token, msg.Request));
+            sendingThread.Start();
 
-                case (int)EOpCode.RunProcess:
-                    RunCompletedStatus result = OpProcessor.ExecuteProcess((RunProcess)message.Request);
-                    responseMsg = new ResponseMessage { Response = result };
-                    break;
-
-                case (int)EOpCode.OsInfo:
-                    var os = new OsInfo();
-                    OpProcessor.GetInfo(os);
-                    responseMsg = new ResponseMessage { Response = os };
-                    break;
-
-                case (int)EOpCode.PerfmonData:
-                    var pf = new PerfmonData();
-                    OpProcessor.GetInfo(pf, token.agentData.OS.SystemDrive);     //provide which disk to monitor
-                    responseMsg = new ResponseMessage { Response = pf };
-                    break;
-
-                case (int)EOpCode.InstalledPrograms:
-                    var progs = new InstalledPrograms();
-                    progs.Progs = OpProcessor.GetInstalledPrograms();
-                    responseMsg = new ResponseMessage { Response = progs };
-                    break;
-
-                    //...
-
-
-                //    //TODO:  Add all OpCodes...
-
-                    //break;
-                default:
-                    throw new ArgumentException("WARNING: Got unknown operation code request!");
-            }
-            SendMessage(token.writeEventArgs, WoxalizerAdapter.SerializeToXml(responseMsg));
         }
 
         protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)

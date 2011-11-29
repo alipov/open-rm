@@ -26,8 +26,8 @@ namespace OpenRm.Common.Entities.Network
         public SocketAsyncEventArgs writeEventArgs { get; set; }
         public SocketAsyncEventArgs readEventArgs { get; set; }
 
-        public Semaphore readSemaphore = new Semaphore(1, 1);
-        public Semaphore writeSemaphore = new Semaphore(1, 1);
+        public Semaphore readSemaphore;
+        public Semaphore writeSemaphore;
 
         //protected AsyncUserTokenBase() : this(null, null) { }
 
@@ -43,6 +43,8 @@ namespace OpenRm.Common.Entities.Network
             RecievedMsgPartLength = 0;
             writeEventArgs = null;
             readEventArgs = null;
+            readSemaphore = new Semaphore(1, 1);
+            writeSemaphore = new Semaphore(1, 1);
         }
 
         // Prepare token for reuse

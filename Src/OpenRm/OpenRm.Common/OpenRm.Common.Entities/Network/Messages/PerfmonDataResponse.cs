@@ -1,6 +1,6 @@
 ﻿namespace OpenRm.Common.Entities.Network.Messages
 {
-    public class PerfmonData : ResponseBase
+    public class PerfmonDataResponse : ResponseBase
     {
         public int CPUuse;              // in %
         public int RAMfree;             // in Mb

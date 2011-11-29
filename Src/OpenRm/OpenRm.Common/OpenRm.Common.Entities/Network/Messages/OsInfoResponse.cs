@@ -1,6 +1,6 @@
 namespace OpenRm.Common.Entities.Network.Messages
 {
-    public class OsInfo : ResponseBase
+    public class OsInfoResponse : ResponseBase
     {
         public string OsName;
         public string OsVersion;

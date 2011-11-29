@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using OpenRm.Common.Entities;
 using OpenRm.Common.Entities.Network.Messages;
 
@@ -10,9 +7,9 @@ namespace OpenRm.Agent.Actions
     public static class RestartExecutor
     {
         // Restart system
-        public static ResponseBase Run(int runId)
+        public static ResponseBase Run(RestartRequest request)
         {
-            var res = new RunCommonResponse(runId, "Shutdown process started");
+            var res = new RunCommonResponse(request.RunId, "Shutdown process started");
             try
             {
                 ShutdownExecutor.PerformShutdown("Reboot", true);

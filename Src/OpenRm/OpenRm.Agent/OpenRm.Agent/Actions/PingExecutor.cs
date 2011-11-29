@@ -10,16 +10,16 @@ namespace OpenRm.Agent.Actions
     public static class PingExecutor
     {
 
-        public static ResponseBase Run(int runId, string target)
+        public static ResponseBase Run( PingRequest request )
         {
             //start with maximum ttl (32) in order to make just one ping
-            var resultList = (List<string>)SendPingWithTtl(target, 32);   
+            var resultList = (List<string>)SendPingWithTtl(request.Target, 32);   
             var resultString = "";
             foreach (string str in resultList)
             {
                 resultString += str + "\n";
             }
-            return new RunCommonResponse(runId, resultString);
+            return new RunCommonResponse(request.RunId, resultString);
         }
 
 

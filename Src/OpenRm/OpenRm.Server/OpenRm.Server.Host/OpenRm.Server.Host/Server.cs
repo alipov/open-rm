@@ -93,9 +93,9 @@ namespace OpenRm.Server.Host
         {
             var message = (ResponseMessage) args.Result;
 
-            if (message.Response is IdentificationData)
+            if (message.Response is IdentificationDataResponse)
             {
-                var idata = (IdentificationData)message.Response;
+                var idata = (IdentificationDataResponse)message.Response;
                 Logger.WriteStr(" * New client has connected: " + idata.deviceName);
                 // ...create ClientData (if does not exist already) and add to token
                 //...
@@ -109,8 +109,9 @@ namespace OpenRm.Server.Host
                 //TODO: for testing only:
                 //Get IP information
                 var msg = new RequestMessage { OpCode = (int)EOpCode.IpConfigData };
+
                 msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                var exec = new RunProcess
+                var exec = new RunProcessRequest
                 {
                     RunId = HostAsyncUserToken.RunId,
                     Cmd = "notepad.exe",
@@ -122,15 +123,15 @@ namespace OpenRm.Server.Host
                 msg.Request = exec;
                 _server.Send(msg, args.Token);
             }
-            else if (message.Response is IpConfigData)
+            else if (message.Response is IpConfigResponse)
             {
-                var ipConf = (IpConfigData)message.Response;
+                var ipConf = (IpConfigResponse)message.Response;
                 args.Token.agentData.IpConfig = ipConf;       //store in "database"
 
 
                 //TODO: move to another place
                 var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                var exec = new RunProcess
+                var exec = new RunProcessRequest
                 {
                     RunId = HostAsyncUserToken.RunId,
                     Cmd = "notepad.exe",
@@ -143,9 +144,9 @@ namespace OpenRm.Server.Host
                 msg.Request = exec;
                 _server.Send(msg, args.Token);
             }
-            else if (message.Response is RunCompletedStatus)
+            else if (message.Response is RunProcessResponse)
             {
-                var status = (RunCompletedStatus)message.Response;
+                var status = (RunProcessResponse)message.Response;
                 if (status.ExitCode == 0)
                 {
                     Logger.WriteStr("Remote successfully executed");
@@ -166,9 +167,9 @@ namespace OpenRm.Server.Host
                 _server.Send(msg, args.Token);
 
             }
-            else if (message.Response is InstalledPrograms)
+            else if (message.Response is InstalledProgramsResponse)
             {
-                var progsList = (InstalledPrograms)message.Response;
+                var progsList = (InstalledProgramsResponse)message.Response;
                 foreach (string s in progsList.Progs)
                 {
                     Console.WriteLine(s);
