@@ -122,7 +122,7 @@ namespace OpenRm.Agent
             else
             {
                 int ex = (int)e.SocketError;
-                Logger.WriteStr("Cannot connect to server " + e.RemoteEndPoint.ToString() + ". Will try again in " + _retryIntervalCurrent + " seconds");
+                Logger.WriteStr("Cannot connect to server " + e.RemoteEndPoint + ". Will try again in " + _retryIntervalCurrent + " seconds");
                 Logger.WriteStr("   (Exception: " + ex.ToString() + ")");
 
                 Thread.Sleep(_retryIntervalCurrent * 1000);
@@ -166,9 +166,16 @@ namespace OpenRm.Agent
         {
             var token = (AgentAsyncUserToken) readEventArgs.UserToken;
 
-            Thread sendingThread = new Thread(() => ActionExecutor.PerformAction(token, msg.Request));
-            sendingThread.Start();
 
+            var exec = new ActionExecutor();        //TODO: replace to static use
+
+            if (msg.Request is PerfmonDataRequest)
+                exec.PerformAction(token, msg.Request);
+            else
+            {
+                Thread sendingThread = new Thread(() => exec.PerformAction(token, msg.Request));
+                sendingThread.Start();
+            }
         }
 
         protected override void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message)

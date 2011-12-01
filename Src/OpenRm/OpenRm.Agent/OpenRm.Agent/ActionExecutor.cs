@@ -62,6 +62,7 @@ namespace OpenRm.Agent
                 return;
             }
 
+            //check if action has returned any data
             if (response != null)
             {
                 //send the message
