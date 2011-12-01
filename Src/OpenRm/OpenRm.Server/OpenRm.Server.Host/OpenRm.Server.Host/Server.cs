@@ -22,7 +22,7 @@ namespace OpenRm.Server.Host
         private int _agentsCount;
         private IMessageServer _server;
 
-        private const int ReceiveBufferSize = 64; //recieve buffer size for tcp connection
+        private const int ReceiveBufferSize = 64;       //recieve buffer size for tcp connection
         
         public void Run()
         {
@@ -108,9 +108,9 @@ namespace OpenRm.Server.Host
 
                 //TODO: for testing only:
                 //Get IP information
-                var msg = new RequestMessage { OpCode = (int)EOpCode.IpConfigData };
+                //var msg = new RequestMessage { OpCode = (int)EOpCode.IpConfigData };
 
-                msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
                 var exec = new RunProcessRequest
                 {
                     RunId = HostAsyncUserToken.RunId,
