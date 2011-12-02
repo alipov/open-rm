@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Net;
 using System.Windows.Input;
 using Microsoft.Practices.Prism.Commands;
@@ -13,21 +14,38 @@ using OpenRm.Server.Gui.Modules.Monitor.EventAggregatorMessages;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {
-    public class AgentsRibbonTabViewModel : IAgentsRibbonTabViewModel
+    public class AgentsRibbonTabViewModel : IAgentsRibbonTabViewModel, INotifyPropertyChanged
     {
-        private IAgentDataService _dataService;
+        private readonly IAgentDataService _dataService;
+        private readonly IUnityContainer _container;
         
         public AgentsRibbonTabViewModel(IUnityContainer container, IAgentDataService dataService)
         {
-            ConnectCommand = new DelegateCommand(ConnectToServer, CanConnectToServerExecute);
-            RefreshAgentsCommand = new DelegateCommand(RefreshAgentsList);
             _container = container;
             _dataService = dataService;
+
+            ConnectCommand = new DelegateCommand(ConnectToServer, CanConnectToServerExecute);
+            IsConnectEnabled = true;
+            RefreshAgentsCommand = new DelegateCommand(RefreshAgentsList);
         }
 
-        private readonly IUnityContainer _container;
+        
         public ICommand ConnectCommand { get; private set; }
         public ICommand RefreshAgentsCommand { get; private set; }
+
+        private bool _isConnectEnabled;
+        public bool IsConnectEnabled
+        {
+            get { return _isConnectEnabled; }
+            private set
+            {
+                if (value != _isConnectEnabled)
+                {
+                    _isConnectEnabled = value;
+                    NotifyPropertyChanged("IsConnectEnabled");
+                }
+            }
+        }
 
         private void ConnectToServer()
         {
@@ -44,7 +62,10 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void OnConnectToServerCompleted(CustomEventArgs args)
         {
-            
+            IsConnectEnabled = false;
+
+            //think where to place
+            //CommandManager.InvalidateRequerySuggested();
         }
 
         private void RefreshAgentsList()
@@ -68,5 +89,19 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
             _dataService.SetAgents(response.Agents);
         }
+
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            if (this.PropertyChanged != null)
+            {
+                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        #endregion
     }
 }

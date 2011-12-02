@@ -319,9 +319,9 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        private void OnConnectCompleted(object sender, SocketAsyncEventArgs e)
+        private void OnConnectCompleted(object sender, SocketAsyncEventArgs args)
         {
-            switch (e.SocketError)
+            switch (args.SocketError)
             {
                 case SocketError.Success:
                     _isConnected = true;
@@ -332,14 +332,14 @@ namespace OpenRm.Common.Entities.Network
                     _retryIntervalCurrent = RetryIntervalInitial;
 
                     if (_userToken.Callback != null)
-                        _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, null));
+                        _userToken.Callback.Invoke(new CustomEventArgs(args.SocketError, null));
                     break;
                 default:
-                    var ex = (int)e.SocketError;
+                    var ex = (int)args.SocketError;
 
                     Logger.WriteStr(string.Format
                         ("Cannot connect to server {0}. Will try again in {1} seconds", 
-                                                e.RemoteEndPoint, _retryIntervalCurrent));
+                                                args.RemoteEndPoint, _retryIntervalCurrent));
                     Logger.WriteStr(string.Format("   (Exception: {0})", ex.ToString()));
 
                     Thread.Sleep(_retryIntervalCurrent * 1000);
@@ -351,8 +351,8 @@ namespace OpenRm.Common.Entities.Network
                     //TODO: add maximum reconnects
 
                     // try to connect again
-                    e.SocketError = 0;
-                    _socket.ConnectAsync(e);
+                    args.SocketError = 0;
+                    _socket.ConnectAsync(args);
                     break;
             }
         }

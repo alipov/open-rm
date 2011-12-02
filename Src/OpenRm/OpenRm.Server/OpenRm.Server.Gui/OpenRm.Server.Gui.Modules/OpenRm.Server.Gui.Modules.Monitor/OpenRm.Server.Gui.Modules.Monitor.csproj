@@ -63,6 +63,10 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WPFToolkit.Extended">
+      <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\ExtToolkit_1.5.0\WPFToolkit.Extended.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\Controllers\IAgentSummaryRegionController.cs" />
@@ -71,12 +75,10 @@
     <Compile Include="Api\ViewModels\IAgentsListViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentsRibbonTabViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentSummaryViewModel.cs" />
-    <Compile Include="Api\ViewModels\IToolbarViewModel.cs" />
     <Compile Include="Api\Views\IAgentDetailsView.cs" />
     <Compile Include="Api\Views\IAgentsListView.cs" />
     <Compile Include="Api\Views\IAgentsRibbonTabView.cs" />
     <Compile Include="Api\Views\IAgentSummaryView.cs" />
-    <Compile Include="Api\Views\IToolbarView.cs" />
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
     <Compile Include="EventAggregatorMessages\AgentsListUpdated.cs" />
@@ -99,9 +101,11 @@
     <Compile Include="ViewModels\AgentsRibbonTabViewModel.cs" />
     <Compile Include="ViewModels\AgentSummaryViewModel.cs" />
     <Compile Include="ViewModels\AgentsListViewModel.cs" />
-    <Compile Include="ViewModels\ToolbarViewModel.cs" />
     <Compile Include="Views\AgentDetailsView.xaml.cs">
       <DependentUpon>AgentDetailsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AgentLogView.xaml.cs">
+      <DependentUpon>AgentLogView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\AgentsListView.xaml.cs">
       <DependentUpon>AgentsListView.xaml</DependentUpon>
@@ -111,9 +115,6 @@
     </Compile>
     <Compile Include="Views\AgentSummaryView.xaml.cs">
       <DependentUpon>AgentSummaryView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\ToolbarView.xaml.cs">
-      <DependentUpon>ToolbarView.xaml</DependentUpon>
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -130,6 +131,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\AgentLogView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\AgentsListView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -141,10 +146,6 @@
     <Page Include="Views\AgentSummaryView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\ToolbarView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -158,10 +159,7 @@
       <Name>OpenRm.Server.Gui.Inf</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
-    <Folder Include="Network\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Resource Include="Views\Images\ConnectionManager_48x48.png" />
   </ItemGroup>

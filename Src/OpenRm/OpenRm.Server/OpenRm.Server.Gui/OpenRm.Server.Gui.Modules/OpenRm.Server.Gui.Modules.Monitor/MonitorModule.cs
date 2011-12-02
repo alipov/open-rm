@@ -51,16 +51,12 @@ namespace OpenRm.Server.Gui.Modules.Monitor
             _container.RegisterType<IAgentDetailsViewModel, AgentDetailsViewModel>();
             _container.RegisterType<IAgentsRibbonTabView, AgentsRibbonTabView>();
             _container.RegisterType<IAgentsRibbonTabViewModel, AgentsRibbonTabViewModel>();
-            //_container.RegisterType<IToolbarView, ToolbarView>();
-            //_container.RegisterType<IToolbarViewModel, ToolbarViewModel>();
 
             // This is an example of View Discovery which associates the specified view type
             // with a region so that the view will be automatically added to the region when
             // the region is first displayed.
-
             _regionManager.RegisterViewWithRegion(RegionNames.RibbonRegion,
                                                   () => _container.Resolve<IAgentsRibbonTabView>());
-            //_regionManager.RegisterViewWithRegion(RegionNames.ToolbarRegion, typeof (ToolbarView));
             
             // Show the Agent List view in the shell's left hand region.
             _regionManager.RegisterViewWithRegion(RegionNames.LeftContentRegion,

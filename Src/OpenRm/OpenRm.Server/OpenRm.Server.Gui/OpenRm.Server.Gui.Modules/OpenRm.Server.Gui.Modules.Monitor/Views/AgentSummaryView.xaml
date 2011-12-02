@@ -52,7 +52,7 @@
         <TabControl Grid.Row="1" Margin="8"
                         prism:RegionManager.RegionName="TabRegion"
                         prism:RegionManager.RegionContext="{Binding CurrentEntity}"
-                        Width="Auto" Height="Auto" HorizontalAlignment="Stretch">
+                        Width="Auto" Height="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         </TabControl>
 
 
