@@ -86,6 +86,45 @@ namespace OpenRm.Server.Host
                 };
                 _server.Send(responseMessage, args.Token);
             }
+            else if (message.Request is WakeOnLanRequest)
+            {
+                string targetIp = ((WakeOnLanRequest) message.Request).Ip;
+                string targetMask = ((WakeOnLanRequest) message.Request).NetMask;
+
+                bool _notFound = true;
+
+                // TODO: do we need lock _agents object in all operations we use it?
+                //look for client on the same subnet with target
+                foreach (var agent in _agents)
+                {
+                    if (NetworkHelper.IsOnSameNetwork(agent.Value.AgentInventory.IpConfig.IpAddress, agent.Value.AgentInventory.IpConfig.netMask, targetIp, targetMask))
+                    {
+                        // clear not needed info
+                        ((WakeOnLanRequest) message.Request).Ip = "";
+                        ((WakeOnLanRequest) message.Request).NetMask = "";
+                        // send to client
+                        _server.Send(message, agent.Value);
+                        _notFound = false;
+                        // exit "foreach" loop
+                        break;
+                    }
+                }
+
+                if (_notFound)
+                {
+                    // send unsuccessfull message back to console
+                    var response = new WakeOnLanResponse(false, ((WakeOnLanRequest) message.Request).RunId);
+                    var responseMessage = new ResponseMessage() { Response = response };
+                    _server.Send(responseMessage, args.Token);
+                }
+            }
+            // TODO: implement all ...
+
+            //...
+
+            //...
+
+
         }
 
 

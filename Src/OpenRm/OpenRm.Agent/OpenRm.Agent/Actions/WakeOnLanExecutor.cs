@@ -32,11 +32,11 @@ namespace OpenRm.Agent.Actions
             {
                 // send the magic packet
                 client.Send(packet, packet.Length);
-                return new WakeOnLanResponse(true);
+                return new WakeOnLanResponse(true, request.RunId);
             }
             catch (Exception)
             {
-                return new WakeOnLanResponse(false);
+                return new WakeOnLanResponse(false, request.RunId);
             }
             
         }

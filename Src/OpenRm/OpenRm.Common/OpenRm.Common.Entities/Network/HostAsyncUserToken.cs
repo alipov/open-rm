@@ -1,5 +1,4 @@
 ﻿using System;
-using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -13,16 +12,14 @@ namespace OpenRm.Common.Entities.Network
 
         //}
 
-        private static int _runId;
-        //public IdentificationDataResponse ClientData { get; set; }
-        public ClientData AgentInventory { get; set; }
-
         static HostAsyncUserToken()
         {
             _runId = 1;
 
         }
 
+
+        private static int _runId;
         
         public static int RunId
         {
@@ -32,6 +29,8 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
+        //public IdentificationDataResponse ClientData { get; set; }
+        public ClientData AgentInventory { get; set; }
         public Action<HostCustomEventArgs> Callback { get; set; }
     }
 }
