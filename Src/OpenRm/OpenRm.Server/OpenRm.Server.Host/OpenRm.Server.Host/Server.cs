@@ -74,7 +74,7 @@ namespace OpenRm.Server.Host
                     var thisAgent = new Agent()
                         {
                             ID = agent.Key,
-                            Name = agent.Value.ClientData.deviceName
+                            Name = agent.Value.AgentInventory.Idata.deviceName
                         };
 
                     agentsResponse.Agents.Add(thisAgent);
@@ -95,38 +95,47 @@ namespace OpenRm.Server.Host
 
             if (message.Response is IdentificationDataResponse)
             {
+                // Only New or Reconnected client sends this response
                 var idata = (IdentificationDataResponse)message.Response;
-                Logger.WriteStr(" * New client has connected: " + idata.deviceName);
-                // ...create ClientData (if does not exist already) and add to token
-                //...
-                args.Token.ClientData = idata;
-                if (_agents.All(a => a.Value.ClientData.deviceName != idata.deviceName))
+                Logger.WriteStr(" * Client has connected: " + idata.deviceName);
+                
+                // Look if already exist in _agents, and new entry if needed
+                args.Token.AgentInventory.Idata = idata;
+                if (_agents.All(a => a.Value.AgentInventory.Idata.deviceName != idata.deviceName))
                 {
                     _agents.Add(Interlocked.Increment(ref _agentsCount), args.Token);
                 }
 
-
-                //TODO: for testing only:
-                //Get IP information
-                //var msg = new RequestMessage { OpCode = (int)EOpCode.IpConfigData };
-
-                var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                var exec = new RunProcessRequest
-                {
-                    RunId = HostAsyncUserToken.RunId,
-                    Cmd = "notepad.exe",
-                    Args = "",
-                    WorkDir = "c:\\",
-                    TimeOut = 180000,        //ms
-                    Hidden = true
-                };
-                msg.Request = exec;
+                // Get IP and OS inventory
+                // ( we do not store previous info of reconnected clients because it can have been changed sinse previous sesion )
+                var msg = new RequestMessage { Request = new IpConfigRequest() };
                 _server.Send(msg, args.Token);
+
+                msg = new RequestMessage { Request = new OsInfoRequest() };
+                _server.Send(msg, args.Token);
+
+
+                        //TODO: for testing only:
+                        msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                        var exec = new RunProcessRequest
+                        {
+                            RunId = HostAsyncUserToken.RunId,
+                            Cmd = "notepad.exe",
+                            Args = "",
+                            WorkDir = "c:\\",
+                            TimeOut = 180000,        //ms
+                            Hidden = true
+                        };
+                        msg.Request = exec;
+                        _server.Send(msg, args.Token);
+
             }
             else if (message.Response is IpConfigResponse)
             {
                 var ipConf = (IpConfigResponse)message.Response;
-                args.Token.agentData.IpConfig = ipConf;       //store in "database"
+                args.Token.AgentInventory.IpConfig = ipConf;       //store in "database"
+
+
 
 
                 //TODO: move to another place

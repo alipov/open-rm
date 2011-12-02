@@ -7,7 +7,6 @@ namespace OpenRm.Common.Entities.Network
     public abstract class AsyncUserTokenBase
     {
         public Socket Socket { get; set; }
-        public ClientData agentData { get; set; }
 
         // holds recieved message data (without prefix). used for storing partial messages also
         public byte[] RecievedMsgData { get; set; }
@@ -37,7 +36,6 @@ namespace OpenRm.Common.Entities.Network
         {
             _msgPrefixLength = msgPrefixLength;
             Socket = socket;
-            agentData = data;
             PrefixData = new Byte[_msgPrefixLength];
             RecievedPrefixPartLength = 0;
             RecievedMsgPartLength = 0;

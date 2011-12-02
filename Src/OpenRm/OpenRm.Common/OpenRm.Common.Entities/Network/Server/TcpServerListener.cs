@@ -157,7 +157,7 @@ namespace OpenRm.Common.Entities.Network.Server
                     token.writeEventArgs = writeEventArgs;
 
                     // Initialize agent's data/info holder
-                    token.agentData = new ClientData();
+                    token.AgentInventory = new ClientData();
 
                     /* !!! */
                     // As soon as the client is connected, post a receive to the connection, to get client's identification info
@@ -324,7 +324,7 @@ namespace OpenRm.Common.Entities.Network.Server
             else if (message.Response is IpConfigResponse)
             {
                 var ipConf = (IpConfigResponse) message.Response;
-                token.agentData.IpConfig = ipConf;       //store in "database"
+                token.AgentInventory.IpConfig = ipConf;       //store in "database"
 
 
                 ////TODO: move to another place

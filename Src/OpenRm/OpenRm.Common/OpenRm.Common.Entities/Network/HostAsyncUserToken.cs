@@ -13,12 +13,17 @@ namespace OpenRm.Common.Entities.Network
 
         //}
 
+        private static int _runId;
+        //public IdentificationDataResponse ClientData { get; set; }
+        public ClientData AgentInventory { get; set; }
+
         static HostAsyncUserToken()
         {
             _runId = 1;
+
         }
 
-        private static int _runId;
+        
         public static int RunId
         {
             get // returns and increments process identification number
@@ -28,6 +33,5 @@ namespace OpenRm.Common.Entities.Network
         }
 
         public Action<HostCustomEventArgs> Callback { get; set; }
-        public IdentificationDataResponse ClientData { get; set; }
     }
 }

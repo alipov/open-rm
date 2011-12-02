@@ -156,7 +156,7 @@ namespace OpenRm.Common.Entities.Network.Server
                     token.writeEventArgs = writeEventArgs;
 
                     // Initialize agent's data/info holder
-                    token.agentData = new ClientData();
+                    token.AgentInventory = new ClientData();
 
                     // As soon as the client is connected, post a receive to the connection, to get client's identification info
                     WaitForReceiveMessage(readEventArgs);
