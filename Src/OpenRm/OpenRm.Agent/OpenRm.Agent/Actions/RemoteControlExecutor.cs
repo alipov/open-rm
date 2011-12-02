@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using OpenRm.Common.Entities.Network.Messages;
+﻿using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Agent.Actions
 {

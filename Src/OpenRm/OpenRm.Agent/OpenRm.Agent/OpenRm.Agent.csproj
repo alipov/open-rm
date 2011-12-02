@@ -91,6 +91,7 @@
     <Compile Include="Actions\PerfmonDataRetriever.cs" />
     <Compile Include="Actions\PingExecutor.cs" />
     <Compile Include="Actions\ProcessExecutor.cs" />
+    <Compile Include="Actions\RemoteControlExecutor.cs" />
     <Compile Include="Actions\RestartExecutor.cs" />
     <Compile Include="Actions\ShutdownExecutor.cs" />
     <Compile Include="Actions\TraceRouteExecutor.cs" />
