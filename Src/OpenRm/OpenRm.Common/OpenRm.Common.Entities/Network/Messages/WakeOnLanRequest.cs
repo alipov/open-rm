@@ -4,11 +4,15 @@
     {
         public string Mac;
         public int RunId;
+        public string Ip;
+        public string NetMask;
 
         public WakeOnLanRequest(){}
-        public WakeOnLanRequest(int runId, string macAddress)
+        public WakeOnLanRequest(string macAddress, string ip, string netMask, int runId)
         {
             Mac = macAddress;
+            Ip = ip;
+            NetMask = netMask;
             RunId = runId;
         }
     }
