@@ -9,6 +9,7 @@
 
     public abstract class RequestBase
     {
+        public abstract ResponseBase ExecuteRequest();
     }
 
     public abstract class ResponseBase

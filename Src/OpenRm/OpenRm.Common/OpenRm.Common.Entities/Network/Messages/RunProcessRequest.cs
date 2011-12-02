@@ -1,3 +1,7 @@
+using System;
+using System.Diagnostics;
+using System.Threading;
+
 namespace OpenRm.Common.Entities.Network.Messages
 {
     public class RunProcessRequest : RequestBase
@@ -23,6 +27,48 @@ namespace OpenRm.Common.Entities.Network.Messages
         public RunProcessRequest()
         {
             
+        }
+
+        public override ResponseBase ExecuteRequest()
+        {
+            RunProcessResponse status = new RunProcessResponse();   // creates new object to return
+            status.RunId = RunId;
+
+            Thread.Sleep(Delay);
+
+            Process newProcess = null;
+            ProcessStartInfo execInfo = new ProcessStartInfo();
+            execInfo.FileName = Cmd;
+            execInfo.Arguments = Args;
+            execInfo.CreateNoWindow = false;
+            execInfo.UseShellExecute = false;
+            execInfo.RedirectStandardError = true;
+            if (Hidden)
+                execInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+            try
+            {
+                newProcess = Process.Start(execInfo);
+
+                string stderr = newProcess.StandardError.ReadToEnd();       //get error output
+
+                newProcess.WaitForExit(TimeOut);  // wait for process completion or timeout
+
+                status.ExitCode = newProcess.ExitCode;
+                if (status.ExitCode > 0)
+                    status.ErrorMessage = stderr;
+            }
+            catch (Exception)
+            {
+                status.ErrorMessage = "ERROR: Unable to start \"" + Cmd + "\"";
+            }
+            finally
+            {
+                if (newProcess != null)
+                    newProcess.Close();
+            }
+
+            return status;
         }
     }
 }

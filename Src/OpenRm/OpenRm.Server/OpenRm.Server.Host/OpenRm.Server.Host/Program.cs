@@ -1,11 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Xml;
-//using Woxalizer;
-
-
-namespace OpenRm.Server.Host
+﻿namespace OpenRm.Server.Host
 {
     class Program
     {

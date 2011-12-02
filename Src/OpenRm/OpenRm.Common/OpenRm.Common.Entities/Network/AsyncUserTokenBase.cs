@@ -30,7 +30,7 @@ namespace OpenRm.Common.Entities.Network
 
         //protected AsyncUserTokenBase() : this(null, null) { }
 
-        private readonly int _msgPrefixLength;
+        protected readonly int _msgPrefixLength;
 
         protected AsyncUserTokenBase(Socket socket, ClientData data, int msgPrefixLength = 4)
         {

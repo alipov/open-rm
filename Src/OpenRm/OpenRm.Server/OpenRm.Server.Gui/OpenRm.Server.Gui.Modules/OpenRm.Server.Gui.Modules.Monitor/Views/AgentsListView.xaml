@@ -37,9 +37,9 @@
             </StackPanel>
         </DataTemplate>
     </UserControl.Resources>
-        <Grid>
+    <Grid>
         <!-- http://zamjad.wordpress.com/2010/02/06/datatemplate-vs-controltemplate/ -->
-            <ListBox Width="200"
+            <ListBox 
                      ItemTemplate="{StaticResource AgentListBoxItemTemplate}"
                      ItemsSource="{Binding AgentsCollection}"
                      SelectedItem="{Binding CurrentEntity}"/>
