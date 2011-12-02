@@ -26,7 +26,6 @@ namespace OpenRm.Common.Entities.Network.Messages
 
         public RunProcessRequest()
         {
-            
         }
 
         public override ResponseBase ExecuteRequest()
@@ -52,15 +51,33 @@ namespace OpenRm.Common.Entities.Network.Messages
 
                 string stderr = newProcess.StandardError.ReadToEnd();       //get error output
 
-                newProcess.WaitForExit(TimeOut);  // wait for process completion or timeout
+                // wait for process completion or timeout
+                newProcess.WaitForExit(TimeOut);  
 
-                status.ExitCode = newProcess.ExitCode;
-                if (status.ExitCode > 0)
-                    status.ErrorMessage = stderr;
+                if (!newProcess.HasExited)
+                {
+                    if (newProcess.Responding)
+                    {
+                        status.ErrorMessage = " Process is still running, but we have reached timeout (" + TimeOut + "ms)";    
+                    }
+                    else
+                    {
+                        // not responding so kill it
+                        newProcess.Kill();
+                        status.ExitCode = newProcess.ExitCode;
+                        status.ErrorMessage = " Process was not responding. We've terminated it.";
+                    }
+                }
+                else
+                {
+                    status.ExitCode = newProcess.ExitCode;
+                    if (status.ExitCode > 0)
+                        status.ErrorMessage = stderr;    // not all processes have stderr
+                }
             }
             catch (Exception)
             {
-                status.ErrorMessage = "ERROR: Unable to start \"" + Cmd + "\"";
+                status.ErrorMessage = "ERROR: Unable to start \"" + Cmd + " " + Args + "\"";
             }
             finally
             {
