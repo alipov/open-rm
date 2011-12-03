@@ -71,13 +71,13 @@ namespace OpenRm.Server.Host
 
                 foreach (var agent in _agents)
                 {
-                    var thisAgent = new Agent()
-                        {
-                            ID = agent.Key,
-                            Name = agent.Value.Agent.Data.Idata.deviceName
-                        };
+                    //var thisAgent = new Agent()
+                    //    {
+                    //        ID = agent.Key,
+                    //        Name = agent.Value.Agent.Data.Idata.deviceName
+                    //    };
 
-                    agentsResponse.Agents.Add(thisAgent);
+                    agentsResponse.Agents.Add(agent.Value.Agent);
                 }
 
                 var responseMessage = new ResponseMessage()
@@ -127,6 +127,17 @@ namespace OpenRm.Server.Host
                     _server.Send(responseMessage, args.Token);
                 }
             }
+            else if (message.Request is InstalledProgramsRequest)
+            {
+                var agent = _agents.Values.SingleOrDefault(a => a.Agent.ID == message.AgentId);
+                if (agent != null)
+                {
+                    _server.Send(message, _console);
+                    _server.Send(message, agent);
+                }
+            }
+
+
             // TODO: implement all ...
 
             //...
@@ -148,10 +159,19 @@ namespace OpenRm.Server.Host
                 Logger.WriteStr(" * Client has connected: " + idata.deviceName);
                 
                 // Look if already exist in _agents, and new entry if needed
-                args.Token.Agent.Data.Idata = idata;
                 if (_agents.All(a => a.Value.Agent.Data.Idata.deviceName != idata.deviceName))
                 {
-                    _agents.Add(Interlocked.Increment(ref _agentsCount), args.Token);
+                    args.Token.Agent = new Agent()
+                                           {
+                                               Data = new ClientData()
+                                                          {
+                                                              Idata = idata
+                                                          }
+                                           };
+                    var key = Interlocked.Increment(ref _agentsCount);
+                    _agents.Add(key, args.Token);
+                    args.Token.Agent.ID = key;
+                    args.Token.Agent.Name = args.Token.Agent.Data.Idata.deviceName;
                 }
 
                 // Get IP and OS inventory
@@ -160,23 +180,24 @@ namespace OpenRm.Server.Host
                 var msg = new RequestMessage { Request = new IpConfigRequest() };
                 _server.Send(msg, args.Token);
 
-                msg = new RequestMessage { Request = new OsInfoRequest() };
-                _server.Send(msg, args.Token);
+                //TODO: throwing exception in agent side
+                //msg = new RequestMessage { Request = new OsInfoRequest() };
+                //_server.Send(msg, args.Token);
 
 
-                        //TODO: for testing only:
-                        msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                        var exec = new RunProcessRequest
-                        {
-                            RunId = HostAsyncUserToken.RunId,
-                            Cmd = "notepad.exe",
-                            Args = "",
-                            WorkDir = "c:\\",
-                            TimeOut = 180000,        //ms
-                            Hidden = true
-                        };
-                        msg.Request = exec;
-                        _server.Send(msg, args.Token);
+                        ////TODO: for testing only:
+                        //msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                        //var exec = new RunProcessRequest
+                        //{
+                        //    RunId = HostAsyncUserToken.RunId,
+                        //    Cmd = "notepad.exe",
+                        //    Args = "",
+                        //    WorkDir = "c:\\",
+                        //    TimeOut = 180000,        //ms
+                        //    Hidden = true
+                        //};
+                        //msg.Request = exec;
+                        //_server.Send(msg, args.Token);
 
             }
             else if (message.Response is IpConfigResponse)
@@ -188,19 +209,19 @@ namespace OpenRm.Server.Host
 
 
                 //TODO: move to another place
-                var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                var exec = new RunProcessRequest
-                {
-                    RunId = HostAsyncUserToken.RunId,
-                    Cmd = "notepad.exe",
-                    Args = "",
-                    WorkDir = "c:\\",
-                    TimeOut = 180000,        //ms
-                    Hidden = true
-                };
+                //var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                //var exec = new RunProcessRequest
+                //{
+                //    RunId = HostAsyncUserToken.RunId,
+                //    Cmd = "notepad.exe",
+                //    Args = "",
+                //    WorkDir = "c:\\",
+                //    TimeOut = 180000,        //ms
+                //    Hidden = true
+                //};
 
-                msg.Request = exec;
-                _server.Send(msg, args.Token);
+                //msg.Request = exec;
+                //_server.Send(msg, args.Token);
             }
             else if (message.Response is RunProcessResponse)
             {
@@ -221,17 +242,18 @@ namespace OpenRm.Server.Host
 
 
                 //TODO: for testing only:
-                var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
-                _server.Send(msg, args.Token);
+                //var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
+                //_server.Send(msg, args.Token);
 
             }
             else if (message.Response is InstalledProgramsResponse)
             {
-                var progsList = (InstalledProgramsResponse)message.Response;
-                foreach (string s in progsList.Progs)
-                {
-                    Console.WriteLine(s);
-                }
+                _server.Send(message, _console);
+                //var progsList = (InstalledProgramsResponse)message.Response;
+                //foreach (string s in progsList.Progs)
+                //{
+                //    Console.WriteLine(s);
+                //}
 
 
 

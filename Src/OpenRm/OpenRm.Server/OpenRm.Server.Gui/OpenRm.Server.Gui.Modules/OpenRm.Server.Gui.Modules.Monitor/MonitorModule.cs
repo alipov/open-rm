@@ -20,6 +20,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor
         private readonly IUnityContainer _container;
         private readonly IRegionManager _regionManager;
         private IAgentSummaryRegionController _summaryRegionController;
+        private IAgentRibbonRegionController _ribbonRegionController;
 
         public MonitorModule(IUnityContainer container, IRegionManager regionManager)
         {
@@ -38,6 +39,8 @@ namespace OpenRm.Server.Gui.Modules.Monitor
 
             // ContainerControlledLifetimeManager ensures singleton instance of that class.
             _container.RegisterType<IAgentSummaryRegionController, AgentSummaryRegionController>
+                                                    (new ContainerControlledLifetimeManager());
+            _container.RegisterType<IAgentRibbonRegionController, AgentRibbonRegionController>
                                                     (new ContainerControlledLifetimeManager());
 
             _container.RegisterType<IMessageClient, GeneralSocketClient>
@@ -72,6 +75,8 @@ namespace OpenRm.Server.Gui.Modules.Monitor
             // This is used to programmatically (using injection) coordinate the view in the summary region 
             // of the shell.
             _summaryRegionController = _container.Resolve<IAgentSummaryRegionController>();
+
+            _ribbonRegionController = _container.Resolve<IAgentRibbonRegionController>();
         }
     }
 }
