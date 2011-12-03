@@ -41,19 +41,16 @@ namespace OpenRm.Common.Entities.Network
         }
 
 
-        // Invoked when an asycnhronous receive operation completes.  
-        // If the remote host closed the connection, then the socket is closed.
-        //  "e" represents "readArgs"
-        protected virtual void ProcessReceive(SocketAsyncEventArgs e)
+        protected virtual void ProcessReceive(SocketAsyncEventArgs args)
         {
-            var token = (AsyncUserTokenBase)e.UserToken;
+            var token = (AsyncUserTokenBase)args.UserToken;
 
             // Check if the remote host closed the connection
             //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
-            if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+            if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
             {
                 // got message. need to handle it
-                Logger.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
+                Logger.WriteStr("Recieved data (" + args.BytesTransferred + " bytes)");
 
                 // now we need to check if we have complete message in our recieved data.
                 // if yes - process it
@@ -62,10 +59,10 @@ namespace OpenRm.Common.Entities.Network
                 //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
 
                 int i = 0;      // go through buffer of currently received data 
-                while (i < e.BytesTransferred)
+                while (i < args.BytesTransferred)
                 {
                     // Determine how many bytes we want to transfer to the buffer and transfer them 
-                    int bytesAvailable = e.BytesTransferred - i;
+                    int bytesAvailable = args.BytesTransferred - i;
                     if (token.RecievedMsgData == null)
                     {
                         // token.msgData is empty so we a dealing with Prefix.
@@ -73,7 +70,7 @@ namespace OpenRm.Common.Entities.Network
                         // All incoming data is in e.Buffer, at e.Offset position
                         int bytesRequested = MsgPrefixLength - token.RecievedPrefixPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
+                        Array.Copy(args.Buffer, args.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
                         i += bytesTransferred;
 
                         token.RecievedPrefixPartLength += bytesTransferred;
@@ -82,7 +79,7 @@ namespace OpenRm.Common.Entities.Network
                         {
                             // We haven't gotten all the prefix buffer yet: call Receive again.
                             Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
-                            StartReceive(e);
+                            StartReceive(args);
                             return;
                         }
 
@@ -115,7 +112,7 @@ namespace OpenRm.Common.Entities.Network
                         // We're reading into the data buffer  
                         int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, token.RecievedMsgData, token.RecievedMsgPartLength, bytesTransferred);
+                        Array.Copy(args.Buffer, args.Offset + i, token.RecievedMsgData, token.RecievedMsgPartLength, bytesTransferred);
                         //Logger.WriteStr("message till now: " + Encoding.UTF8.GetString(token.RecievedMsgData));
                         i += bytesTransferred;
 
@@ -123,15 +120,15 @@ namespace OpenRm.Common.Entities.Network
                         if (token.RecievedMsgPartLength < token.RecievedMsgData.Length)
                         {
                             // We haven't gotten all the data buffer yet: call Receive again to get more data
-                            StartReceive(e);
+                            StartReceive(args);
                             return;
                         }
 
                         // we've gotten an entire packet
                         Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint + ": " + Encoding.UTF8.GetString(token.RecievedMsgData));
 
-                        ProcessReceivedMessage(e);    
-                        
+                        ProcessReceivedMessage(args);
+
                         break;  //break while
                     }
                 }   //end while
@@ -143,16 +140,28 @@ namespace OpenRm.Common.Entities.Network
                 token.readSemaphore.Release();
 
                 // start waiting for next message
-                WaitForReceiveMessage(e);
+                WaitForReceiveMessage(args);
             }
             else
             {
-                Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint + " due to exception:\n"
-                    + new SocketException((int)e.SocketError).ToString() + "\n"
-                    + "Closing this connection....");
-                CloseConnection(e);
+                Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint + 
+                    " due to exception:\n" + new SocketException((int)args.SocketError));
+                //CloseConnection(args);
+                ProcessReceiveFailed(args);
             }
         }
+
+        // Invoked when an asycnhronous receive operation completes.  
+        // If the remote host closed the connection, then the socket is closed.
+        //  "e" represents "readArgs"
+        //protected abstract void ProcessReceive(SocketAsyncEventArgs e);
+
+        protected abstract void ProcessReceiveFailed(SocketAsyncEventArgs e);
+        //{
+        //    var token = (AsyncUserTokenBase)e.UserToken;
+
+        //    ProcessReceive(e, token);
+        //}
 
         
 
@@ -198,18 +207,18 @@ namespace OpenRm.Common.Entities.Network
 
 
         // This method is invoked when an asynchronous send operation completes.
-        protected virtual void ProcessSend(SocketAsyncEventArgs e)
+        protected virtual void ProcessSend(SocketAsyncEventArgs args)
         {
-            var token = (AsyncUserTokenBase)e.UserToken;
+            var token = (AsyncUserTokenBase)args.UserToken;
 
-            if (e.SocketError == SocketError.Success)
+            if (args.SocketError == SocketError.Success)
             {
                 token.SendingMsgBytesSent += ReceiveBufferSize;     // receiveBufferSize is the maximum data length in one send
                 if (token.SendingMsgBytesSent < token.SendingMsg.Length)
                 {
                     // Not all message has been sent, so send next part
                     Logger.WriteStr(token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
-                    StartSend(e);
+                    StartSend(args);
                     return;
                 }
 
@@ -229,9 +238,12 @@ namespace OpenRm.Common.Entities.Network
             else
             {
                 Logger.WriteStr(" Message has failed to be sent.");
-                CloseConnection(e);
+                //CloseConnection(e);
+                ProcessSendFailure(args);
             }
         }
+
+        protected abstract void ProcessSendFailure(SocketAsyncEventArgs args);
 
         protected abstract void ProcessReceivedMessage(SocketAsyncEventArgs e);
         //protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);

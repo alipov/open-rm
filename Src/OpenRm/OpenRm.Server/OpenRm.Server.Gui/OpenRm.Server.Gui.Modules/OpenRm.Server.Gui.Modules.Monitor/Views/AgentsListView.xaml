@@ -42,6 +42,7 @@
             <ListBox 
                      ItemTemplate="{StaticResource AgentListBoxItemTemplate}"
                      ItemsSource="{Binding AgentsCollection}"
-                     SelectedItem="{Binding CurrentEntity}"/>
+                     SelectedItem="{Binding CurrentEntity}"
+                     />
     </Grid>
 </UserControl>

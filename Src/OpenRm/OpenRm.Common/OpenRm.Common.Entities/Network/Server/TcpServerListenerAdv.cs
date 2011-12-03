@@ -196,6 +196,35 @@ namespace OpenRm.Common.Entities.Network.Server
             }
         }
 
+        protected override void ProcessSendFailure(SocketAsyncEventArgs args)
+        {
+            if (((HostAsyncUserToken)args.UserToken).Callback != null)
+            {
+                ((HostAsyncUserToken)args.UserToken).Callback.Invoke
+                                (new HostCustomEventArgs(args.SocketError, null));
+            }
+        }
+
+        //protected override void ProcessReceive(SocketAsyncEventArgs e)
+        //{
+        //    var token = (AsyncUserTokenBase)e.UserToken;
+
+        //    ProcessReceive(e, token);
+        //}
+
+        protected override void ProcessReceiveFailed(SocketAsyncEventArgs e)
+        {
+            var token = (HostAsyncUserToken)e.UserToken;
+
+            var args = new HostCustomEventArgs(SocketError.Fault, null)
+            {
+                Token = token
+            };
+
+            if (token.Callback != null)
+                token.Callback.Invoke(args);
+        }
+
         protected override void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
             var token = (HostAsyncUserToken)e.UserToken;

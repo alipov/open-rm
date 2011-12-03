@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
@@ -15,6 +16,7 @@ namespace OpenRm.Common.Entities
 
         public SocketError Status { get; private set; }
         public Message Result { get; private set; }
+        public IPEndPoint LocalEndPoint { get; set; }
     }
 
     public class HostCustomEventArgs : CustomEventArgs

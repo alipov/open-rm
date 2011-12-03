@@ -22,6 +22,7 @@ namespace OpenRm.Agent
         private static Thread starterThread;
         //private TcpClient _client;
         private IMessageClient _client;
+        private IPEndPoint _localEndPoint;
 
         private NotifyIconWrapper _notifyIconComponent;
 
@@ -66,7 +67,7 @@ namespace OpenRm.Agent
         private void OnConnectToServerCompleted(CustomEventArgs args)
         {
             var idRequest = new IdentificationDataRequest();
-
+            _localEndPoint = args.LocalEndPoint;
             var message = new ResponseMessage
                           {
                               Response = idRequest.ExecuteRequest()
@@ -87,8 +88,7 @@ namespace OpenRm.Agent
 
             if (request is IpConfigRequest)
             {
-                //TODO: check what to pass here
-                //((IpConfigRequest)request).IpAddress = ((IPEndPoint)token.Socket.LocalEndPoint).Address.ToString() );
+                ((IpConfigRequest) request).IpAddress = _localEndPoint.Address;
             }
 
             var response = request.ExecuteRequest();
