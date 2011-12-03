@@ -53,6 +53,7 @@
     <Compile Include="CustomEventArgs.cs" />
     <Compile Include="Entities\Agent.cs" />
     <Compile Include="ClientData.cs" />
+    <Compile Include="Enums\EAgentStatus.cs" />
     <Compile Include="Enums\EMessageType.cs" />
     <Compile Include="Enums\EOpCode.cs" />
     <Compile Include="Executors\PingExecutor.cs" />

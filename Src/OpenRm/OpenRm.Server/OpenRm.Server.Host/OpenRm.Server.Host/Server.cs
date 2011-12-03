@@ -74,7 +74,7 @@ namespace OpenRm.Server.Host
                     var thisAgent = new Agent()
                         {
                             ID = agent.Key,
-                            Name = agent.Value.AgentInventory.Idata.deviceName
+                            Name = agent.Value.Agent.Data.Idata.deviceName
                         };
 
                     agentsResponse.Agents.Add(thisAgent);
@@ -95,19 +95,28 @@ namespace OpenRm.Server.Host
 
                 // TODO: do we need lock _agents object in all operations we use it?
                 //look for client on the same subnet with target
-                foreach (var agent in _agents)
+                for (var i = 0; i < _agents.Count; i++)
                 {
-                    if (NetworkHelper.IsOnSameNetwork(agent.Value.AgentInventory.IpConfig.IpAddress, agent.Value.AgentInventory.IpConfig.netMask, targetIp, targetMask))
-                    {
-                        // clear not needed info
-                        ((WakeOnLanRequest) message.Request).Ip = "";
-                        ((WakeOnLanRequest) message.Request).NetMask = "";
-                        // send to client
-                        _server.Send(message, agent.Value);
-                        _notFound = false;
-                        // exit "foreach" loop
-                        break;
-                    }
+                    var agent = _agents[i];
+                    
+                    //foreach (var agent in _agents)
+                    //{
+                        if (NetworkHelper.IsOnSameNetwork
+                            (agent.Agent.Data.IpConfig.IpAddress,
+                             agent.Agent.Data.IpConfig.netMask,
+                             targetIp, targetMask))
+                        {
+                            // clear not needed info
+                            ((WakeOnLanRequest)message.Request).Ip = "";
+                            ((WakeOnLanRequest)message.Request).NetMask = "";
+                            // send to client
+                            _server.Send(message, agent);
+                            _notFound = false;
+                            // exit "foreach" loop
+                            break;
+                        }
+                    //}
+
                 }
 
                 if (_notFound)
@@ -139,8 +148,8 @@ namespace OpenRm.Server.Host
                 Logger.WriteStr(" * Client has connected: " + idata.deviceName);
                 
                 // Look if already exist in _agents, and new entry if needed
-                args.Token.AgentInventory.Idata = idata;
-                if (_agents.All(a => a.Value.AgentInventory.Idata.deviceName != idata.deviceName))
+                args.Token.Agent.Data.Idata = idata;
+                if (_agents.All(a => a.Value.Agent.Data.Idata.deviceName != idata.deviceName))
                 {
                     _agents.Add(Interlocked.Increment(ref _agentsCount), args.Token);
                 }
@@ -173,7 +182,7 @@ namespace OpenRm.Server.Host
             else if (message.Response is IpConfigResponse)
             {
                 var ipConf = (IpConfigResponse)message.Response;
-                args.Token.AgentInventory.IpConfig = ipConf;       //store in "database"
+                args.Token.Agent.Data.IpConfig = ipConf;       //store in "database"
 
 
 
