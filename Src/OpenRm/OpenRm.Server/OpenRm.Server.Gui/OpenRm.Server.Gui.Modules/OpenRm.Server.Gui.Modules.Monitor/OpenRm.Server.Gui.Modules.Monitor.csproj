@@ -69,6 +69,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\Controllers\IAgentRibbonRegionController.cs" />
     <Compile Include="Api\Controllers\IAgentSummaryRegionController.cs" />
     <Compile Include="Api\Services\IAgentDataService.cs" />
     <Compile Include="Api\ViewModels\IAgentDetailsViewModel.cs" />
@@ -79,7 +80,11 @@
     <Compile Include="Api\Views\IAgentsListView.cs" />
     <Compile Include="Api\Views\IAgentsRibbonTabView.cs" />
     <Compile Include="Api\Views\IAgentSummaryView.cs" />
+    <Compile Include="Controllers\AgentRibbonRegionController.cs" />
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
+    <Compile Include="Converters\InstanceToBooleanConverter.cs" />
+    <Compile Include="Converters\InvertBoolConverter.cs" />
+    <Compile Include="Converters\StaticConverters.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
     <Compile Include="EventAggregatorMessages\AgentsListUpdated.cs" />
     <Compile Include="MonitorModule.cs" />
@@ -159,7 +164,9 @@
       <Name>OpenRm.Server.Gui.Inf</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Views\Images\AddRemovePrograms_125x125.jpg" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Views\Images\ConnectionManager_48x48.png" />
   </ItemGroup>

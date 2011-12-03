@@ -3,14 +3,12 @@ using System.ComponentModel;
 using System.Net;
 using System.Windows.Input;
 using Microsoft.Practices.Prism.Commands;
-using Microsoft.Practices.Prism.Events;
 using Microsoft.Practices.Unity;
 using OpenRm.Common.Entities;
 using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
 using OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels;
-using OpenRm.Server.Gui.Modules.Monitor.EventAggregatorMessages;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {
@@ -30,6 +28,19 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             InstalledProgramsCommand = new DelegateCommand(ListInstalledPrograms);
         }
 
+        private Agent _currentEntity;
+        public Agent CurrentEntity
+        {
+            get { return _currentEntity; }
+            set
+            {
+                if (_currentEntity != value)
+                {
+                    _currentEntity = value;
+                    NotifyPropertyChanged("CurrentEntity");
+                }
+            }
+        }
         
         public ICommand ConnectCommand { get; private set; }
         public ICommand RefreshAgentsCommand { get; private set; }
@@ -68,7 +79,8 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
             var installedProgramsMessage = new RequestMessage()
                                                {
-                                                   Request = new InstalledProgramsRequest()
+                                                   Request = new InstalledProgramsRequest(),
+                                                   AgentId = CurrentEntity.ID
                                                };
             messageClient.Send(installedProgramsMessage, OnListInstalledProgramsCompleted);
         }
