@@ -27,11 +27,13 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             ConnectCommand = new DelegateCommand(ConnectToServer, CanConnectToServerExecute);
             IsConnectEnabled = true;
             RefreshAgentsCommand = new DelegateCommand(RefreshAgentsList);
+            InstalledProgramsCommand = new DelegateCommand(ListInstalledPrograms);
         }
 
         
         public ICommand ConnectCommand { get; private set; }
         public ICommand RefreshAgentsCommand { get; private set; }
+        public ICommand InstalledProgramsCommand { get; private set; }
 
         private bool _isConnectEnabled;
         public bool IsConnectEnabled
@@ -58,6 +60,22 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         {
             var messageClient = _container.Resolve<IMessageClient>();
             return !messageClient.IsConnected;
+        }
+
+        private void ListInstalledPrograms()
+        {
+            var messageClient = _container.Resolve<IMessageClient>();
+
+            var installedProgramsMessage = new RequestMessage()
+                                               {
+                                                   Request = new InstalledProgramsRequest()
+                                               };
+            messageClient.Send(installedProgramsMessage, OnListInstalledProgramsCompleted);
+        }
+
+        private void OnListInstalledProgramsCompleted(CustomEventArgs args)
+        {
+            
         }
 
         private void OnConnectToServerCompleted(CustomEventArgs args)

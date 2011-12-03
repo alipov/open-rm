@@ -9,7 +9,15 @@ namespace OpenRm.Common.Entities.Network
 {
     public class GeneralSocketClient : TcpBase, IMessageClient
     {
-        private readonly byte[] _sendReceiveBuffer;
+        private SocketAsyncEventArgs readArgs;
+        private SocketAsyncEventArgs writeArgs;
+
+        // buffers for sending/receiving data by TCP layer. 
+        // it has fixed size (the same as in server, but it can be different)
+        private byte[] _sendBuffer;
+        private byte[] _receiveBuffer;
+
+        //private readonly byte[] _sendReceiveBuffer;
         private IPEndPoint _endPoint;
         private GeneralUserToken _userToken;
         private bool _isConnected;
@@ -33,7 +41,8 @@ namespace OpenRm.Common.Entities.Network
             : base (64) // TODO: remove the hardcoded value
         {
             // Initialize buffer for sending/receiving data by TCP layer. 
-            _sendReceiveBuffer = new byte[64];
+            _sendBuffer = new byte[64];
+            _receiveBuffer = new byte[64];
         }
 
         //public GeneralSocketClient(int bufferSize)
@@ -41,7 +50,7 @@ namespace OpenRm.Common.Entities.Network
         //{
         //    // Initialize buffer for sending/receiving data by TCP layer. 
         //    _sendReceiveBuffer = new byte[bufferSize];
-        //}
+        //}`
 
         public void Connect(IPEndPoint endPoint, Action<CustomEventArgs> callback)
         {
@@ -49,25 +58,61 @@ namespace OpenRm.Common.Entities.Network
                 throw new SocketException((int)SocketError.IsConnected);
 
             _endPoint = endPoint;
+
             _socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            var sockArgs = new SocketAsyncEventArgs
-                               {
-                                   RemoteEndPoint = _endPoint,
-                                   //UserToken = new GeneralUserToken(socket),
-                                   //AcceptSocket = socket
-                               };
-            sockArgs.Completed += CommonCallback;
 
-            _userToken = new GeneralUserToken(null, callback);
+            // point Args UserTokens to the same token
+            _userToken = new GeneralUserToken
+                    (_socket, callback);
 
-            _socket.ConnectAsync(sockArgs);
+            // Create two Args objects - one for sending, one for recieving data
+            readArgs = new SocketAsyncEventArgs
+            {
+                RemoteEndPoint = _endPoint,
+                UserToken = _userToken,
+                AcceptSocket = _userToken.Socket
+            };
+            readArgs.Completed += CommonCallback;
+
+            writeArgs = new SocketAsyncEventArgs
+            {
+                RemoteEndPoint = readArgs.RemoteEndPoint,
+                UserToken = _userToken,
+                AcceptSocket = _userToken.Socket
+            };
+            writeArgs.Completed += CommonCallback;
+
+            // Save links to Args objects in the token
+            _userToken.readEventArgs = readArgs;
+            _userToken.writeEventArgs = writeArgs;
+
+            _userToken.writeEventArgs.SetBuffer(_sendBuffer, 0, _sendBuffer.Length);
+            _userToken.readEventArgs.SetBuffer(_receiveBuffer, 0, _receiveBuffer.Length);
+
+
+            //_socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            
+            //var sockArgs = new SocketAsyncEventArgs
+            //                   {
+            //                       RemoteEndPoint = _endPoint,
+            //                       //UserToken = new GeneralUserToken(socket),
+            //                       //AcceptSocket = socket
+            //                   };
+            //sockArgs.Completed += CommonCallback;
+
+            //_userToken = new GeneralUserToken(null, callback);
+
+            _socket.ConnectAsync(writeArgs);
         }
 
         public void Send(Message message, Action<CustomEventArgs> callback)
         {
             if (!_isConnected)
                 throw new SocketException((int)SocketError.NotConnected);
-            
+
+            // do not let sending simultaniously using the same Args object 
+            _userToken.writeSemaphore.WaitOne();
+
             // Create a buffer to send.
             Byte[] sendBuffer = WoxalizerAdapter.SerializeToXml(message);
 
@@ -77,23 +122,26 @@ namespace OpenRm.Common.Entities.Network
             Byte[] prefixToAdd = BitConverter.GetBytes(sendBuffer.Length);
             
             // Prepare arguments for send/receive operation.
-            var socketArgs = new SocketAsyncEventArgs
-                                 {
-                                     RemoteEndPoint = _endPoint,
-                                     //UserToken = _userToken
-                                 };
-            socketArgs.Completed += CommonCallback;
+            //var socketArgs = new SocketAsyncEventArgs
+            //                     {
+            //                         RemoteEndPoint = _endPoint,
+            //                         //UserToken = _userToken
+            //                     };
+            //socketArgs.Completed += CommonCallback;
             //socketArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
 
-            _userToken = new GeneralUserToken(null, callback)
-                             {
-                                 SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length]
-                             };
+            //_userToken = new GeneralUserToken(null, callback)
+            //                 {
+            //                     SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length]
+            //                 };
+
+            _userToken.SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length];
+            _userToken.Callback = callback;
 
             prefixToAdd.CopyTo(_userToken.SendingMsg, 0);
             sendBuffer.CopyTo(_userToken.SendingMsg, MsgPrefixLength);
 
-            StartSend(socketArgs);
+            StartSend(_userToken.writeEventArgs);
         }
 
         public void Disconnect(Action<CustomEventArgs> callback)
@@ -126,176 +174,206 @@ namespace OpenRm.Common.Entities.Network
                 callback.Invoke(new CustomEventArgs(args.SocketError, null));
         }
 
+        protected override void ProcessReceiveFailed(SocketAsyncEventArgs e)
+        {
+            if (_userToken.Callback != null)
+            {
+                _userToken.Callback.Invoke(new CustomEventArgs(SocketError.Fault, null));
+            }
+        }
+
 
         protected override void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
-            throw new NotImplementedException();
+            Message message = WoxalizerAdapter.DeserializeFromXml(_userToken.RecievedMsgData, null);
+            if (_userToken.Callback != null)
+            {
+                _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, message));
+            }
         }
 
-        protected override void StartSend(SocketAsyncEventArgs args)
+        //TODO: check
+        //protected override void StartSend(SocketAsyncEventArgs args)
+        //{
+        //    int bytesToTransfer = Math.Min(_sendReceiveBuffer.Length, _userToken.SendingMsg.Length - _userToken.SendingMsgBytesSent);
+        //    args.SetBuffer(_sendReceiveBuffer, 0, bytesToTransfer);
+        //    Array.Copy(_userToken.SendingMsg, _userToken.SendingMsgBytesSent, args.Buffer, args.Offset, bytesToTransfer);
+
+        //    bool willRaiseEvent = _socket.SendAsync(args);//args.AcceptSocket.SendAsync(args);
+        //    if (!willRaiseEvent)
+        //    {
+        //        ProcessSend(args);
+        //    }
+        //}
+
+        //protected override void ProcessSend(SocketAsyncEventArgs e)
+        //{
+        //    if (e.SocketError == SocketError.Success)
+        //    {
+        //        // receiveBufferSize is the maximum data length in one send
+        //        _userToken.SendingMsgBytesSent += ReceiveBufferSize;
+        //        if (_userToken.SendingMsgBytesSent < _userToken.SendingMsg.Length)
+        //        {
+        //            // Not all message has been sent, so send next part
+        //            Logger.WriteStr(string.Format
+        //                ("{0} of {1} have been sent. Calling additional Send...", 
+        //                  _userToken.SendingMsgBytesSent, _userToken.SendingMsg.Length));
+
+        //            // send the rest of the message
+        //            StartSend(e);
+        //            return;
+        //        }
+
+        //        Logger.WriteStr(" Message has been sent.");
+
+        //        // reset token's buffers and counters before reusing the token
+        //        _userToken.CleanForSend();
+
+        //        // let process another send operation
+        //        _userToken.writeSemaphore.Release();
+
+        //        // reset token's buffers and counters before reusing the token
+        //        //_userToken.Clean();
+
+        //        // read the answer send from the client
+        //        //StartReceive(e);
+
+        //    }
+        //    else
+        //    {
+        //        Logger.WriteStr(" Message has failed to be sent.");
+        //        ////token.Clean();
+        //        //CloseConnection(e);
+        //        if (_userToken.Callback != null)
+        //        {
+        //            _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, null));
+        //        }
+        //    }
+        //}
+
+        protected override void ProcessSendFailure(SocketAsyncEventArgs args)
         {
-            int bytesToTransfer = Math.Min(_sendReceiveBuffer.Length, _userToken.SendingMsg.Length - _userToken.SendingMsgBytesSent);
-            args.SetBuffer(_sendReceiveBuffer, 0, bytesToTransfer);
-            Array.Copy(_userToken.SendingMsg, _userToken.SendingMsgBytesSent, args.Buffer, args.Offset, bytesToTransfer);
-
-            bool willRaiseEvent = _socket.SendAsync(args);//args.AcceptSocket.SendAsync(args);
-            if (!willRaiseEvent)
+            if (_userToken.Callback != null)
             {
-                ProcessSend(args);
+                _userToken.Callback.Invoke(new CustomEventArgs(args.SocketError, null));
             }
         }
 
-        protected override void ProcessSend(SocketAsyncEventArgs e)
-        {
-            if (e.SocketError == SocketError.Success)
-            {
-                // receiveBufferSize is the maximum data length in one send
-                _userToken.SendingMsgBytesSent += ReceiveBufferSize;
-                if (_userToken.SendingMsgBytesSent < _userToken.SendingMsg.Length)
-                {
-                    // Not all message has been sent, so send next part
-                    Logger.WriteStr(string.Format
-                        ("{0} of {1} have been sent. Calling additional Send...", 
-                          _userToken.SendingMsgBytesSent, _userToken.SendingMsg.Length));
-
-                    // send the rest of the message
-                    StartSend(e);
-                    return;
-                }
-
-                Logger.WriteStr(" Message has been sent.");
-
-                // reset token's buffers and counters before reusing the token
-                //_userToken.Clean();
-
-                // read the answer send from the client
-                StartReceive(e);
-
-            }
-            else
-            {
-                Logger.WriteStr(" Message has failed to be sent.");
-                ////token.Clean();
-                //CloseConnection(e);
-                if (_userToken.Callback != null)
-                {
-                    _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, null));
-                }
-            }
-        }
 
         // Invoked when an asycnhronous receive operation completes.  
         // If the remote host closed the connection, then the socket is closed.
-        protected override void ProcessReceive(SocketAsyncEventArgs e)
-        {
-            // Check if the remote host closed the connection
-            // BytesTransferred is the number of bytes transferred in the socket operation.
-            if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
-            {
-                // got message. need to handle it
-                Logger.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
+        //protected override void ProcessReceive(SocketAsyncEventArgs e)
+        //{
+        //    ProcessReceive(e, _userToken);
 
-                // now we need to check if we have complete message in our recieved data.
-                // if yes - process it
-                // but few messages can be combined into one send/recieve operation,
-                //  or we can get only half message or just part of Prefix 
-                //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
+        //    //// Check if the remote host closed the connection
+        //    //// BytesTransferred is the number of bytes transferred in the socket operation.
+        //    //if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+        //    //{
+        //    //    // got message. need to handle it
+        //    //    Logger.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
 
-                int i = 0;      // go through buffer of currently received data 
-                while (i < e.BytesTransferred)
-                {
-                    // Determine how many bytes we want to transfer to the buffer and transfer them 
-                    int bytesAvailable = e.BytesTransferred - i;
-                    if (_userToken.RecievedMsgData == null)
-                    {
-                        // token.msgData is empty so we a dealing with Prefix.
-                        // Copy the incoming bytes into token's prefix's buffer
-                        // All incoming data is in e.Buffer, at e.Offset position
-                        int bytesRequested = MsgPrefixLength - _userToken.RecievedPrefixPartLength;
-                        int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, _userToken.PrefixData, _userToken.RecievedPrefixPartLength, bytesTransferred);
-                        i += bytesTransferred;
+        //    //    // now we need to check if we have complete message in our recieved data.
+        //    //    // if yes - process it
+        //    //    // but few messages can be combined into one send/recieve operation,
+        //    //    //  or we can get only half message or just part of Prefix 
+        //    //    //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
 
-                        _userToken.RecievedPrefixPartLength += bytesTransferred;
+        //    //    int i = 0;      // go through buffer of currently received data 
+        //    //    while (i < e.BytesTransferred)
+        //    //    {
+        //    //        // Determine how many bytes we want to transfer to the buffer and transfer them 
+        //    //        int bytesAvailable = e.BytesTransferred - i;
+        //    //        if (_userToken.RecievedMsgData == null)
+        //    //        {
+        //    //            // token.msgData is empty so we a dealing with Prefix.
+        //    //            // Copy the incoming bytes into token's prefix's buffer
+        //    //            // All incoming data is in e.Buffer, at e.Offset position
+        //    //            int bytesRequested = MsgPrefixLength - _userToken.RecievedPrefixPartLength;
+        //    //            int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
+        //    //            Array.Copy(e.Buffer, e.Offset + i, _userToken.PrefixData, _userToken.RecievedPrefixPartLength, bytesTransferred);
+        //    //            i += bytesTransferred;
 
-                        if (_userToken.RecievedPrefixPartLength != MsgPrefixLength)
-                        {
-                            // We haven't gotten all the prefix buffer yet: call Receive again.
-                            Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
-                            StartReceive(e);
-                            return;
-                        }
+        //    //            _userToken.RecievedPrefixPartLength += bytesTransferred;
 
-                        // We've gotten the prefix buffer 
-                        int length = BitConverter.ToInt32(_userToken.PrefixData, 0);
-                        Logger.WriteStr(" Got prefix representing value: " + length);
+        //    //            if (_userToken.RecievedPrefixPartLength != MsgPrefixLength)
+        //    //            {
+        //    //                // We haven't gotten all the prefix buffer yet: call Receive again.
+        //    //                Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
+        //    //                StartReceive(e);
+        //    //                return;
+        //    //            }
 
-                        if (length < 0)
-                            throw new ProtocolViolationException("Invalid message prefix");
+        //    //            // We've gotten the prefix buffer 
+        //    //            int length = BitConverter.ToInt32(_userToken.PrefixData, 0);
+        //    //            Logger.WriteStr(" Got prefix representing value: " + length);
 
-                        // Save prefix value into token
-                        _userToken.MessageLength = length;
+        //    //            if (length < 0)
+        //    //                throw new ProtocolViolationException("Invalid message prefix");
 
-                        // Create the data buffer and start reading into it 
-                        _userToken.RecievedMsgData = new byte[length];
+        //    //            // Save prefix value into token
+        //    //            _userToken.MessageLength = length;
 
-                        // zero prefix counter
-                        _userToken.RecievedPrefixPartLength = 0;
-                    }
-                    else
-                    {
-                        // We're reading into the data buffer  
-                        int bytesRequested = _userToken.MessageLength - _userToken.RecievedMsgPartLength;
-                        int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-                        Array.Copy(e.Buffer, e.Offset + i, _userToken.RecievedMsgData, _userToken.RecievedMsgPartLength, bytesTransferred);
-                        Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(_userToken.RecievedMsgData));
-                        i += bytesTransferred;
+        //    //            // Create the data buffer and start reading into it 
+        //    //            _userToken.RecievedMsgData = new byte[length];
 
-                        _userToken.RecievedMsgPartLength += bytesTransferred;
-                        if (_userToken.RecievedMsgPartLength != _userToken.RecievedMsgData.Length)
-                        {
-                            // We haven't gotten all the data buffer yet: call Receive again to get more data
-                            StartReceive(e);
-                            return;
-                        }
+        //    //            // zero prefix counter
+        //    //            _userToken.RecievedPrefixPartLength = 0;
+        //    //        }
+        //    //        else
+        //    //        {
+        //    //            // We're reading into the data buffer  
+        //    //            int bytesRequested = _userToken.MessageLength - _userToken.RecievedMsgPartLength;
+        //    //            int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
+        //    //            Array.Copy(e.Buffer, e.Offset + i, _userToken.RecievedMsgData, _userToken.RecievedMsgPartLength, bytesTransferred);
+        //    //            Logger.WriteStr("message till now: " + Encoding.ASCII.GetString(_userToken.RecievedMsgData));
+        //    //            i += bytesTransferred;
 
-                        // we've gotten an entire packet
-                        Logger.WriteStr(string.Format("Got complete message from {0}: {1}", 
-                            _socket.RemoteEndPoint, Encoding.ASCII.GetString(_userToken.RecievedMsgData)));
+        //    //            _userToken.RecievedMsgPartLength += bytesTransferred;
+        //    //            if (_userToken.RecievedMsgPartLength != _userToken.RecievedMsgData.Length)
+        //    //            {
+        //    //                // We haven't gotten all the data buffer yet: call Receive again to get more data
+        //    //                StartReceive(e);
+        //    //                return;
+        //    //            }
 
-                        //ProcessReceivedMessage(e);
-                        Message message = WoxalizerAdapter.DeserializeFromXml(_userToken.RecievedMsgData, null);
-                        if (_userToken.Callback != null)
-                        {
-                            _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, message));
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Logger.WriteStr(string.Format
-                    ("ERROR: Failed to get data on socket {0} due to exception:\n{1}\nClosing this connection....", 
-                                    _socket.LocalEndPoint, new SocketException((int)e.SocketError)));
-                //CloseConnection(e);
-                if (_userToken.Callback != null)
-                {
-                    _userToken.Callback.Invoke(new CustomEventArgs(SocketError.Fault, null));
-                }
-            }
-        }
+        //    //            // we've gotten an entire packet
+        //    //            Logger.WriteStr(string.Format("Got complete message from {0}: {1}", 
+        //    //                _socket.RemoteEndPoint, Encoding.ASCII.GetString(_userToken.RecievedMsgData)));
 
-        protected new void StartReceive(SocketAsyncEventArgs readEventArgs)
-        {
-            readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
-            bool willRaiseEvent = _socket.ReceiveAsync(readEventArgs);
-            if (!willRaiseEvent)
-            {
-                // need to be proceeded synchroniously
-                ProcessReceive(readEventArgs);
-            }
-            Logger.WriteStr("StartReceive has been run");
-        }
+        //    //            //ProcessReceivedMessage(e);
+        //    //            Message message = WoxalizerAdapter.DeserializeFromXml(_userToken.RecievedMsgData, null);
+        //    //            if (_userToken.Callback != null)
+        //    //            {
+        //    //                _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, message));
+        //    //            }
+        //    //        }
+        //    //    }
+        //    //}
+        //    //else
+        //    //{
+        //    //    Logger.WriteStr(string.Format
+        //    //        ("ERROR: Failed to get data on socket {0} due to exception:\n{1}\nClosing this connection....", 
+        //    //                        _socket.LocalEndPoint, new SocketException((int)e.SocketError)));
+        //    //    //CloseConnection(e);
+        //    //    if (_userToken.Callback != null)
+        //    //    {
+        //    //        _userToken.Callback.Invoke(new CustomEventArgs(SocketError.Fault, null));
+        //    //    }
+        //    //}
+        //}
+
+        //protected new void StartReceive(SocketAsyncEventArgs readEventArgs)
+        //{
+        //    readEventArgs.SetBuffer(readEventArgs.Offset, ReceiveBufferSize);
+        //    bool willRaiseEvent = _socket.ReceiveAsync(readEventArgs);
+        //    if (!willRaiseEvent)
+        //    {
+        //        // need to be proceeded synchroniously
+        //        ProcessReceive(readEventArgs);
+        //    }
+        //    Logger.WriteStr("StartReceive has been run");
+        //}
 
         private void CommonCallback(object sender, SocketAsyncEventArgs args)
         {
@@ -332,7 +410,17 @@ namespace OpenRm.Common.Entities.Network
                     _retryIntervalCurrent = RetryIntervalInitial;
 
                     if (_userToken.Callback != null)
-                        _userToken.Callback.Invoke(new CustomEventArgs(args.SocketError, null));
+                    {
+                        var eventArgs = new CustomEventArgs(args.SocketError, null)
+                                                        {
+                                                            LocalEndPoint = (IPEndPoint)_socket.LocalEndPoint
+                                                        };
+                        _userToken.Callback.Invoke(eventArgs);
+                    }
+
+                    //Start waiting for incoming data
+                    WaitForReceiveMessage(_userToken.readEventArgs);
+
                     break;
                 default:
                     var ex = (int)args.SocketError;

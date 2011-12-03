@@ -11,7 +11,7 @@ namespace OpenRm.Common.Entities.Network.Messages
             OsInfoResponse os = new OsInfoResponse();
 
             //retrieve all data in one call because WMI call usually takes some time...
-            string[] properties = new string[] { "Caption", "Version", "OSArchitecture", "TotalVisibleMemorySize", "FreePhysicalMemory" };
+            string[] properties = new string[] { "Caption", "Version", "OSArchitecture", "TotalVisibleMemorySize", "FreePhysicalMemory", "SystemDrive" };
             Dictionary<string, string> values = WmiQuery.GetWMIdata("Win32_OperatingSystem", properties);
             os.OsName = values["Caption"];
             os.OsVersion = values["Version"];

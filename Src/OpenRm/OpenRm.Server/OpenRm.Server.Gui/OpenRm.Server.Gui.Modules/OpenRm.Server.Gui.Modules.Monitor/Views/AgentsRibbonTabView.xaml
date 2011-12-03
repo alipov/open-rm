@@ -14,6 +14,20 @@
                              Command="{Binding RefreshAgentsCommand}"/>
     </ribbon:RibbonGroup>
     <ribbon:RibbonGroup Header="Commands">
-
+        <ribbon:RibbonButton LargeImageSource="Images\ConnectionManager_48x48.png"  Label="Installed Programs"
+                             Command="{Binding ConnectCommand}" 
+                             IsEnabled="{Binding IsConnectEnabled, Mode=OneWay}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Lock Session" 
+                             Command="{Binding RefreshAgentsCommand}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Performance Monitor" 
+                             Command="{Binding RefreshAgentsCommand}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Remote Control" 
+                             Command="{Binding RefreshAgentsCommand}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Restart" 
+                             Command="{Binding RefreshAgentsCommand}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Shut Down" 
+                             Command="{Binding RefreshAgentsCommand}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Wake on Lan" 
+                             Command="{Binding RefreshAgentsCommand}"/>
     </ribbon:RibbonGroup>
 </ribbon:RibbonTab >

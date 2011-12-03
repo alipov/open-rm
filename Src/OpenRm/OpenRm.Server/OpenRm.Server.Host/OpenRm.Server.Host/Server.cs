@@ -146,7 +146,8 @@ namespace OpenRm.Server.Host
                 }
 
                 // Get IP and OS inventory
-                // ( we do not store previous info of reconnected clients because it can have been changed sinse previous sesion )
+                // ( we do not store previous info of reconnected clients because it can have been changed 
+                // since previous sesion )
                 var msg = new RequestMessage { Request = new IpConfigRequest() };
                 _server.Send(msg, args.Token);
 
