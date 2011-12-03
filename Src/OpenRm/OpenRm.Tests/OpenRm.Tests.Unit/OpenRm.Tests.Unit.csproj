@@ -23,7 +23,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\Bin\Test\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -59,7 +59,7 @@
     <Compile Include="ServerTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenRm.Common\OpenRm.Common.Entities\OpenRm.Common.Entities.csproj">
+    <ProjectReference Include="..\..\OpenRm.Common\OpenRm.Common.Entities\OpenRm.Common.Entities.csproj">
       <Project>{37332D34-F657-4B35-89E1-27717296E7FE}</Project>
       <Name>OpenRm.Common.Entities</Name>
       <Private>False</Private>
