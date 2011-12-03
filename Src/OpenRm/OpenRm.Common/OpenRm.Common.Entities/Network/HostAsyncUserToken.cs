@@ -30,7 +30,8 @@ namespace OpenRm.Common.Entities.Network
         }
 
         //public IdentificationDataResponse ClientData { get; set; }
-        public ClientData AgentInventory { get; set; }
+        public Agent Agent { get; set; }
+        //public ClientData AgentInventory { get; set; }
         public Action<HostCustomEventArgs> Callback { get; set; }
     }
 }
