@@ -21,7 +21,7 @@ namespace OpenRm.Common.Entities.Network
         protected virtual void WaitForReceiveMessage(SocketAsyncEventArgs readEventArgs)
         {
             var token = (AsyncUserTokenBase)readEventArgs.UserToken;
-            token.readSemaphore.WaitOne();
+            //token.readSemaphore.WaitOne();
 
             Logger.WriteStr(" Waiting for new data to arrive...");
             StartReceive(readEventArgs);
@@ -46,7 +46,7 @@ namespace OpenRm.Common.Entities.Network
             var token = (AsyncUserTokenBase)args.UserToken;
 
             // Check if the remote host closed the connection
-            //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
+            //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred/received in the socket operation.)
             if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
             {
                 // got message. need to handle it
@@ -129,15 +129,32 @@ namespace OpenRm.Common.Entities.Network
 
                         ProcessReceivedMessage(args);
 
-                        break;  //break while
+                        //Check if something left in the buffer: maybe there is a start of next message
+                        int bytesLeft = bytesAvailable - bytesTransferred;
+                        if (bytesLeft > 0)
+                        {
+                            Logger.WriteStr( bytesLeft + " bytes left in int the byffer. It should be a part of next message. (DEBUG: i=" + i + ")");
+
+                            // Clean token's recieve buffer for next message that left in OUR buffer
+                            token.CleanForRecieve();
+
+                            // continue in "while" loop
+                        }
+                        else
+                        {
+                            //TODO: remove?
+                            break;  //break while
+                        }
+
+                        
                     }
                 }   //end while
 
                 // Clean token's recieve buffer
                 token.CleanForRecieve();
 
-                // we've proceeded a whole message so release the lock
-                token.readSemaphore.Release();
+                //// we've proceeded a whole message so release the lock
+                //token.readSemaphore.Release();
 
                 // start waiting for next message
                 WaitForReceiveMessage(args);

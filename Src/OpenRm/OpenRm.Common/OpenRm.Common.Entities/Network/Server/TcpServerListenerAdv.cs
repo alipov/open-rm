@@ -125,7 +125,7 @@ namespace OpenRm.Common.Entities.Network.Server
                 return;
             }
 
-            Logger.WriteStr("Client connection accepted. Processing Accept from client " + args.AcceptSocket.RemoteEndPoint.ToString());
+            Logger.WriteStr("Client connection accepted. Processing Accept from client " + args.AcceptSocket.RemoteEndPoint);
 
             // Get Arg from the Pool, for recieving
             SocketAsyncEventArgs readEventArgs = _argsReadWritePool.Pop();

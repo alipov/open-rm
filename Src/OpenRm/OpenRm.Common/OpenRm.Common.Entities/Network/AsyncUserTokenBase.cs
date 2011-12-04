@@ -25,7 +25,7 @@ namespace OpenRm.Common.Entities.Network
         public SocketAsyncEventArgs writeEventArgs { get; set; }
         public SocketAsyncEventArgs readEventArgs { get; set; }
 
-        public Semaphore readSemaphore;
+        //TODO:remove: public Semaphore readSemaphore;
         public Semaphore writeSemaphore;
 
         //protected AsyncUserTokenBase() : this(null, null) { }

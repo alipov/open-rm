@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using OpenRm.Common.Entities;
 using System.Configuration;
+using OpenRm.Common.Entities.Enums;
 using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
 using OpenRm.Common.Entities.Network.Server;
@@ -84,7 +85,7 @@ namespace OpenRm.Server.Host
                             Status = _agents[i].Agent.Status
                         };
 
-                    agentsResponse.Agents.Add(agent.Value.Agent);
+                    agentsResponse.Agents.Add(thisAgent);
                 }
 
                 var responseMessage = new ResponseMessage()
@@ -108,7 +109,7 @@ namespace OpenRm.Server.Host
                     var agentToken = _agents[i];
                     if (NetworkHelper.IsOnSameNetwork(agentToken.Agent.Data.IpConfig.IpAddress,
                             agentToken.Agent.Data.IpConfig.netMask, targetIp, targetMask)
-                        && agentToken.Agent.Status == EAgentStatus.Online)
+                        && agentToken.Agent.Status == (int)EAgentStatus.Online)
                     {
                         // send original message with MAC address to the found agent
                         _server.Send(message, agentToken);
@@ -203,19 +204,20 @@ namespace OpenRm.Server.Host
                 _server.Send(msg, args.Token);
 
 
-                        ////TODO: for testing only:
-                        //msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                        //var exec = new RunProcessRequest
-                        //{
-                        //    RunId = HostAsyncUserToken.RunId,
-                        //    Cmd = "notepad.exe",
-                        //    Args = "",
-                        //    WorkDir = "c:\\",
-                        //    TimeOut = 180000,        //ms
-                        //    Hidden = true
-                        //};
-                        //msg.Request = exec;
-                        //_server.Send(msg, args.Token);
+                        //TODO: for testing only:
+                        Thread.Sleep(10000);
+                        msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
+                        var exec = new RunProcessRequest
+                        {
+                            RunId = HostAsyncUserToken.RunId,
+                            Cmd = "notepad.exe",
+                            Args = "",
+                            WorkDir = "c:\\",
+                            TimeOut = 30,        //ms
+                            Hidden = false
+                        };
+                        msg.Request = exec;
+                        _server.Send(msg, args.Token);
 
             }
             else if (message.Response is IpConfigResponse)
