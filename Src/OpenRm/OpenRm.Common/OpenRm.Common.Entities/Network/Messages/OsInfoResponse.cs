@@ -7,6 +7,6 @@ namespace OpenRm.Common.Entities.Network.Messages
         public string OsArchitecture;
         public int RamSize;
         public string SystemDrive;
-        public int SystemDriveSize;
+        public int SystemDriveSize;     //in Gb
     }
 }

@@ -12,18 +12,23 @@ namespace OpenRm.Server.Host
 {
     internal class Server
     {
+        private const int ReceiveBufferSize = 64;       //recieve buffer size for tcp connection
+
         // these variables will be read from app.config
         private int _listenPort;
         private int _maxNumConnections;     //maximum number of connections
         private string _logFilenamePattern;
 
-        private HostAsyncUserToken _console;
+        // local "database": contains all known agents (conneted and disconnected / online and offline)
+        // holds only static client's inventory
+        //  notes: we do NOT delete any agents from this "database"! (only add or update)
         private Dictionary<int, HostAsyncUserToken> _agents;
-        private int _agentsCount;
+        private int _agentsCount;   //last index
+
+        private HostAsyncUserToken _console;    //console's token (null if not connected)
         private IMessageServer _server;
 
-        private const int ReceiveBufferSize = 64;       //recieve buffer size for tcp connection
-        
+
         public void Run()
         {
             if (ReadConfigFile())
@@ -64,18 +69,20 @@ namespace OpenRm.Server.Host
 
             if (message.Request is ListAgentsRequest)
             {
+                // send all agents list to console (icluding static agent info: name, ip, OS, etc...)
                 var agentsResponse = new ListAgentsResponse()
                 {
                     Agents = new List<Agent>()
                 };
 
-                foreach (var agent in _agents)
+                for (var i = 0; i < _agents.Count; i++)
                 {
-                    //var thisAgent = new Agent()
-                    //    {
-                    //        ID = agent.Key,
-                    //        Name = agent.Value.Agent.Data.Idata.deviceName
-                    //    };
+                    var thisAgent = new Agent()
+                        {
+                            ID = i,
+                            Name = _agents[i].Agent.Data.Idata.deviceName,
+                            Status = _agents[i].Agent.Status
+                        };
 
                     agentsResponse.Agents.Add(agent.Value.Agent);
                 }
@@ -85,64 +92,76 @@ namespace OpenRm.Server.Host
                     Response = agentsResponse
                 };
                 _server.Send(responseMessage, args.Token);
+
             }
             else if (message.Request is WakeOnLanRequest)
             {
-                string targetIp = ((WakeOnLanRequest) message.Request).Ip;
-                string targetMask = ((WakeOnLanRequest) message.Request).NetMask;
+                Agent targetAgent = _agents[message.agentId].Agent;
+                string targetIp = targetAgent.Data.IpConfig.IpAddress;
+                string targetMask = targetAgent.Data.IpConfig.netMask;
 
                 bool _notFound = true;
 
-                // TODO: do we need lock _agents object in all operations we use it?
-                //look for client on the same subnet with target
+                //look for client on the same subnet with target, which has Online status
                 for (var i = 0; i < _agents.Count; i++)
                 {
-                    var agent = _agents[i];
-                    
-                    //foreach (var agent in _agents)
-                    //{
-                        if (NetworkHelper.IsOnSameNetwork
-                            (agent.Agent.Data.IpConfig.IpAddress,
-                             agent.Agent.Data.IpConfig.netMask,
-                             targetIp, targetMask))
-                        {
-                            // clear not needed info
-                            ((WakeOnLanRequest)message.Request).Ip = "";
-                            ((WakeOnLanRequest)message.Request).NetMask = "";
-                            // send to client
-                            _server.Send(message, agent);
-                            _notFound = false;
-                            // exit "foreach" loop
-                            break;
-                        }
-                    //}
-
+                    var agentToken = _agents[i];
+                    if (NetworkHelper.IsOnSameNetwork(agentToken.Agent.Data.IpConfig.IpAddress,
+                            agentToken.Agent.Data.IpConfig.netMask, targetIp, targetMask)
+                        && agentToken.Agent.Status == EAgentStatus.Online)
+                    {
+                        // send original message with MAC address to the found agent
+                        _server.Send(message, agentToken);
+                        _notFound = false;
+                        // exit loop
+                        break;
+                    }
                 }
-
-                if (_notFound)
+                if (_notFound)  // there is no agent in the same subnet with target agent 
                 {
                     // send unsuccessfull message back to console
                     var response = new WakeOnLanResponse(false, ((WakeOnLanRequest) message.Request).RunId);
-                    var responseMessage = new ResponseMessage() { Response = response };
+                    var responseMessage = new ResponseMessage()
+                                              {
+                                                  Response = response,
+                                                  agentId = message.agentId
+                                              };
                     _server.Send(responseMessage, args.Token);
                 }
+
             }
-            else if (message.Request is InstalledProgramsRequest)
+            else if (message.Request is BulkStaticRequest)
             {
-                var agent = _agents.Values.SingleOrDefault(a => a.Agent.ID == message.AgentId);
-                if (agent != null)
+                //retrieve from local "database": it will speed up response. 
+                //(this data is not changes at least untill agent reconnects)
+                var agentToken = _agents[message.agentId];
+                if (agentToken.Agent.Data.IpConfig != null && agentToken.Agent.Data.OS != null)
                 {
-                    _server.Send(message, _console);
-                    _server.Send(message, agent);
+                    var response = new BulkStaticResponse()
+                                       {
+                                           IpConf = agentToken.Agent.Data.IpConfig,
+                                           OsInfo = agentToken.Agent.Data.OS
+                                       };
+                    var responseMessage = new ResponseMessage()
+                                              {
+                                                  Response = response,
+                                                  agentId = message.agentId
+                                              };
+                    _server.Send(responseMessage, args.Token);
+                }
+                else
+                {
+                    // nas no reqired info, so send request to client
+                    _server.Send(message, agentToken);
                 }
             }
+            else
+            {
+                //match agent by agentId and redirect received Message Request to it
+                var agentToken = _agents[message.agentId];
+                _server.Send(message, agentToken);
 
-
-            // TODO: implement all ...
-
-            //...
-
-            //...
+            }
 
 
         }
@@ -174,15 +193,14 @@ namespace OpenRm.Server.Host
                     args.Token.Agent.Name = args.Token.Agent.Data.Idata.deviceName;
                 }
 
-                // Get IP and OS inventory
-                // ( we do not store previous info of reconnected clients because it can have been changed 
-                // since previous sesion )
+                // Request agent's IP and OS info:
+                // ( we have to update info of reconnected clients because it can have been changed 
+                //  since previous sesion )
                 var msg = new RequestMessage { Request = new IpConfigRequest() };
                 _server.Send(msg, args.Token);
 
-                //TODO: throwing exception in agent side
-                //msg = new RequestMessage { Request = new OsInfoRequest() };
-                //_server.Send(msg, args.Token);
+                msg = new RequestMessage { Request = new OsInfoRequest() };
+                _server.Send(msg, args.Token);
 
 
                         ////TODO: for testing only:
@@ -203,8 +221,13 @@ namespace OpenRm.Server.Host
             else if (message.Response is IpConfigResponse)
             {
                 var ipConf = (IpConfigResponse)message.Response;
-                args.Token.Agent.Data.IpConfig = ipConf;       //store in "database"
+                args.Token.Agent.Data.IpConfig = ipConf;       //store in local "database" only (do not send directly to Console)
 
+            }
+            else if (message.Response is OsInfoResponse)
+            {
+                var osInfo = (OsInfoResponse)message.Response;
+                args.Token.Agent.Data.OS = osInfo;       //store in local "database" only (do not send directly to Console)
 
 
 
@@ -223,52 +246,62 @@ namespace OpenRm.Server.Host
                 //msg.Request = exec;
                 //_server.Send(msg, args.Token);
             }
-            else if (message.Response is RunProcessResponse)
+            else
             {
-                var status = (RunProcessResponse)message.Response;
-                if (status.ExitCode == 0)
+                // redirect directly to Console
+                if (_console != null)
                 {
-                    Logger.WriteStr("Remote successfully executed");
+                    _server.Send(message, _console);
                 }
-                else if (status.ExitCode > 0)
-                {
-                    Logger.WriteStr("Remote program executed with exit code: " + status.ExitCode +
-                                    "and error message: \"" + status.ErrorMessage + "\"");
-                }
-                else
-                {
-                    throw new ArgumentException("Invalid exit code of remote execution (" + status.ExitCode + ")");
-                }
+            }
 
 
-                //TODO: for testing only:
+
+
+            //TODO:  Move to GUI:
+            //else if (message.Response is RunProcessResponse)
+            //{
+            //    var status = (RunProcessResponse)message.Response;
+            //        
+            //        if (status.ExitCode == 0)
+            //        {
+            //            Logger.WriteStr("Remote successfully executed");
+            //        }
+            //        else if (status.ExitCode > 0)
+            //        {
+            //            Logger.WriteStr("Remote program executed with exit code: " + status.ExitCode +
+            //                            "and error message: \"" + status.ErrorMessage + "\"");
+            //        }
+            //        else
+            //        {
+            //            throw new ArgumentException("Invalid exit code of remote execution (" + status.ExitCode + ") / Remote process has not been executed");
+            //        }
+            //}
+
+                ////TODO: for testing only:
                 //var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
                 //_server.Send(msg, args.Token);
 
-            }
-            else if (message.Response is InstalledProgramsResponse)
-            {
-                _server.Send(message, _console);
-                //var progsList = (InstalledProgramsResponse)message.Response;
-                //foreach (string s in progsList.Progs)
-                //{
-                //    Console.WriteLine(s);
-                //}
-
-
-
-                //}
-                //else if (message.Response is )
-                //{
-                //............................
-                //
-                //...
-            }
-            else
-            {
-                Logger.WriteStr(string.Format("WARNING: Recieved unkown response from {0}!", 
-                                                                args.Token.Socket.RemoteEndPoint));
-            }
+            //else if (message.Response is InstalledProgramsResponse)
+            //{
+            //    var progsList = (InstalledProgramsResponse)message.Response;
+            //    foreach (string s in progsList.Progs)
+            //    {
+            //        Console.WriteLine(s);
+            //    }
+            //
+            //    //}
+            //    //else if (message.Response is )
+            //    //{
+            //    //............................
+            //    //
+            //    //...
+            //}
+            //else
+            //{
+            //    Logger.WriteStr(string.Format("WARNING: Recieved unkown response from {0}!", 
+            //                                                    args.Token.Socket.RemoteEndPoint));
+            //}
 
         }
 

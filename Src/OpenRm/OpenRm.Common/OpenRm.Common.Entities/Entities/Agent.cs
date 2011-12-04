@@ -9,5 +9,11 @@ namespace OpenRm.Common.Entities
         public int Status { get; set; }
 
         public ClientData Data { get; set; }
+
+        public Agent()
+        {
+            //TODO: maybe initialize all variables?
+            Data = new ClientData();
+        }
     }
 }
