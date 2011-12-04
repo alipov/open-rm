@@ -20,7 +20,8 @@ namespace OpenRm.Common.Entities.Network
 
         protected virtual void WaitForReceiveMessage(SocketAsyncEventArgs readEventArgs)
         {
-            var token = (AsyncUserTokenBase)readEventArgs.UserToken;
+            //TODO: remove these lines
+            //var token = (AsyncUserTokenBase)readEventArgs.UserToken;
             //token.readSemaphore.WaitOne();
 
             Logger.WriteStr(" Waiting for new data to arrive...");
