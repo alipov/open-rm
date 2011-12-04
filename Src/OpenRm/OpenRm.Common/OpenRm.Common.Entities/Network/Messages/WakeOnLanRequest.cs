@@ -9,15 +9,12 @@ namespace OpenRm.Common.Entities.Network.Messages
     {
         public string Mac;
         public int RunId;
-        public string Ip;
-        public string NetMask;
+
 
         public WakeOnLanRequest(){}
-        public WakeOnLanRequest(string macAddress, string ip, string netMask, int runId)
+        public WakeOnLanRequest(string macAddress, int runId)
         {
             Mac = macAddress;
-            Ip = ip;
-            NetMask = netMask;
             RunId = runId;
         }
 

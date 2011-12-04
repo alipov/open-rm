@@ -17,7 +17,7 @@ namespace OpenRm.Common.Entities
         {
             string[] properties = new string[] { property };     // needed only for providing to another function
 
-            Dictionary<string, string> values = GetWMIdata(key, properties);
+            Dictionary<string, string> values = GetWMIdata(key, properties, specificElementName, specificElementValue);
 
             return values[property];
         }
@@ -37,7 +37,7 @@ namespace OpenRm.Common.Entities
                 var searcher = new ManagementObjectSearcher("select * from " + key);
                 foreach (ManagementObject element in searcher.Get())
                 {
-                    if (specificElementName == null || element[specificElementName].ToString() == specificElementValue)
+                    if (specificElementName == null || specificElementValue.Equals(element[specificElementName].ToString()) )
                     {
                         foreach (string property in properties)
                         {

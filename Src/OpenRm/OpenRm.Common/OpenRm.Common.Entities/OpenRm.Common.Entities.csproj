@@ -63,12 +63,14 @@
     <Compile Include="Network\GeneralUserToken.cs" />
     <Compile Include="Network\HostAsyncUserToken.cs" />
     <Compile Include="Network\IMessageClient.cs" />
+    <Compile Include="Network\Messages\BulkStaticRequest.cs" />
     <Compile Include="Network\Messages\RemoteControlResponse.cs" />
     <Compile Include="Network\Messages\RemoveControlRequest.cs" />
     <Compile Include="Network\Messages\RestartReponse.cs" />
     <Compile Include="Network\Messages\RestartRequest.cs" />
     <Compile Include="Network\Messages\ShutdownReponse.cs" />
     <Compile Include="Network\Messages\ShutdownRequest.cs" />
+    <Compile Include="Network\Messages\BulkStaticResponse.cs" />
     <Compile Include="Network\Messages\TraceRouteResponse.cs" />
     <Compile Include="Network\Messages\PingResponse.cs" />
     <Compile Include="Network\Messages\IdentificationDataRequest.cs" />
