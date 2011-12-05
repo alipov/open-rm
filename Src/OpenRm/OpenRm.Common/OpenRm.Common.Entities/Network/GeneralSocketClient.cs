@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using OpenRm.Common.Entities.Network.Messages;
 
@@ -105,43 +104,61 @@ namespace OpenRm.Common.Entities.Network
             _socket.ConnectAsync(writeArgs);
         }
 
+
+        public void StartKeepAlives()
+        {
+            // Start timer that send keep-alive messages
+            _userToken.KeepAliveTimer = new KeepAliveTimer(_userToken);
+            _userToken.KeepAliveTimer.Elapsed += SendKeepAlive;
+        }
+
+
         public void Send(Message message, Action<CustomEventArgs> callback)
         {
             if (!_isConnected)
                 throw new SocketException((int)SocketError.NotConnected);
 
-            // do not let sending simultaniously using the same Args object 
-            _userToken.writeSemaphore.WaitOne();
-
-            // Create a buffer to send.
-            Byte[] sendBuffer = WoxalizerAdapter.SerializeToXml(message);
-
-            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(sendBuffer));
-
-            // prepare data to send: add prefix that holds length of message
-            Byte[] prefixToAdd = BitConverter.GetBytes(sendBuffer.Length);
-            
-            // Prepare arguments for send/receive operation.
-            //var socketArgs = new SocketAsyncEventArgs
-            //                     {
-            //                         RemoteEndPoint = _endPoint,
-            //                         //UserToken = _userToken
-            //                     };
-            //socketArgs.Completed += CommonCallback;
-            //socketArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
-
-            //_userToken = new GeneralUserToken(null, callback)
-            //                 {
-            //                     SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length]
-            //                 };
-
-            _userToken.SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length];
             _userToken.Callback = callback;
 
-            prefixToAdd.CopyTo(_userToken.SendingMsg, 0);
-            sendBuffer.CopyTo(_userToken.SendingMsg, MsgPrefixLength);
+            var messageToSend = WoxalizerAdapter.SerializeToXml(message);
 
-            StartSend(_userToken.writeEventArgs);
+            SendMessage(_userToken, messageToSend);
+
+            //// stop keep-alive messages 
+            //_userToken.KeepAliveTimer.Stop();
+
+            //// do not let sending simultaniously using the same Args object 
+            //_userToken.writeSemaphore.WaitOne();
+
+            //// Create a buffer to send.
+            //Byte[] sendBuffer = WoxalizerAdapter.SerializeToXml(message);
+
+            //Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(sendBuffer));
+
+            //// prepare data to send: add prefix that holds length of message
+            //Byte[] prefixToAdd = BitConverter.GetBytes(sendBuffer.Length);
+            
+            //// Prepare arguments for send/receive operation.
+            ////var socketArgs = new SocketAsyncEventArgs
+            ////                     {
+            ////                         RemoteEndPoint = _endPoint,
+            ////                         //UserToken = _userToken
+            ////                     };
+            ////socketArgs.Completed += CommonCallback;
+            ////socketArgs.SetBuffer(sendBuffer, 0, sendBuffer.Length);
+
+            ////_userToken = new GeneralUserToken(null, callback)
+            ////                 {
+            ////                     SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length]
+            ////                 };
+
+            //_userToken.SendingMsg = new Byte[MsgPrefixLength + sendBuffer.Length];
+            
+
+            //prefixToAdd.CopyTo(_userToken.SendingMsg, 0);
+            //sendBuffer.CopyTo(_userToken.SendingMsg, MsgPrefixLength);
+
+            //StartSend(_userToken.writeEventArgs);
         }
 
         public void Disconnect(Action<CustomEventArgs> callback)
@@ -445,13 +462,14 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        #region ToDelete
-
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
+
+            _userToken.KeepAliveTimer.Stop();
+
+            //TODO: need to be implemented?
             throw new NotImplementedException();
         }
 
-        #endregion ToDelete
     }
 }

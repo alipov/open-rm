@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
+using System.Timers;
+using Timer = System.Threading.Timer;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -28,11 +30,14 @@ namespace OpenRm.Common.Entities.Network
         //TODO:remove: public Semaphore readSemaphore;
         public Semaphore writeSemaphore;
 
+        public System.Timers.Timer KeepAliveTimer { get; set; }
+
         //protected AsyncUserTokenBase() : this(null, null) { }
 
         protected readonly int _msgPrefixLength;
 
-        protected AsyncUserTokenBase(Socket socket, ClientData data, int msgPrefixLength = 4)
+        //TODO: recheck/cleanup arguments:
+        protected AsyncUserTokenBase(Socket socket, int msgPrefixLength = 4)
         {
             _msgPrefixLength = msgPrefixLength;
             Socket = socket;
@@ -44,6 +49,7 @@ namespace OpenRm.Common.Entities.Network
             //readSemaphore = new Semaphore(1, 1);
             writeSemaphore = new Semaphore(1, 1);
         }
+
 
         // Prepare token for reuse
         public void CleanForSend()

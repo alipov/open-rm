@@ -47,6 +47,7 @@ namespace OpenRm.Common.Entities.Network.Messages
 
             try
             {
+                Logger.WriteStr(" Executing process: \"" + Cmd + "\"...");
                 newProcess = Process.Start(execInfo);
 
                 string stderr = newProcess.StandardError.ReadToEnd();       //get error output
@@ -83,6 +84,8 @@ namespace OpenRm.Common.Entities.Network.Messages
             {
                 if (newProcess != null)
                     newProcess.Close();
+
+                Logger.WriteStr(" Completed execution of \"" + Cmd + "\" (with error:" + status.ErrorMessage +").");
             }
 
             return status;

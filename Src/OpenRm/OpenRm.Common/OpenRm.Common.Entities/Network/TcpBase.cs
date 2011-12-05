@@ -186,15 +186,21 @@ namespace OpenRm.Common.Entities.Network
         // Prepares data to be sent and calls sending method. 
         // It can process large messages by cutting them into small ones.
         // The method issues another receive on the socket to read client's answer.
-        public void SendMessage(SocketAsyncEventArgs e, Byte[] msgToSend)
+        public void SendMessage(AsyncUserTokenBase token, Byte[] msgToSend)
         {
-            var token = (AsyncUserTokenBase)e.UserToken;
+            // pause keep-alive messages (will resume after sending)
+            token.KeepAliveTimer.Stop();
 
             // do not let sending simultaniously using the same Args object 
             token.writeSemaphore.WaitOne();
 
-            //TODO:  maybe remove 3-byte descriptor from beginning of array?
-            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(msgToSend));
+            string msgText;
+            if (msgToSend.Length == 0)
+                msgText = " keep-alive message";
+            else
+                msgText = Encoding.UTF8.GetString(msgToSend);
+
+            Logger.WriteStr("Going to send message: " + msgText);
 
             // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
@@ -204,7 +210,7 @@ namespace OpenRm.Common.Entities.Network
             prefixToAdd.CopyTo(token.SendingMsg, 0);
             msgToSend.CopyTo(token.SendingMsg, MsgPrefixLength);
 
-            StartSend(e);
+            StartSend(token.writeEventArgs);
         }
 
 
@@ -248,6 +254,9 @@ namespace OpenRm.Common.Entities.Network
                 // let process another send operation
                 token.writeSemaphore.Release();
 
+                // return keep-alive messages 
+                token.KeepAliveTimer.Start();
+
                 //TODO: remove
                 //// read the answer send from the client
                 ////StartReceive(e);
@@ -261,27 +270,18 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        protected abstract void ProcessSendFailure(SocketAsyncEventArgs args);
 
+        public void SendKeepAlive(object sender, EventArgs e)
+        {
+            AsyncUserTokenBase token = ((KeepAliveTimer) sender).Token;
+            SendMessage(token, new byte[0]);
+        }
+
+        //protected abstract void Send(SocketAsyncEventArgs writeEventArgs, byte[] bytes);
+
+        protected abstract void ProcessSendFailure(SocketAsyncEventArgs args);
         protected abstract void ProcessReceivedMessage(SocketAsyncEventArgs e);
-        //protected abstract void ProcessReceivedMessageRequest(SocketAsyncEventArgs e, RequestMessage message);
-        //protected abstract void ProcessReceivedMessageResponse(SocketAsyncEventArgs e, ResponseMessage message);
         protected abstract void CloseConnection(SocketAsyncEventArgs e);
 
-        //public abstract void Start();
-
-        //protected void ProcessReceivedMessage(SocketAsyncEventArgs e)
-        //{
-        //    var token = (AsyncUserTokenBase)e.UserToken;
-
-        //    Message message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData, _assemblyResolveHandler);
-
-        //    if (message is RequestMessage)
-        //        ProcessReceivedMessageRequest(e, (RequestMessage)message);
-        //    else if (message is ResponseMessage)
-        //        ProcessReceivedMessageResponse(e, (ResponseMessage)message);
-        //    else    
-        //        throw new ArgumentException("Cannot determinate Message type!");
-        //}
     }
 }

@@ -66,6 +66,8 @@ namespace OpenRm.Agent
 
         private void OnConnectToServerCompleted(CustomEventArgs args)
         {
+            _client.StartKeepAlives();
+
             var idRequest = new IdentificationDataRequest();
             _localEndPoint = args.LocalEndPoint;
             var message = new ResponseMessage
