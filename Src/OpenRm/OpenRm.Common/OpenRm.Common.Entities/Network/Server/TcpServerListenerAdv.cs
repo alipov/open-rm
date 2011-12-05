@@ -3,7 +3,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Timers;
 using OpenRm.Common.Entities.Network.Messages;
+using Timer = System.Timers.Timer;
 
 namespace OpenRm.Common.Entities.Network.Server
 {
@@ -158,6 +160,10 @@ namespace OpenRm.Common.Entities.Network.Server
                     // Initialize agent's data/info holder
                     token.Agent = new Agent();
 
+                    // Start timer that sends keep-alive messages
+                    token.KeepAliveTimer = new KeepAliveTimer(token);
+                    token.KeepAliveTimer.Elapsed += SendKeepAlive;
+
                     // As soon as the client is connected, post a receive to the connection, to get client's identification info
                     WaitForReceiveMessage(readEventArgs);
                 }
@@ -196,6 +202,7 @@ namespace OpenRm.Common.Entities.Network.Server
             }
         }
 
+        // This method is called on sending failure
         protected override void ProcessSendFailure(SocketAsyncEventArgs args)
         {
             if (((HostAsyncUserToken)args.UserToken).Callback != null)
@@ -205,13 +212,7 @@ namespace OpenRm.Common.Entities.Network.Server
             }
         }
 
-        //protected override void ProcessReceive(SocketAsyncEventArgs e)
-        //{
-        //    var token = (AsyncUserTokenBase)e.UserToken;
-
-        //    ProcessReceive(e, token);
-        //}
-
+        // This method is called on receiving failure
         protected override void ProcessReceiveFailed(SocketAsyncEventArgs e)
         {
             var token = (HostAsyncUserToken)e.UserToken;
@@ -225,6 +226,7 @@ namespace OpenRm.Common.Entities.Network.Server
                 token.Callback.Invoke(args);
         }
 
+        // Deserialize received message and invoke callback that should process the message
         protected override void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
             var token = (HostAsyncUserToken)e.UserToken;
@@ -238,32 +240,40 @@ namespace OpenRm.Common.Entities.Network.Server
                 token.Callback.Invoke(args);
         }
 
+        // Start sending single message to client which token belongs to.
         public void Send(Message message, HostAsyncUserToken token)
         {
             var messageToSend = WoxalizerAdapter.SerializeToXml(message);
 
-            // do not let sending simultaniously using the same Args object 
-            token.writeSemaphore.WaitOne();
+            SendMessage(token, messageToSend);
 
-            Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(messageToSend));
+            //// stop keep-alive messages 
+            //token.KeepAliveTimer.Stop();
 
-            // reset token's buffers and counters before reusing the token
-            //token.Clean();
+            //// do not let sending simultaniously using the same Args object 
+            //token.writeSemaphore.WaitOne();
 
-            // prepare data to send: add prefix that holds length of message
-            Byte[] prefixToAdd = BitConverter.GetBytes(messageToSend.Length);
+            //Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(messageToSend));
 
-            // prepare complete data and store it into token
-            token.SendingMsg = new Byte[MsgPrefixLength + messageToSend.Length];
-            prefixToAdd.CopyTo(token.SendingMsg, 0);
-            messageToSend.CopyTo(token.SendingMsg, MsgPrefixLength);
+            //// reset token's buffers and counters before reusing the token
+            ////token.Clean();
 
-            StartSend(token.writeEventArgs);
+            //// prepare data to send: add prefix that holds length of message
+            //Byte[] prefixToAdd = BitConverter.GetBytes(messageToSend.Length);
+
+            //// prepare complete data and store it into token's buffer
+            //token.SendingMsg = new Byte[MsgPrefixLength + messageToSend.Length];
+            //prefixToAdd.CopyTo(token.SendingMsg, 0);
+            //messageToSend.CopyTo(token.SendingMsg, MsgPrefixLength);
+
+            //StartSend(token.writeEventArgs);
         }
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
             var token = (HostAsyncUserToken)e.UserToken;
+            token.KeepAliveTimer.Stop();
+
             String ClientEP = token.Socket.RemoteEndPoint.ToString();   //get name before we close the connection
 
             // close the socket associated with the client
@@ -295,126 +305,6 @@ namespace OpenRm.Common.Entities.Network.Server
             _maxNumberConnectedClients.Release();
         }
 
-        #region ToDelete
-
-
-        // Invoked when an asycnhronous receive operation completes.  
-        // If the remote host closed the connection, then the socket is closed.
-        //protected new void ProcessReceive(SocketAsyncEventArgs e)
-        //{
-        //    var token = (HostAsyncUserToken)e.UserToken;
-
-        //    // Check if the remote host closed the connection
-        //    //  (SocketAsyncEventArgs.BytesTransferred is the number of bytes transferred in the socket operation.)
-        //    if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
-        //    {
-        //        // got message. need to handle it
-        //        Logger.WriteStr("Recieved data (" + e.BytesTransferred + " bytes)");
-
-        //        // now we need to check if we have complete message in our recieved data.
-        //        // if yes - process it
-        //        // but few messages can be combined into one send/recieve operation,
-        //        //  or we can get only half message or just part of Prefix 
-        //        //  if we get part of message, we'll hold it's data in UserToken and use it on next Receive
-
-        //        int i = 0;      // go through buffer of currently received data 
-        //        while (i < e.BytesTransferred)
-        //        {
-        //            // Determine how many bytes we want to transfer to the buffer and transfer them 
-        //            int bytesAvailable = e.BytesTransferred - i;
-        //            if (token.RecievedMsgData == null)
-        //            {
-        //                // token.msgData is empty so we a dealing with Prefix.
-        //                // Copy the incoming bytes into token's prefix's buffer
-        //                // All incoming data is in e.Buffer, at e.Offset position
-        //                int bytesRequested = MsgPrefixLength - token.RecievedPrefixPartLength;
-        //                int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-        //                Array.Copy(e.Buffer, e.Offset + i, token.PrefixData, token.RecievedPrefixPartLength, bytesTransferred);
-        //                i += bytesTransferred;
-
-        //                token.RecievedPrefixPartLength += bytesTransferred;
-
-        //                if (token.RecievedPrefixPartLength != MsgPrefixLength)
-        //                {
-        //                    // We haven't gotten all the prefix buffer yet: call Receive again.
-        //                    Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
-        //                    StartReceive(e);
-        //                    return;
-        //                }
-        //                // We've gotten the prefix buffer 
-        //                int length = BitConverter.ToInt32(token.PrefixData, 0);
-        //                Logger.WriteStr(" Got prefix representing value: " + length);
-
-        //                if (length == 0)
-        //                {
-        //                    Logger.WriteStr("We've got keep-alive / empty message");
-        //                    //TODO: remove Sleep:
-        //                    //Thread.Sleep(10000);
-        //                    break;  //exit while
-        //                }
-
-        //                if (length < 0)
-        //                    throw new ProtocolViolationException("Invalid message prefix");
-
-        //                // Save prefix value into token
-        //                token.MessageLength = length;
-
-        //                // Create the data buffer and start reading into it 
-        //                token.RecievedMsgData = new byte[length];
-
-        //                // zero prefix counter
-        //                //token.RecievedPrefixPartLength = 0;
-        //            }
-        //            else
-        //            {
-        //                // We're reading into the data buffer  
-        //                int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
-        //                int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
-        //                Array.Copy(e.Buffer, e.Offset + i, token.RecievedMsgData, token.RecievedMsgPartLength, bytesTransferred);
-        //                Logger.WriteStr("message till now: " + Encoding.UTF8.GetString(token.RecievedMsgData));
-        //                i += bytesTransferred;
-
-        //                token.RecievedMsgPartLength += bytesTransferred;
-        //                if (token.RecievedMsgPartLength != token.RecievedMsgData.Length)
-        //                {
-        //                    // We haven't gotten all the data buffer yet: call Receive again to get more data
-        //                    StartReceive(e);
-        //                    return;
-        //                }
-        //                // we've gotten an entire packet
-        //                Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint + ": " + Encoding.ASCII.GetString(token.RecievedMsgData));
-
-
-        //                //ProcessReceivedMessage(e);
-        //                var message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData);
-        //                var args = new HostCustomEventArgs(e.SocketError, message)
-        //                               {
-        //                                   Token = token
-        //                               };
-        //                if(token.Callback != null)
-        //                    token.Callback.Invoke(args);
-
-        //                // Clean token's recieve buffer
-        //                token.CleanForRecieve();
-
-        //                // wait for next message
-        //                StartReceive(e);
-
-
-        //            }
-        //        }   //end while
-
-        //        //release 
-        //    }
-        //    else
-        //    {
-        //        Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint + " due to exception:\n"
-        //            + new SocketException((int)e.SocketError) + "\n"
-        //            + "Closing this connection....");
-        //        CloseConnection(e);
-        //    }
-        //}
-
-        #endregion
+        
     }
 }

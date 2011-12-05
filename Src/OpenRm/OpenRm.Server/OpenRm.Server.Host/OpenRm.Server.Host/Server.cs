@@ -57,7 +57,7 @@ namespace OpenRm.Server.Host
             else if (args.Result is ResponseMessage)
                 ProcessReceivedMessageResponse(args);
             else
-                throw new ArgumentException("Cannot determinate Message type!");
+                throw new ArgumentException("Cannot determinate Message type!");    //TODO: replace? How about closing socket? if console: _console=null ?
         }
 
         private void ProcessReceivedMessageRequest(HostCustomEventArgs args)

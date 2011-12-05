@@ -11,7 +11,7 @@ namespace OpenRm.Common.Entities.Network
             : this(socket, null, msgPrefixLength){ }
 
         public GeneralUserToken(Socket socket, Action<CustomEventArgs> callback, int msgPrefixLength = 4)
-            : base(socket, null, msgPrefixLength)
+            : base(socket, msgPrefixLength)
         {
             Callback = callback;
         }

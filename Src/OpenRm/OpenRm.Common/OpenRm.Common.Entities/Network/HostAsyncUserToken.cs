@@ -4,7 +4,7 @@ namespace OpenRm.Common.Entities.Network
 {
     public class HostAsyncUserToken : AsyncUserTokenBase
     {
-        public HostAsyncUserToken() : base(null, null) { }
+        public HostAsyncUserToken() : base(null) { }
 
         //public HostAsyncUserToken(Socket socket, ClientData data, int msgPrefixLength = 4)
         //    : base(socket, data, msgPrefixLength)
@@ -15,7 +15,6 @@ namespace OpenRm.Common.Entities.Network
         static HostAsyncUserToken()
         {
             _runId = 1;
-
         }
 
 

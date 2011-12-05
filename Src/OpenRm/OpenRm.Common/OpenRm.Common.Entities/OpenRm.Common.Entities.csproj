@@ -63,6 +63,9 @@
     <Compile Include="Network\GeneralUserToken.cs" />
     <Compile Include="Network\HostAsyncUserToken.cs" />
     <Compile Include="Network\IMessageClient.cs" />
+    <Compile Include="Network\KeepAliveTimer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Network\Messages\BulkStaticRequest.cs" />
     <Compile Include="Network\Messages\RemoteControlResponse.cs" />
     <Compile Include="Network\Messages\RemoveControlRequest.cs" />
