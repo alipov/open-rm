@@ -43,8 +43,11 @@ namespace OpenRm.Server.Gui.Modules.Monitor
             _container.RegisterType<IAgentRibbonRegionController, AgentRibbonRegionController>
                                                     (new ContainerControlledLifetimeManager());
 
+            _container.RegisterType<IMessageProxyInstance, MessageProxyInstance>();
+
             _container.RegisterType<IMessageClient, GeneralSocketClient>
                                                     (new ContainerControlledLifetimeManager());
+            _container.RegisterType<MessageProxyService>(new ContainerControlledLifetimeManager());
 
             _container.RegisterType<IAgentsListView, AgentsListView>();
             _container.RegisterType<IAgentsListViewModel, AgentsListViewModel>();

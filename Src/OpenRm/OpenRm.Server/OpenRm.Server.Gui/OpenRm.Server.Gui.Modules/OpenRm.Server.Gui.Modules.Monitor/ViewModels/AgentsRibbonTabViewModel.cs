@@ -22,7 +22,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             _container = container;
             _dataService = dataService;
 
-            ConnectCommand = new DelegateCommand(ConnectToServer, CanConnectToServerExecute);
+            ConnectCommand = new DelegateCommand(ConnectToServer);
             IsConnectEnabled = true;
             RefreshAgentsCommand = new DelegateCommand(RefreshAgentsList);
             InstalledProgramsCommand = new DelegateCommand(ListInstalledPrograms);
@@ -67,11 +67,11 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 new IPEndPoint(IPAddress.Loopback, 3777),  OnConnectToServerCompleted);
         }
 
-        private bool CanConnectToServerExecute()
-        {
-            var messageClient = _container.Resolve<IMessageClient>();
-            return !messageClient.IsConnected;
-        }
+        //private bool CanConnectToServerExecute()
+        //{
+        //    var messageClient = _container.Resolve<IMessageClient>();
+        //    return !messageClient.IsConnected;
+        //}
 
         private void ListInstalledPrograms()
         {
@@ -100,16 +100,19 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void RefreshAgentsList()
         {
-            var messageClient = _container.Resolve<IMessageClient>();
-            if(messageClient.IsConnected == false)
-                throw new InvalidOperationException("Client is disconnected from the host.");
+            var proxy = _container.Resolve<IMessageProxyInstance>();
+            
+            //var messageClient = _container.Resolve<IMessageClient>();
+            //if(messageClient.IsConnected == false)
+            //    throw new InvalidOperationException("Client is disconnected from the host.");
 
             var listAgentsMessage = new RequestMessage()
                                      {
                                          Request = new ListAgentsRequest()
                                      };
 
-            messageClient.Send(listAgentsMessage, OnRefreshAgentsListCompleted);
+            proxy.Send(listAgentsMessage, OnRefreshAgentsListCompleted);
+            //messageClient.Send(listAgentsMessage, OnRefreshAgentsListCompleted);
         }
 
         private void OnRefreshAgentsListCompleted(CustomEventArgs args)

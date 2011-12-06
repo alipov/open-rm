@@ -63,6 +63,7 @@
     <Compile Include="Network\GeneralUserToken.cs" />
     <Compile Include="Network\HostAsyncUserToken.cs" />
     <Compile Include="Network\IMessageClient.cs" />
+    <Compile Include="Network\IMessageProxyInstance.cs" />
     <Compile Include="Network\KeepAliveTimer.cs">
       <SubType>Component</SubType>
     </Compile>
