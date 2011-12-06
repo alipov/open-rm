@@ -23,8 +23,8 @@ namespace OpenRm.Common.Entities.Network.Messages
                 args: "-run",
                 workDir: "..\\Common\\ThirdParty\\VNC\\",
                 delay: 0,
-                timeout: 1000,         //wait 1sec just to enshure that it has not failed
-                hidden: false);
+                hidden: false,
+                wait: false);
 
             var result = (RunProcessResponse) proc.ExecuteRequest();
 
@@ -37,13 +37,30 @@ namespace OpenRm.Common.Entities.Network.Messages
                 args: "-connect " + ViewerIp + "::" + ViewerPort + " -shareall",
                 workDir: "..\\Common\\ThirdParty\\VNC\\",
                 delay: 0,
-                timeout: 1000,         //wait 1sec just to enshure that it has not failed
-                hidden: false);
+                hidden: false,
+                wait: false);
 
                 result = (RunProcessResponse)proc.ExecuteRequest();
             }
 
             return new RemoteControlResponse(result.ExitCode, result.ErrorMessage);
         }
+
+
+        // used by Console: starts VNC viewer on Console's computer
+        public void StartVncListerner()
+        {
+            var proc = new RunProcessRequest(
+                runId: 0,
+                cmd: "..\\Common\\ThirdParty\\VNC\\vncview.exe",
+                args: "/listen " + ViewerPort,
+                workDir: "..\\Common\\ThirdParty\\VNC\\",
+                delay: 0,
+                hidden: false,
+                wait: false);
+
+            proc.ExecuteRequest();
+        }
+
     }
 }

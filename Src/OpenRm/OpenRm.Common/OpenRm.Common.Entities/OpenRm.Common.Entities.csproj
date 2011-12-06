@@ -69,7 +69,7 @@
     </Compile>
     <Compile Include="Network\Messages\BulkStaticRequest.cs" />
     <Compile Include="Network\Messages\RemoteControlResponse.cs" />
-    <Compile Include="Network\Messages\RemoveControlRequest.cs" />
+    <Compile Include="Network\Messages\RemoteControlRequest.cs" />
     <Compile Include="Network\Messages\RestartReponse.cs" />
     <Compile Include="Network\Messages\RestartRequest.cs" />
     <Compile Include="Network\Messages\ShutdownReponse.cs" />
