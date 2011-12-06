@@ -75,21 +75,24 @@ namespace OpenRm.Server.Host
                 {
                     Agents = new List<Agent>()
                 };
+                
 
-                for (var i = 0; i < _agents.Count; i++)
+                foreach (var agent in _agents)
                 {
-                    var thisAgent = new Agent()
-                        {
-                            ID = i,
-                            Name = _agents[i].Agent.Data.Idata.deviceName,
-                            Status = _agents[i].Agent.Status
-                        };
+                    //var thisAgent = new Agent()
+                    //    {
+                    //        ID = i,
+                    //        Name = _agents[i].Agent.Data.Idata.deviceName,
+                    //        Status = _agents[i].Agent.Status
+                    //    };
 
-                    agentsResponse.Agents.Add(thisAgent);
+                    //agentsResponse.Agents.Add(thisAgent);
+                    agentsResponse.Agents.Add(agent.Value.Agent);
                 }
 
                 var responseMessage = new ResponseMessage()
                 {
+                    UniqueID = message.UniqueID,
                     Response = agentsResponse
                 };
                 _server.Send(responseMessage, args.Token);
@@ -97,7 +100,7 @@ namespace OpenRm.Server.Host
             }
             else if (message.Request is WakeOnLanRequest)
             {
-                Agent targetAgent = _agents[message.agentId].Agent;
+                Agent targetAgent = _agents[message.AgentId].Agent;
                 string targetIp = targetAgent.Data.IpConfig.IpAddress;
                 string targetMask = targetAgent.Data.IpConfig.netMask;
 
@@ -125,7 +128,7 @@ namespace OpenRm.Server.Host
                     var responseMessage = new ResponseMessage()
                                               {
                                                   Response = response,
-                                                  agentId = message.agentId
+                                                  AgentId = message.AgentId
                                               };
                     _server.Send(responseMessage, args.Token);
                 }
@@ -135,7 +138,7 @@ namespace OpenRm.Server.Host
             {
                 //retrieve from local "database": it will speed up response. 
                 //(this data is not changes at least untill agent reconnects)
-                var agentToken = _agents[message.agentId];
+                var agentToken = _agents[message.AgentId];
                 if (agentToken.Agent.Data.IpConfig != null && agentToken.Agent.Data.OS != null)
                 {
                     var response = new BulkStaticResponse()
@@ -146,7 +149,7 @@ namespace OpenRm.Server.Host
                     var responseMessage = new ResponseMessage()
                                               {
                                                   Response = response,
-                                                  agentId = message.agentId
+                                                  AgentId = message.AgentId
                                               };
                     _server.Send(responseMessage, args.Token);
                 }
@@ -159,7 +162,7 @@ namespace OpenRm.Server.Host
             else
             {
                 //match agent by agentId and redirect received Message Request to it
-                var agentToken = _agents[message.agentId];
+                var agentToken = _agents[message.AgentId];
                 _server.Send(message, agentToken);
 
             }
@@ -203,8 +206,7 @@ namespace OpenRm.Server.Host
                 msg = new RequestMessage { Request = new OsInfoRequest() };
                 _server.Send(msg, args.Token);
 
-
-                        //TODO: for testing only:
+#if DEBUG
                         Thread.Sleep(10000);
                         msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
                         var exec = new RunProcessRequest
@@ -218,6 +220,7 @@ namespace OpenRm.Server.Host
                         };
                         msg.Request = exec;
                         _server.Send(msg, args.Token);
+#endif
 
             }
             else if (message.Response is IpConfigResponse)

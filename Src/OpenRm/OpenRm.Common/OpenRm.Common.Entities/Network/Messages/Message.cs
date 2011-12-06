@@ -3,8 +3,9 @@
 
     public abstract class Message
     {
+        public string UniqueID;
         public int OpCode;         // int type (not Enum) because of Serialization    //TODO: delete it
-        public int? AgentId;        //agent's identification (to match console-host-agent messages) //TODO: maybe change to Name...
+        public int AgentId;        //agent's identification (to match console-host-agent messages) //TODO: maybe change to Name...
     }
 
     public abstract class RequestBase

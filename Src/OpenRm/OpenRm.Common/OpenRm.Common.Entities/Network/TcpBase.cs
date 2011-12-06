@@ -188,8 +188,9 @@ namespace OpenRm.Common.Entities.Network
         // The method issues another receive on the socket to read client's answer.
         public void SendMessage(AsyncUserTokenBase token, Byte[] msgToSend)
         {
+            // TODO: marked as it throwed exception
             // pause keep-alive messages (will resume after sending)
-            token.KeepAliveTimer.Stop();
+            //token.KeepAliveTimer.Stop();
 
             // do not let sending simultaniously using the same Args object 
             token.writeSemaphore.WaitOne();
@@ -254,8 +255,9 @@ namespace OpenRm.Common.Entities.Network
                 // let process another send operation
                 token.writeSemaphore.Release();
 
+                //TODO: commented, as it throws exception
                 // return keep-alive messages 
-                token.KeepAliveTimer.Start();
+                //token.KeepAliveTimer.Start();
 
                 //TODO: remove
                 //// read the answer send from the client

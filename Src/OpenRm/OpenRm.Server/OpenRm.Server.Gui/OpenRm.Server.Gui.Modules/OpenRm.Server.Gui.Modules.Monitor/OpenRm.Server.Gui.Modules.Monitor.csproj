@@ -102,6 +102,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Services\AgentDataService.cs" />
+    <Compile Include="Services\MessageProxyInstance.cs" />
+    <Compile Include="Services\MessageProxyService.cs" />
     <Compile Include="ViewModels\AgentDetailsViewModel.cs" />
     <Compile Include="ViewModels\AgentsRibbonTabViewModel.cs" />
     <Compile Include="ViewModels\AgentSummaryViewModel.cs" />
