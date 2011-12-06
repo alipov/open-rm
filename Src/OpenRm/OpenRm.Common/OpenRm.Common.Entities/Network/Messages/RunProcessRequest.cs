@@ -11,17 +11,19 @@ namespace OpenRm.Common.Entities.Network.Messages
         public string Args;  // arguments
         public string WorkDir;  //working directory
         public int Delay;       //delay period before run. in seconds.
-        public int TimeOut;     //max time to wait for process execution completion. in ms.
         public bool Hidden;     //run hidden from user
-        public RunProcessRequest(int runId, string cmd, string args, string workDir, int delay, int timeout, bool hidden)
+        public bool WaitForCompletion;      // wait for process to complete, or just run and return
+        public const int Timeout = 1800000;     // limit process run for 30 min
+
+        public RunProcessRequest(int runId, string cmd, string args, string workDir, int delay, bool hidden, bool wait)
         {
             RunId = runId;
             Cmd = cmd;
             Args = args;
             WorkDir = workDir;
             Delay = delay;
-            TimeOut = timeout;
             Hidden = hidden;
+            WaitForCompletion = wait;
         }
 
         public RunProcessRequest()
@@ -50,16 +52,31 @@ namespace OpenRm.Common.Entities.Network.Messages
                 Logger.WriteStr(" Executing process: \"" + Cmd + "\"...");
                 newProcess = Process.Start(execInfo);
 
-                string stderr = newProcess.StandardError.ReadToEnd();       //get error output
+                if (WaitForCompletion)
+                {
+                    // wait for process completion
+                    newProcess.WaitForExit(Timeout);   //wait maximum 30 min.   
+                }
+                else
+                {
+                    //Wait for window to finish loading.
+                    newProcess.WaitForInputIdle();
 
-                // wait for process completion or timeout
-                newProcess.WaitForExit(TimeOut);  
+                }
 
                 if (!newProcess.HasExited)
                 {
                     if (newProcess.Responding)
                     {
-                        status.ErrorMessage = " Process is still running, but we have reached timeout (" + TimeOut + "ms)";    
+                        if (WaitForCompletion)
+                        {
+                            status.ErrorMessage = " Process is still running, but we have reached timeout (30min)";    
+                        }
+                        else
+                        {
+                            status.ErrorMessage = " Process sucessfully started and will take some time to run...";
+                        }
+                        
                     }
                     else
                     {
@@ -73,7 +90,10 @@ namespace OpenRm.Common.Entities.Network.Messages
                 {
                     status.ExitCode = newProcess.ExitCode;
                     if (status.ExitCode > 0)
-                        status.ErrorMessage = stderr;    // not all processes have stderr
+                    {
+                            status.ErrorMessage = " Process completed with error. ";  // not all processes have stderr
+                    }
+                        
                 }
             }
             catch (Exception)
@@ -85,7 +105,7 @@ namespace OpenRm.Common.Entities.Network.Messages
                 if (newProcess != null)
                     newProcess.Close();
 
-                Logger.WriteStr(" Completed execution of \"" + Cmd + "\" (with error:" + status.ErrorMessage +").");
+                Logger.WriteStr(" \"" + Cmd + "\":" + status.ErrorMessage +".");
             }
 
             return status;
