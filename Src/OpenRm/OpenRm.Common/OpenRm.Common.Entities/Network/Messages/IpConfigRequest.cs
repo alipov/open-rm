@@ -19,7 +19,7 @@ namespace OpenRm.Common.Entities.Network.Messages
                     foreach (GatewayIPAddressInformation g in netInterface.GetIPProperties().GatewayAddresses)
                     {
                         if (g.Address.ToString() != "0.0.0.0")
-                            ipconf.defaultGateway = g.Address.ToString();
+                            ipconf.DefaultGateway = g.Address.ToString();
                     }
 
                     foreach (UnicastIPAddressInformation ip in netInterface.GetIPProperties().UnicastAddresses)
@@ -27,11 +27,11 @@ namespace OpenRm.Common.Entities.Network.Messages
                         if (ip.Address.ToString() != IpAddress.ToString()) continue;    //match only interface that connection to server uses
 
                         if (ip.IPv4Mask != null)
-                            ipconf.netMask = ip.IPv4Mask.ToString();
+                            ipconf.NetMask = ip.IPv4Mask.ToString();
                         else
-                            ipconf.netMask = "";        //Loopback has no Network Mask
+                            ipconf.NetMask = "";        //Loopback has no Network Mask
 
-                        ipconf.mac = netInterface.GetPhysicalAddress().ToString();
+                        ipconf.MAC = netInterface.GetPhysicalAddress().ToString();
 
                         break;
                     }
