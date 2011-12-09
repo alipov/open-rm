@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using OpenRm.Common.Entities;
 using OpenRm.Server.Gui.Inf.Api;
+using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Api.Services
 {
     public interface IAgentDataService : IService
     {
-        IEnumerable<Agent> GetAgents(Predicate<Agent> predicate);
-        void SetAgents(IEnumerable<Agent> agents);
+        IEnumerable<AgentWrapper> GetAgents(Predicate<AgentWrapper> predicate);
+        void SetAgents(IEnumerable<AgentWrapper> agents);
     }
 }

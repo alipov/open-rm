@@ -71,8 +71,8 @@ namespace OpenRm.Server.Gui.Modules.Monitor
             // Show the Employee Details and Employee Projects view in the tab region.
             // The tab region is defined as part of the Employee Summary view which is only
             // displayed once the user has selected an employee in the Employee List view.
-            _regionManager.RegisterViewWithRegion(RegionNames.TabRegion,
-                                                       () => _container.Resolve<IAgentDetailsView>());
+            //_regionManager.RegisterViewWithRegion(RegionNames.TabRegion,
+            //                                           () => _container.Resolve<IAgentDetailsView>());
 
             // Create the summary region controller.
             // This is used to programmatically (using injection) coordinate the view in the summary region 

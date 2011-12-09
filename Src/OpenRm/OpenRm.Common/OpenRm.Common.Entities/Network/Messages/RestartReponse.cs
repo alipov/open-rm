@@ -11,5 +11,10 @@
             RunId = runId;
             Answer = anwser;
         }
+
+        public override string ToString()
+        {
+            return Answer;
+        }
     }
 }

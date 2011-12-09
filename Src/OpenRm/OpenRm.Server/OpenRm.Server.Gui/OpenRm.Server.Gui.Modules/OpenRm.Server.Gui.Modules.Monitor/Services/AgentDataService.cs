@@ -5,18 +5,19 @@ using Microsoft.Practices.Prism.Events;
 using OpenRm.Common.Entities;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
 using OpenRm.Server.Gui.Modules.Monitor.EventAggregatorMessages;
+using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Services
 {
     public class AgentDataService : IAgentDataService
     {
-        private readonly List<Agent> _agentsCollection;
+        private readonly List<AgentWrapper> _agentsCollection;
         private readonly IEventAggregator _eventAggregator;
 
         public AgentDataService(IEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
-            _agentsCollection = new List<Agent>();
+            _agentsCollection = new List<AgentWrapper>();
             //_agentsCollection = new List<Agent>()
             //                        {
             //                            new Agent()
@@ -32,12 +33,12 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Services
             //                        };
         }
 
-        public IEnumerable<Agent> GetAgents(Predicate<Agent> predicate)
+        public IEnumerable<AgentWrapper> GetAgents(Predicate<AgentWrapper> predicate)
         {
             return _agentsCollection.Where(agent => predicate(agent));
         }
 
-        public void SetAgents(IEnumerable<Agent> agents)
+        public void SetAgents(IEnumerable<AgentWrapper> agents)
         {
             _agentsCollection.Clear();
             _agentsCollection.AddRange(agents);

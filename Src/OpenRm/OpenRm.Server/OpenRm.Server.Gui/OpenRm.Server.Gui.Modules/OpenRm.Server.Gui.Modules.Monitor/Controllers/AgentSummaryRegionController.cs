@@ -9,6 +9,7 @@ using OpenRm.Server.Gui.Modules.Monitor.Api.Controllers;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Views;
 using OpenRm.Server.Gui.Modules.Monitor.EventAggregatorMessages;
+using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Controllers
 {
@@ -42,7 +43,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Controllers
 
         private void OnAgentSelected(int? agentId)
         {
-            Agent selectedAgent = null;
+            AgentWrapper selectedAgent = null;
             // Get the agent entity with the selected ID.
             if(agentId.HasValue)
             {

@@ -59,6 +59,7 @@
     <Compile Include="Api\Mvvm\IViewModel.cs" />
     <Compile Include="GuiDispatcher\IDispatcher.cs" />
     <Compile Include="GuiDispatcher\UiDispatcher.cs" />
+    <Compile Include="ListBoxBehavior.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
