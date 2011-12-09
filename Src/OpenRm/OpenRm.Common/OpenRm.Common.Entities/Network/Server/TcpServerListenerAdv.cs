@@ -202,29 +202,7 @@ namespace OpenRm.Common.Entities.Network.Server
             }
         }
 
-        // This method is called on sending failure
-        protected override void ProcessSendFailure(SocketAsyncEventArgs args)
-        {
-            if (((HostAsyncUserToken)args.UserToken).Callback != null)
-            {
-                ((HostAsyncUserToken)args.UserToken).Callback.Invoke
-                                (new HostCustomEventArgs(args.SocketError, null));
-            }
-        }
-
-        // This method is called on receiving failure
-        protected override void ProcessReceiveFailed(SocketAsyncEventArgs e)
-        {
-            var token = (HostAsyncUserToken)e.UserToken;
-
-            var args = new HostCustomEventArgs(SocketError.Fault, null)
-            {
-                Token = token
-            };
-
-            if (token.Callback != null)
-                token.Callback.Invoke(args);
-        }
+        
 
         // Deserialize received message and invoke callback that should process the message
         protected override void ProcessReceivedMessage(SocketAsyncEventArgs e)
@@ -240,6 +218,7 @@ namespace OpenRm.Common.Entities.Network.Server
                 token.Callback.Invoke(args);
         }
 
+
         // Start sending single message to client which token belongs to.
         public void Send(Message message, HostAsyncUserToken token)
         {
@@ -247,34 +226,55 @@ namespace OpenRm.Common.Entities.Network.Server
 
             SendMessage(token, messageToSend);
 
-            //// stop keep-alive messages 
-            //token.KeepAliveTimer.Stop();
-
-            //// do not let sending simultaniously using the same Args object 
-            //token.writeSemaphore.WaitOne();
-
-            //Logger.WriteStr("Going to send message: " + Encoding.UTF8.GetString(messageToSend));
-
-            //// reset token's buffers and counters before reusing the token
-            ////token.Clean();
-
-            //// prepare data to send: add prefix that holds length of message
-            //Byte[] prefixToAdd = BitConverter.GetBytes(messageToSend.Length);
-
-            //// prepare complete data and store it into token's buffer
-            //token.SendingMsg = new Byte[MsgPrefixLength + messageToSend.Length];
-            //prefixToAdd.CopyTo(token.SendingMsg, 0);
-            //messageToSend.CopyTo(token.SendingMsg, MsgPrefixLength);
-
-            //StartSend(token.writeEventArgs);
         }
 
+
+        // This method is called on sending failure
+        protected override void ProcessSendFailure(SocketAsyncEventArgs e)
+        {
+            ProcessFailure(e);
+        }
+
+        // This method is called on receiving failure
+        protected override void ProcessReceiveFailure(SocketAsyncEventArgs e)
+        {
+            ProcessFailure(e);
+        }
+
+        // Processing send/receive failure
+        //  ProcessSendFailure and ProcessReceiveFailure are called whenever Async operation receives SocketError,
+        //  so we can assume that there was serious problem such as closed, broken or bad connection,
+        //  that's why we decide to close socket, so client will have to reconnect to the server
+        protected override void ProcessFailure(SocketAsyncEventArgs e)
+        {
+            var token = (HostAsyncUserToken)e.UserToken;
+            var callback = token.Callback;
+            var error = e.SocketError;
+
+            CloseConnection(e);
+
+            var args = new HostCustomEventArgs(error, null)
+            {
+                Token = token
+            };
+
+            if (callback != null)
+                callback.Invoke(args);
+        }
+
+
+        //Close connection and free resources
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
             var token = (HostAsyncUserToken)e.UserToken;
-            token.KeepAliveTimer.Stop();
+            try
+            {
+                //maybe timer has been stopped already
+                token.KeepAliveTimer.Stop();
+            }
+            catch (Exception) { }
 
-            String ClientEP = token.Socket.RemoteEndPoint.ToString();   //get name before we close the connection
+            String clientEp = token.Socket.RemoteEndPoint.ToString();   //get name before we close the connection
 
             // close the socket associated with the client
             try
@@ -285,7 +285,7 @@ namespace OpenRm.Common.Entities.Network.Server
             catch (Exception) { }
             token.Socket.Close();
 
-            Logger.WriteStr("A client " + ClientEP + " has been disconnected from the server.");
+            Logger.WriteStr("A client " + clientEp + " has been disconnected from the server.");
 
             // Free the SocketAsyncEventArgs so they can be reused by another client, and return them back to pool
             var readArgs = token.readEventArgs;
@@ -300,6 +300,8 @@ namespace OpenRm.Common.Entities.Network.Server
                 writeArgs.UserToken = null;
                 _argsReadWritePool.Push(writeArgs);
             }
+
+            token.Wipe();
 
             // decrease number of connected clients
             _maxNumberConnectedClients.Release();

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading;
-using System.Timers;
-using Timer = System.Threading.Timer;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -27,7 +25,6 @@ namespace OpenRm.Common.Entities.Network
         public SocketAsyncEventArgs writeEventArgs { get; set; }
         public SocketAsyncEventArgs readEventArgs { get; set; }
 
-        //TODO:remove: public Semaphore readSemaphore;
         public Semaphore writeSemaphore;
 
         public System.Timers.Timer KeepAliveTimer { get; set; }

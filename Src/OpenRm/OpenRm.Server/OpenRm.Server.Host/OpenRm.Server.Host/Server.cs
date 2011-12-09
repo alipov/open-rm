@@ -40,7 +40,6 @@ namespace OpenRm.Server.Host
                 _agents = new Dictionary<int, HostAsyncUserToken>();
 
                 _server = new TcpServerListenerAdv(_listenPort, _maxNumConnections, ReceiveBufferSize);
-                //var srv = new TcpServerListener(_listenPort, _maxNumConnections, ReceiveBufferSize, TypeResolving.AssemblyResolveHandler);
                 _server.Start(OnReceiveCompleted);
 
                 // Pause here 
@@ -56,8 +55,26 @@ namespace OpenRm.Server.Host
                 ProcessReceivedMessageRequest(args);
             else if (args.Result is ResponseMessage)
                 ProcessReceivedMessageResponse(args);
+            else if (args.Result == null)
+            {
+                // someone disconnected
+                if (args.Token == _console)
+                {
+                    Logger.WriteStr("- Console disconnected.");
+                    _console = null;
+                }
+                else
+                {
+                    Logger.WriteStr("- " + args.Token.Agent.Name + " disconnected.");
+                    // mark it offline
+                    _agents[args.Token.Agent.ID].Agent.Status = (int)EAgentStatus.Offline;
+                    //TODO: can send update to console?
+                }
+            }
             else
-                throw new ArgumentException("Cannot determinate Message type!");    //TODO: replace? How about closing socket? if console: _console=null ?
+                throw new ArgumentException("Cannot determinate Message type!");
+            
+                
         }
 
         private void ProcessReceivedMessageRequest(HostCustomEventArgs args)
@@ -75,9 +92,9 @@ namespace OpenRm.Server.Host
                 {
                     Agents = new List<Agent>()
                 };
-                
 
-                foreach (var agent in _agents)
+
+                for (var i = 0; i < _agents.Count; i++)
                 {
                     //var thisAgent = new Agent()
                     //    {
@@ -87,7 +104,7 @@ namespace OpenRm.Server.Host
                     //    };
 
                     //agentsResponse.Agents.Add(thisAgent);
-                    agentsResponse.Agents.Add(agent.Value.Agent);
+                    agentsResponse.Agents.Add(_agents[i].Agent);
                 }
 
                 var responseMessage = new ResponseMessage()
@@ -179,23 +196,57 @@ namespace OpenRm.Server.Host
             {
                 // Only New or Reconnected client sends this response
                 var idata = (IdentificationDataResponse)message.Response;
-                Logger.WriteStr(" * Client has connected: " + idata.DeviceName);
-                
-                // Look if already exist in _agents, and new entry if needed
-                if (_agents.All(a => a.Value.Agent.Data.Idata.DeviceName != idata.DeviceName))
+                Logger.WriteStr(" * Client has connected: " + idata.deviceName);
+
+                args.Token.Agent = new Agent()
                 {
-                    args.Token.Agent = new Agent()
-                                           {
-                                               Data = new ClientData()
-                                                          {
-                                                              Idata = idata
-                                                          }
-                                           };
-                    var key = Interlocked.Increment(ref _agentsCount);
-                    _agents.Add(key, args.Token);
-                    args.Token.Agent.ID = key;
-                    args.Token.Agent.Name = args.Token.Agent.Data.Idata.DeviceName;
+                    Data = new ClientData()
+                    {
+                        Idata = idata
+                    },
+                    Name = idata.deviceName
+                };
+
+                // Look if already exist in _agents, and new entry if needed
+                bool agentFound = false;
+                int i;
+                for (i = 0 ; i < _agentsCount; i++)
+                {
+                    if (_agents[i].Agent.Data.Idata.deviceName == idata.deviceName
+                            && _agents[i].Agent.Data.Idata.sn == idata.sn)
+                    {
+                        //replace token to the new one
+                        _agents[i] = args.Token;
+                        args.Token.Agent.ID = i;
+                        agentFound = true;
+                        break;
+                    }
                 }
+                if (!agentFound)
+                {
+                    // add new agent to the "database"
+                    
+                    var key = _agentsCount;
+                    args.Token.Agent.ID = key;
+                    _agents.Add(key, args.Token);
+                    Interlocked.Increment(ref _agentsCount);
+                }
+
+
+                //if (_agents.All(a => a.Value.Agent.Data.Idata.deviceName != idata.deviceName))
+                //{
+                //    args.Token.Agent = new Agent()
+                //                           {
+                //                               Data = new ClientData()
+                //                                          {
+                //                                              Idata = idata
+                //                                          }
+                //                           };
+                //    var key = Interlocked.Increment(ref _agentsCount);
+                //    _agents.Add(key, args.Token);
+                //    args.Token.Agent.ID = key;
+                //    args.Token.Agent.Name = args.Token.Agent.Data.Idata.deviceName;
+                //}
 
                 // Request agent's IP and OS info:
                 // ( we have to update info of reconnected clients because it can have been changed 

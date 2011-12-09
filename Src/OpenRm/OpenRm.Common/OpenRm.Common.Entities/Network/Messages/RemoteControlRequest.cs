@@ -23,7 +23,7 @@ namespace OpenRm.Common.Entities.Network.Messages
                 args: "-run",
                 workDir: "..\\Common\\ThirdParty\\VNC\\",
                 delay: 0,
-                hidden: false,
+                hidden: true,
                 wait: false);
 
             var result = (RunProcessResponse) proc.ExecuteRequest();
@@ -37,7 +37,7 @@ namespace OpenRm.Common.Entities.Network.Messages
                 args: "-connect " + ViewerIp + "::" + ViewerPort + " -shareall",
                 workDir: "..\\Common\\ThirdParty\\VNC\\",
                 delay: 0,
-                hidden: false,
+                hidden: true,
                 wait: false);
 
                 result = (RunProcessResponse)proc.ExecuteRequest();

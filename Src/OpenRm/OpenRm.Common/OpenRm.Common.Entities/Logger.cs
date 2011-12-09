@@ -24,7 +24,7 @@ namespace OpenRm.Common.Entities
         {
             lock (lck)
             {
-                try     // probably Antivirus can cause an error...
+                try     // filesystem permissions or Antivirus can cause an error while writing to log
                 {
                     using (var log = new StreamWriter(_logDirectory + "\\" + _logFile, true))
                     {
