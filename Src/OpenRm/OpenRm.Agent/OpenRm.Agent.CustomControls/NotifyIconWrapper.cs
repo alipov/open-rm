@@ -67,12 +67,25 @@ namespace OpenRm.Agent.CustomControls
         }
 
         private EventHandler _startAgentClick;
+        private EventHandler _stopAgentClick;
 
         public event EventHandler StartAgentClick
         {
             add { _startAgentClick += value; }
             remove { _startAgentClick -= value; }
         }
+
+        public event EventHandler StopAgentClick
+        {
+            add { _stopAgentClick += value; }
+            remove { _stopAgentClick -= value; }
+        }
+
+        public void ShowNotifiction(string text)
+        {
+            OpenRmNotifyIcon.ShowBalloonTip(10000, "OpenRM Agent", text, ToolTipIcon.Info);
+        }
+
 
         private void StartAgentMenuItemClickEventHandler(object sender, EventArgs e)
         {
@@ -88,6 +101,8 @@ namespace OpenRm.Agent.CustomControls
             stopAgentMenuItem.Enabled = false;
             startAgentMenuItem.Enabled = true;
             OpenRmNotifyIcon.Icon = _redIcon;
+
+            _stopAgentClick.Invoke(sender, e);
         }
 
         private void SettingsMenuItemClickEventHandler(object sender, EventArgs e)

@@ -10,6 +10,5 @@ namespace OpenRm.Common.Entities.Network
         void Send(Message message, Action<CustomEventArgs> callback);
         void Disconnect(Action<CustomEventArgs> callback);
         bool IsConnected { get; }
-        void StartKeepAlives();
     }
 }

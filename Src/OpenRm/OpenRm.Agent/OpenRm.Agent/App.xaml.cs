@@ -11,20 +11,25 @@ using OpenRm.Common.Entities.Network.Messages;
 namespace OpenRm.Agent
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// Interaction logic for Agent
     /// </summary>
     public partial class App : Application
     {
         public static bool agentStarted = false;            // flag that indicates current status of agent. can be changed by pressing "Stop Agent" control
         private IPEndPoint _endPoint;
         private string _logFilenamePattern;
-        //public static int ReceiveBufferSize = 64;      //recieve buffer size for tcp connection
         private static Thread starterThread;
-        //private TcpClient _client;
         private IMessageClient _client;
         private IPEndPoint _localEndPoint;
-
         private NotifyIconWrapper _notifyIconComponent;
+
+        // Intervals between client reconnects (when was unable to connect / has been disconnected)    
+        private int _retryIntervalCurrent;
+        private const int RetryIntervalInitial = 5; // 5 sec.
+        private const int RetryIntervalMaximum = 60; // 60 sec.
+
+        // pauses thread untill client disconnected
+        private readonly ManualResetEvent _clientDisconnected = new ManualResetEvent(false);  
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -36,12 +41,12 @@ namespace OpenRm.Agent
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             _notifyIconComponent = new NotifyIconWrapper();
-            _notifyIconComponent.StartAgentClick += StartThread;
-            
+            _notifyIconComponent.StartAgentClick += StartAgentThread;
+            _notifyIconComponent.StopAgentClick += StopAgentThread;
         }
 
-
-        private void StartThread(object sender, EventArgs e)
+        // called from Notification Icon
+        private void StartAgentThread(object sender, EventArgs e)
         {
             starterThread = new Thread(AgentStarterThread);
             starterThread.Start();
@@ -52,21 +57,53 @@ namespace OpenRm.Agent
             if (!ReadConfigFile()) return; //TODO: close application? notify user?
 
             Logger.CreateLogFile("logs", _logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
-            Logger.WriteStr("Client started.");
-            agentStarted = true;
+            Logger.WriteStr("+++ Starting Agent by user request... +++");
 
-            //_client = new TcpClient();
-            //_client.Connect(_endPoint, OnConnectToServerCompleted);
-            _client = new GeneralSocketClient();
-            _client.Connect(_endPoint, OnConnectToServerCompleted);
+            agentStarted = true;
+            _retryIntervalCurrent = RetryIntervalInitial;            //set to initial value  
+
+            while (true)  // always reconnect untill canceled
+            {
+                _client = new GeneralSocketClient();
+                _client.Connect(_endPoint, OnConnectToServerCompleted);
+
+                // pause here untill disconnected from server
+                _clientDisconnected.Reset();
+                _clientDisconnected.WaitOne();
+                
+
+                if (agentStarted)
+                {
+                    Logger.WriteStr("Should be running so will try to reconnect to server in " + _retryIntervalCurrent + "seconds...");
+                    _notifyIconComponent.ShowNotifiction("Will reconnect in " + _retryIntervalCurrent + "sec...");
+                    Thread.Sleep(_retryIntervalCurrent * 1000);
+
+                    //increase interval between reconnects up to retryIntervalMaximum value.
+                    // it needed in case of frequent disconnects / when server is unreacheble
+                    if (_retryIntervalCurrent < RetryIntervalMaximum)
+                        _retryIntervalCurrent += 5;
+                }
+                else
+                {
+                    break;  //exit loop
+                }
+                
+            }
 
             Logger.WriteStr("Client terminated");
-
         }
+
 
         private void OnConnectToServerCompleted(CustomEventArgs args)
         {
-            _client.StartKeepAlives();
+            if (args.LocalEndPoint == null)
+            {
+                _notifyIconComponent.ShowNotifiction("Cannot connect to server. Will retry in " + _retryIntervalCurrent + "sec...");
+                _clientDisconnected.Set();
+                return;
+            }
+
+            _notifyIconComponent.ShowNotifiction("Successfully connected to server");
 
             var idRequest = new IdentificationDataRequest();
             _localEndPoint = args.LocalEndPoint;
@@ -75,15 +112,19 @@ namespace OpenRm.Agent
                               Response = idRequest.ExecuteRequest()
                           };
             _client.Send(message, OnReceivingCompleted);
-
         }
+
 
         private void OnReceivingCompleted(CustomEventArgs args)
         {
-            var requestMessage = args.Result as RequestMessage;
+            var requestMessage = (RequestMessage)args.Result;
+
+            //returned "null" means connection has been closed
             if (requestMessage == null)
             {
-                throw new Exception();
+                _notifyIconComponent.ShowNotifiction("Disconnected from server.");
+                _clientDisconnected.Set();
+                return;
             }
 
             var request = requestMessage.Request;
@@ -101,21 +142,39 @@ namespace OpenRm.Agent
             _client.Send(message, OnReceivingCompleted);
         }
 
+
+        // called from Notification Icon
+        private void StopAgentThread(object sender, EventArgs e)
+        {
+            Logger.WriteStr("--- Stopping Agent by user request... ---");
+            _notifyIconComponent.ShowNotifiction("Still processing previous requests... Will close shortly...");
+            CloseAgent();
+        }
+
+        private void CloseAgent()
+        {
+            if (starterThread != null)
+            {
+                agentStarted = false;
+                if (_client.IsConnected)
+                {
+                    _client.Disconnect(null);
+                }
+                starterThread.Abort();
+                starterThread = null;
+            }
+        }
+
+
         protected override void OnExit(ExitEventArgs e)
         {
             base.OnExit(e);
 
-            if (starterThread != null)
-            {
-                //TODO: close socket, close client
-                //...
-                agentStarted = false;
-                starterThread.Abort();
-                starterThread = null;
-            }
+            CloseAgent();
 
             _notifyIconComponent.Dispose();
         }
+
 
         // read configuration from config file
         private bool ReadConfigFile()

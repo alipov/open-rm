@@ -165,7 +165,7 @@ namespace OpenRm.Common.Entities.Network
                 Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint + 
                     " due to exception:\n" + new SocketException((int)args.SocketError));
                 //CloseConnection(args);
-                ProcessReceiveFailed(args);
+                ProcessReceiveFailure(args);
             }
         }
 
@@ -174,7 +174,7 @@ namespace OpenRm.Common.Entities.Network
         //  "e" represents "readArgs"
         //protected abstract void ProcessReceive(SocketAsyncEventArgs e);
 
-        protected abstract void ProcessReceiveFailed(SocketAsyncEventArgs e);
+        protected abstract void ProcessReceiveFailure(SocketAsyncEventArgs e);
         //{
         //    var token = (AsyncUserTokenBase)e.UserToken;
 
@@ -188,12 +188,11 @@ namespace OpenRm.Common.Entities.Network
         // The method issues another receive on the socket to read client's answer.
         public void SendMessage(AsyncUserTokenBase token, Byte[] msgToSend)
         {
-            // TODO: marked as it throwed exception
-            // pause keep-alive messages (will resume after sending)
-            //token.KeepAliveTimer.Stop();
-
             // do not let sending simultaniously using the same Args object 
             token.writeSemaphore.WaitOne();
+
+            // pause keep-alive messages (will resume after sending)
+            token.KeepAliveTimer.Stop();
 
             string msgText;
             if (msgToSend.Length == 0)
@@ -223,7 +222,7 @@ namespace OpenRm.Common.Entities.Network
             Array.Copy(token.SendingMsg, token.SendingMsgBytesSent, e.Buffer, e.Offset, bytesToTransfer);
             e.SetBuffer(e.Offset, bytesToTransfer);
 
-            bool willRaiseEvent = e.AcceptSocket.SendAsync(e);
+            bool willRaiseEvent = e.AcceptSocket.SendAsync(e);      // calling asynchronous send
             if (!willRaiseEvent)
             {
                 ProcessSend(e);
@@ -255,19 +254,12 @@ namespace OpenRm.Common.Entities.Network
                 // let process another send operation
                 token.writeSemaphore.Release();
 
-                //TODO: commented, as it throws exception
                 // return keep-alive messages 
-                //token.KeepAliveTimer.Start();
-
-                //TODO: remove
-                //// read the answer send from the client
-                ////StartReceive(e);
-
+                token.KeepAliveTimer.Start();
             }
             else
             {
                 Logger.WriteStr(" Message has failed to be sent.");
-                //CloseConnection(e);
                 ProcessSendFailure(args);
             }
         }
@@ -285,5 +277,6 @@ namespace OpenRm.Common.Entities.Network
         protected abstract void ProcessReceivedMessage(SocketAsyncEventArgs e);
         protected abstract void CloseConnection(SocketAsyncEventArgs e);
 
+        protected abstract void ProcessFailure(SocketAsyncEventArgs e);
     }
 }
