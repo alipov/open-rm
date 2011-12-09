@@ -1,13 +1,14 @@
 ﻿using System.ComponentModel;
 using OpenRm.Common.Entities;
 using OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels;
+using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {
     public class AgentSummaryViewModel : IAgentSummaryViewModel, INotifyPropertyChanged
     {
-        private Agent _currentEntity;
-        public Agent CurrentEntity
+        private AgentWrapper _currentEntity;
+        public AgentWrapper CurrentEntity
         {
             get { return _currentEntity; }
             set

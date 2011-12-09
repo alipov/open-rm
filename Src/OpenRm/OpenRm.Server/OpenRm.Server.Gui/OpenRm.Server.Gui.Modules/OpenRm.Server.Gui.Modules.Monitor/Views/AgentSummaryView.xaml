@@ -3,11 +3,54 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk"
-             xmlns:prism="http://www.codeplex.com/prism"
-             mc:Ignorable="d" 
+             xmlns:lb="clr-namespace:OpenRm.Server.Gui.Inf;assembly=OpenRm.Server.Gui.Inf" mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="3*" />
+        </Grid.RowDefinitions>
+        <GroupBox Grid.Row="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Name" />
+                <TextBlock Text="ID" Grid.Row="1"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Row="1">
+        <!--<ScrollViewer Grid.Row="1">-->
+            <ListBox ItemsSource="{Binding CurrentEntity.Log}"
+                     ScrollViewer.CanContentScroll="False"><!--lb:ListBoxBehavior.ScrollOnNewItem="true"-->
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock x:Name="text" TextAlignment="Left" Text="{Binding}" 
+                                       Foreground="Black"/>
+                        <!--<Border x:Name="border" BorderBrush="Bisque" BorderThickness="2" Margin="0" 
+                                Padding="4" CornerRadius="4" ClipToBounds="False">
+                            <TextBlock x:Name="text" TextAlignment="Left" Text="{Binding}" 
+                                       Foreground="Black"/>
+                        </Border>-->
+                        <!--<DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}" Value="True">
+                                <Setter Property="Background" Value="LightBlue" TargetName="border" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType=ListBoxItem}}" Value="False">
+                                <Setter Property="Background" Value="White" TargetName="border" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>-->
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+        <!--</ScrollViewer>-->
+    </Grid>
+    
+    
+    
+    <!--<Grid>
         
         
         
@@ -19,7 +62,6 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.Resources>
-            <!-- TabItem -->
             <Style TargetType="{x:Type TabItem}">
                 <Setter Property="Foreground" Value="Black"/>
                 <Setter Property="Header" Value="{Binding Content.DataContext.HeaderInfo, RelativeSource={RelativeSource Self}}" />
@@ -47,16 +89,18 @@
         
         <TextBlock Text="{Binding CurrentEntity.Name}"/>
 
-        <!--The Tab control defines a region, TabRegion, into which the EmployeeDetailsView and EmployeeProjectsView will be displayed.-->
-        <!--The TabRegion defines a RegionContext which provides a reference to the currently selected employee.-->
-        <TabControl Grid.Row="1" Margin="8"
+        
+    </Grid>-->
+    <!--The Tab control defines a region, TabRegion, into which the EmployeeDetailsView and EmployeeProjectsView will be displayed.-->
+    <!--The TabRegion defines a RegionContext which provides a reference to the currently selected employee.-->
+    <!--<TabControl Grid.Row="1" Margin="8"
                         prism:RegionManager.RegionName="TabRegion"
                         prism:RegionManager.RegionContext="{Binding CurrentEntity}"
                         Width="Auto" Height="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        </TabControl>
+        </TabControl>-->
 
 
-        <!--<Grid.RowDefinitions>
+    <!--<Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -80,5 +124,4 @@
             </StackPanel.Style>
             <ToggleButton Content="Pin" x:Name="LeftPinBtn"/>
         </StackPanel>-->
-    </Grid>
 </UserControl>

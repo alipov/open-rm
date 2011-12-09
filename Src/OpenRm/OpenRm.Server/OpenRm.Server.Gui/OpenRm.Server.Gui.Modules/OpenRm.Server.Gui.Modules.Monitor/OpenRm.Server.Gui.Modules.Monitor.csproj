@@ -87,6 +87,7 @@
     <Compile Include="Converters\StaticConverters.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
     <Compile Include="EventAggregatorMessages\AgentsListUpdated.cs" />
+    <Compile Include="Models\AgentWrapper.cs" />
     <Compile Include="MonitorModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -174,6 +175,13 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Views\Images\RefreshArrow_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\Lock_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\Restart_256x256.png" />
+    <Resource Include="Views\Images\Shutdown_256x256.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

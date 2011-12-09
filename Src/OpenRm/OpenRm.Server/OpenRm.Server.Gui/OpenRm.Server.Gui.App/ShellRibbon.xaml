@@ -37,14 +37,9 @@
                 Margin="8,2,2,8" DockPanel.Dock="Left">
                 <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.LeftContentRegion}" />
             </Border>
-            <StackPanel>
-                <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" Margin="2,2,8,8">
-                    <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.RightContentRegion}" />
-                </Border>
-                <!--<Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" Margin="2,2,8,8">
+            <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" Margin="2,2,8,8">
                 <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.RightContentRegion}" />
-            </Border>-->
-            </StackPanel>
+            </Border>
         </DockPanel>
     </Grid>
 </ribbon:RibbonWindow>

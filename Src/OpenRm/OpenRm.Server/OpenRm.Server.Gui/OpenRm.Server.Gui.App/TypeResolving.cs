@@ -42,7 +42,9 @@ namespace OpenRm.Server.Gui
             //    }
             //}
 
-
+#if DEBUG
+            if (args.Name.Contains("Snoop")) return null;
+#endif
 
             var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
 

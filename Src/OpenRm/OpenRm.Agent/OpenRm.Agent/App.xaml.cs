@@ -94,7 +94,10 @@ namespace OpenRm.Agent
             }
 
             var response = request.ExecuteRequest();
-            var message = new ResponseMessage { Response = response };
+            var message = new ResponseMessage(requestMessage.UniqueID)
+                              {
+                                  Response = response
+                              };
             _client.Send(message, OnReceivingCompleted);
         }
 

@@ -7,6 +7,7 @@ using OpenRm.Server.Gui.Inf.GuiDispatcher;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
 using OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels;
 using OpenRm.Server.Gui.Modules.Monitor.EventAggregatorMessages;
+using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {
@@ -15,23 +16,28 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         private readonly IEventAggregator _eventAggregator;
         private IAgentDataService _dataService;
         public delegate void MethodInvoker();
-        IDispatcher _dispatcher;
+        //IDispatcher _dispatcher;
 
-        public AgentsListViewModel(IAgentDataService dataService, IEventAggregator eventAggregator, IDispatcher dispatcher)
+        public AgentsListViewModel(IAgentDataService dataService, IEventAggregator eventAggregator)//, IDispatcher dispatcher)
         {
             _eventAggregator = eventAggregator;
             _dataService = dataService;
-            AgentsCollection = new ObservableCollection<Agent>();
-            _dispatcher = dispatcher;
+            AgentsCollection = new ObservableCollection<AgentWrapper>();
+            //_dispatcher = dispatcher;
 
             _eventAggregator.GetEvent<AgentsListUpdated>().Subscribe(OnAgentsListUpdated, true);
         }
 
-        public ObservableCollection<Agent> AgentsCollection { get; set; }
+        public ObservableCollection<AgentWrapper> AgentsCollection { get; set; }
 
         private void OnAgentsListUpdated(int id)
         {
-            _dispatcher.Dispatch(DispatcherPriority.DataBind, OnAgentsListUpdatedSafe);
+            //_dispatcher.Dispatch(DispatcherPriority.DataBind, OnAgentsListUpdatedSafe);
+
+            foreach (var agent in _dataService.GetAgents(a => AgentsCollection.All(la => la.ID != a.ID)))
+            {
+                AgentsCollection.Add(agent);
+            }
 
             #region ToDelete
             
@@ -101,8 +107,8 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             }
         }
 
-        private Agent _currentEntity;
-        public Agent CurrentEntity
+        private AgentWrapper _currentEntity;
+        public AgentWrapper CurrentEntity
         {
             get { return _currentEntity; }
             set
