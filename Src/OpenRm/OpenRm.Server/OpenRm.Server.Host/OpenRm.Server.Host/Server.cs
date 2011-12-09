@@ -102,7 +102,7 @@ namespace OpenRm.Server.Host
             {
                 Agent targetAgent = _agents[message.AgentId].Agent;
                 string targetIp = targetAgent.Data.IpConfig.IpAddress;
-                string targetMask = targetAgent.Data.IpConfig.netMask;
+                string targetMask = targetAgent.Data.IpConfig.NetMask;
 
                 bool _notFound = true;
 
@@ -111,7 +111,7 @@ namespace OpenRm.Server.Host
                 {
                     var agentToken = _agents[i];
                     if (NetworkHelper.IsOnSameNetwork(agentToken.Agent.Data.IpConfig.IpAddress,
-                            agentToken.Agent.Data.IpConfig.netMask, targetIp, targetMask)
+                            agentToken.Agent.Data.IpConfig.NetMask, targetIp, targetMask)
                         && agentToken.Agent.Status == (int)EAgentStatus.Online)
                     {
                         // send original message with MAC address to the found agent
@@ -179,10 +179,10 @@ namespace OpenRm.Server.Host
             {
                 // Only New or Reconnected client sends this response
                 var idata = (IdentificationDataResponse)message.Response;
-                Logger.WriteStr(" * Client has connected: " + idata.deviceName);
+                Logger.WriteStr(" * Client has connected: " + idata.DeviceName);
                 
                 // Look if already exist in _agents, and new entry if needed
-                if (_agents.All(a => a.Value.Agent.Data.Idata.deviceName != idata.deviceName))
+                if (_agents.All(a => a.Value.Agent.Data.Idata.DeviceName != idata.DeviceName))
                 {
                     args.Token.Agent = new Agent()
                                            {
@@ -194,7 +194,7 @@ namespace OpenRm.Server.Host
                     var key = Interlocked.Increment(ref _agentsCount);
                     _agents.Add(key, args.Token);
                     args.Token.Agent.ID = key;
-                    args.Token.Agent.Name = args.Token.Agent.Data.Idata.deviceName;
+                    args.Token.Agent.Name = args.Token.Agent.Data.Idata.DeviceName;
                 }
 
                 // Request agent's IP and OS info:
@@ -233,13 +233,15 @@ namespace OpenRm.Server.Host
             else if (message.Response is IpConfigResponse)
             {
                 var ipConf = (IpConfigResponse)message.Response;
-                args.Token.Agent.Data.IpConfig = ipConf;       //store in local "database" only (do not send directly to Console)
+                //store in local "database" only (do not send directly to Console)
+                args.Token.Agent.Data.IpConfig = ipConf;       
 
             }
             else if (message.Response is OsInfoResponse)
             {
                 var osInfo = (OsInfoResponse)message.Response;
-                args.Token.Agent.Data.OS = osInfo;       //store in local "database" only (do not send directly to Console)
+                //store in local "database" only (do not send directly to Console)
+                args.Token.Agent.Data.OS = osInfo;       
 
 
 

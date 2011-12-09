@@ -2,8 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:lb="clr-namespace:OpenRm.Server.Gui.Inf;assembly=OpenRm.Server.Gui.Inf" mc:Ignorable="d" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <Grid.RowDefinitions>
@@ -11,14 +11,81 @@
             <RowDefinition Height="3*" />
         </Grid.RowDefinitions>
         <GroupBox Grid.Row="0">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Name" />
-                <TextBlock Text="ID" Grid.Row="1"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LabelsOne"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"  SharedSizeGroup="ValuesOne"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LabelsTwo"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"  SharedSizeGroup="ValuesTwo"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LabelsTwo"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"  SharedSizeGroup="ValuesTwo"/>
+                    <ColumnDefinition Width="*"  SharedSizeGroup="HiddenColumn"/>
+                    <ColumnDefinition Width="5"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Name:" Grid.Column="1"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.Idata.DeviceName}" Grid.Column="3"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="Serial Number:" Grid.Column="5"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.Idata.SerialNumber}" Grid.Column="7"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="IP Address:" Grid.Column="9"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.IpConfig.IpAddress}" 
+                       Grid.Column="11" VerticalAlignment="Center"/>
+                <TextBlock Text="Subnet Mask:" Grid.Column="1" Grid.Row="1"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.IpConfig.NetMask}" 
+                       Grid.Column="3" Grid.Row="1" VerticalAlignment="Center"/>
+                <TextBlock Text="Default Gateway:" Grid.Column="5" Grid.Row="1"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.IpConfig.DefaultGateway}" 
+                       Grid.Column="7" Grid.Row="1" VerticalAlignment="Center"/>
+                <TextBlock Text="MAC Address:" Grid.Column="9" Grid.Row="1"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.IpConfig.MAC}" 
+                       Grid.Column="11" Grid.Row="1" VerticalAlignment="Center"/>
+
+                <TextBlock Text="Operating System:" Grid.Column="1" Grid.Row="2"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.OS.OsName}" 
+                       Grid.Column="3" Grid.Row="2" VerticalAlignment="Center"/>
+                <TextBlock Text="OS Version:" Grid.Column="5" Grid.Row="2"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.OS.OsVersion}" 
+                       Grid.Column="7" Grid.Row="2" VerticalAlignment="Center"/>
+                <TextBlock Text="OS Architecture:" Grid.Column="9" Grid.Row="2"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.OS.OsArchitecture}" 
+                       Grid.Column="11" Grid.Row="2" VerticalAlignment="Center"/>
+                <TextBlock Text="RAM Size:" Grid.Column="1" Grid.Row="3"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.OS.RamSize}" 
+                       Grid.Column="3" Grid.Row="3" VerticalAlignment="Center"/>
+                <TextBlock Text="System Drive:" Grid.Column="5" Grid.Row="3"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.OS.SystemDrive}" 
+                       Grid.Column="7" Grid.Row="3" VerticalAlignment="Center"/>
+                <TextBlock Text="System Drive Size (in GB):" Grid.Column="9" Grid.Row="3"
+                       VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentEntity.Data.OS.SystemDriveSize}" 
+                       Grid.Column="11" Grid.Row="3" VerticalAlignment="Center"/>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
         <GroupBox Grid.Row="1">
         <!--<ScrollViewer Grid.Row="1">-->

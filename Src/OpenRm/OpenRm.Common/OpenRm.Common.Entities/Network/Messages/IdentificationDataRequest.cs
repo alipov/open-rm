@@ -8,8 +8,8 @@ namespace OpenRm.Common.Entities.Network.Messages
         {
             var id = new IdentificationDataResponse
             {
-                deviceName = Environment.MachineName,
-                sn = WmiQuery.GetWMIdata("Win32_BaseBoard", "SerialNumber")
+                DeviceName = Environment.MachineName,
+                SerialNumber = WmiQuery.GetWMIdata("Win32_BaseBoard", "SerialNumber")
             };
             return id;
         }
