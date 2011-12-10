@@ -39,6 +39,15 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 AgentsCollection.Add(agent);
             }
 
+            foreach (var agentWrapper in AgentsCollection)
+            {
+                var thisAgent = agentWrapper;
+
+                var updatedAgent = _dataService.GetAgents(a => a.ID == thisAgent.ID).Single();
+                thisAgent.Data = updatedAgent.Data;
+                thisAgent.Status = updatedAgent.Status;
+            }
+
             #region ToDelete
             
             //if (_dispatcher.CheckAccess())
@@ -99,13 +108,13 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             #endregion
         }
 
-        private void OnAgentsListUpdatedSafe()
-        {
-            foreach (var agent in _dataService.GetAgents(a => AgentsCollection.All(la => la.ID != a.ID)))
-            {
-                AgentsCollection.Add(agent);
-            }
-        }
+        //private void OnAgentsListUpdatedSafe()
+        //{
+        //    foreach (var agent in _dataService.GetAgents(a => AgentsCollection.All(la => la.ID != a.ID)))
+        //    {
+        //        AgentsCollection.Add(agent);
+        //    }
+        //}
 
         private AgentWrapper _currentEntity;
         public AgentWrapper CurrentEntity

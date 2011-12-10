@@ -3,7 +3,7 @@ using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels
 {
-    public interface IAgentSummaryViewModel : IViewModel
+    public interface IAgentLogViewModel : IViewModel
     {
         AgentWrapper CurrentEntity { get; set; }
     }

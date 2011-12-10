@@ -40,6 +40,7 @@
   <ItemGroup>
     <Reference Include="DynamicDataDisplay">
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\DynamicDataDisplay_v0.3\DynamicDataDisplay.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Practices.Prism">
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Prism.dll</HintPath>
@@ -76,10 +77,14 @@
     <Compile Include="Api\Controllers\IAgentSummaryRegionController.cs" />
     <Compile Include="Api\Services\IAgentDataService.cs" />
     <Compile Include="Api\ViewModels\IAgentDetailsViewModel.cs" />
+    <Compile Include="Api\ViewModels\IAgentLogViewModel.cs" />
+    <Compile Include="Api\ViewModels\IAgentPerformanceViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentsListViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentsRibbonTabViewModel.cs" />
     <Compile Include="Api\ViewModels\IAgentSummaryViewModel.cs" />
     <Compile Include="Api\Views\IAgentDetailsView.cs" />
+    <Compile Include="Api\Views\IAgentLogView.cs" />
+    <Compile Include="Api\Views\IAgentPerformanceView.cs" />
     <Compile Include="Api\Views\IAgentsListView.cs" />
     <Compile Include="Api\Views\IAgentsRibbonTabView.cs" />
     <Compile Include="Api\Views\IAgentSummaryView.cs" />
@@ -109,9 +114,11 @@
     <Compile Include="Services\MessageProxyInstance.cs" />
     <Compile Include="Services\MessageProxyService.cs" />
     <Compile Include="ViewModels\AgentDetailsViewModel.cs" />
+    <Compile Include="ViewModels\AgentLogViewModel.cs" />
+    <Compile Include="ViewModels\AgentPerformanceViewModel.cs" />
     <Compile Include="ViewModels\AgentSummaryViewModel.cs" />
-    <Compile Include="Views\AgentCpuUsageView.xaml.cs">
-      <DependentUpon>AgentCpuUsageView.xaml</DependentUpon>
+    <Compile Include="Views\AgentPerformanceView.xaml.cs">
+      <DependentUpon>AgentPerformanceView.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\AgentsRibbonTabViewModel.cs" />
     <Compile Include="ViewModels\AgentsListViewModel.cs" />
@@ -141,7 +148,7 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Views\AgentCpuUsageView.xaml">
+    <Page Include="Views\AgentPerformanceView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

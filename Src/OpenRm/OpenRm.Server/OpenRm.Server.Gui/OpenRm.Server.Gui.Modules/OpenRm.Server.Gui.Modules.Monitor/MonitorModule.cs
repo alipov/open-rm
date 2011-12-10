@@ -58,6 +58,11 @@ namespace OpenRm.Server.Gui.Modules.Monitor
             _container.RegisterType<IAgentsRibbonTabView, AgentsRibbonTabView>();
             _container.RegisterType<IAgentsRibbonTabViewModel, AgentsRibbonTabViewModel>();
 
+            _container.RegisterType<IAgentLogView, AgentLogView>();
+            _container.RegisterType<IAgentLogViewModel, AgentLogViewModel>();
+            _container.RegisterType<IAgentPerformanceView, AgentPerformanceView>();
+            _container.RegisterType<IAgentPerformanceViewModel, AgentPerformanceViewModel>();
+
             // This is an example of View Discovery which associates the specified view type
             // with a region so that the view will be automatically added to the region when
             // the region is first displayed.
@@ -68,11 +73,13 @@ namespace OpenRm.Server.Gui.Modules.Monitor
             _regionManager.RegisterViewWithRegion(RegionNames.LeftContentRegion,
                                                     () => _container.Resolve<IAgentsListView>());
 
-            // Show the Employee Details and Employee Projects view in the tab region.
-            // The tab region is defined as part of the Employee Summary view which is only
-            // displayed once the user has selected an employee in the Employee List view.
-            //_regionManager.RegisterViewWithRegion(RegionNames.TabRegion,
-            //                                           () => _container.Resolve<IAgentDetailsView>());
+            // Show the agent log view and agent performance view in the tab region.
+            // The tab region is defined as part of the agent summary view which is only
+            // displayed once the user has selected an agent in the agent list view.
+            _regionManager.RegisterViewWithRegion(RegionNames.TabRegion,
+                                                       () => _container.Resolve<IAgentLogView>());
+            _regionManager.RegisterViewWithRegion(RegionNames.TabRegion,
+                                                       () => _container.Resolve<IAgentPerformanceView>());
 
             // Create the summary region controller.
             // This is used to programmatically (using injection) coordinate the view in the summary region 

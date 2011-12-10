@@ -4,8 +4,13 @@ using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {
-    public class AgentSummaryViewModel : IAgentSummaryViewModel, INotifyPropertyChanged
+    public class AgentPerformanceViewModel : IAgentPerformanceViewModel, INotifyPropertyChanged
     {
+        public string Header
+        {
+            get { return "Performance Counters"; }
+        }
+
         private AgentWrapper _currentEntity;
         public AgentWrapper CurrentEntity
         {

@@ -4,8 +4,13 @@ using OpenRm.Server.Gui.Modules.Monitor.Models;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {
-    public class AgentSummaryViewModel : IAgentSummaryViewModel, INotifyPropertyChanged
+    internal class AgentLogViewModel : IAgentLogViewModel, INotifyPropertyChanged
     {
+        public string Header
+        {
+            get { return "Commands Log"; }
+        }
+
         private AgentWrapper _currentEntity;
         public AgentWrapper CurrentEntity
         {
