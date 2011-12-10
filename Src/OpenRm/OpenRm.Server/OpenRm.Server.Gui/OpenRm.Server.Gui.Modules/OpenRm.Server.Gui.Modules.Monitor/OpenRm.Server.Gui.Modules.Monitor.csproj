@@ -38,6 +38,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DynamicDataDisplay">
+      <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\DynamicDataDisplay_v0.3\DynamicDataDisplay.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Practices.Prism">
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Prism.dll</HintPath>
       <Private>False</Private>
@@ -106,8 +109,11 @@
     <Compile Include="Services\MessageProxyInstance.cs" />
     <Compile Include="Services\MessageProxyService.cs" />
     <Compile Include="ViewModels\AgentDetailsViewModel.cs" />
-    <Compile Include="ViewModels\AgentsRibbonTabViewModel.cs" />
     <Compile Include="ViewModels\AgentSummaryViewModel.cs" />
+    <Compile Include="Views\AgentCpuUsageView.xaml.cs">
+      <DependentUpon>AgentCpuUsageView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\AgentsRibbonTabViewModel.cs" />
     <Compile Include="ViewModels\AgentsListViewModel.cs" />
     <Compile Include="Views\AgentDetailsView.xaml.cs">
       <DependentUpon>AgentDetailsView.xaml</DependentUpon>
@@ -135,6 +141,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Views\AgentCpuUsageView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\AgentDetailsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
