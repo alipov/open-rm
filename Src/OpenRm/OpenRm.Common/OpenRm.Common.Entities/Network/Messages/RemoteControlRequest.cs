@@ -19,7 +19,7 @@ namespace OpenRm.Common.Entities.Network.Messages
         public override ResponseBase ExecuteRequest()
         {
             string vncDir = "..\\Common\\ThirdParty\\VNC\\";
-            string vncName = "OpenRM.winvnc.exe";
+            string vncName = "winvnc.exe";
             bool running = true;
             var result = new RunProcessResponse();
 
