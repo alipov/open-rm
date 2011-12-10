@@ -55,7 +55,6 @@
     <Compile Include="ClientData.cs" />
     <Compile Include="Enums\EAgentStatus.cs" />
     <Compile Include="Enums\EMessageType.cs" />
-    <Compile Include="Enums\EOpCode.cs" />
     <Compile Include="Executors\PingExecutor.cs" />
     <Compile Include="Executors\ShutdownExecutor.cs" />
     <Compile Include="Logger.cs" />

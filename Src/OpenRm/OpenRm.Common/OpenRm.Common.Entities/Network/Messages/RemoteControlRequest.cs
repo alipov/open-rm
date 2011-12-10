@@ -7,7 +7,7 @@ namespace OpenRm.Common.Entities.Network.Messages
         public string ViewerIp;
         public int ViewerPort;
 
-        public  RemoteControlRequest() { }
+        public RemoteControlRequest() { }
 
         public RemoteControlRequest(string viewerIp, int viewerPort)
         {
@@ -19,12 +19,12 @@ namespace OpenRm.Common.Entities.Network.Messages
         public override ResponseBase ExecuteRequest()
         {
             string vncDir = "..\\Common\\ThirdParty\\VNC\\";
-            string vncName = "winvnc.exe";
+            string vncName = "OpenRM.winvnc.exe";
             bool running = true;
             var result = new RunProcessResponse();
 
             // Start VNC Server
-            if (! IsProcessRunning(vncName))
+            if (!IsProcessRunning(vncName))
             {
                 var proc = new RunProcessRequest(
                     runId: 0,
@@ -35,7 +35,7 @@ namespace OpenRm.Common.Entities.Network.Messages
                     hidden: true,
                     wait: false);
 
-                result = (RunProcessResponse) proc.ExecuteRequest();
+                result = (RunProcessResponse)proc.ExecuteRequest();
                 if (result.ExitCode > 0)
                 {
                     running = false;
@@ -81,7 +81,7 @@ namespace OpenRm.Common.Entities.Network.Messages
         {
             Process[] processlist = Process.GetProcesses();
 
-            foreach(Process process in processlist)
+            foreach (Process process in processlist)
             {
                 if ((process.ProcessName + ".exe").ToLower() == processName.ToLower())
                     return true;
