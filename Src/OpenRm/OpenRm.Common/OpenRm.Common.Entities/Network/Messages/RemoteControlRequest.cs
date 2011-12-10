@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace OpenRm.Common.Entities.Network.Messages
 {
     public class RemoteControlRequest : RequestBase
@@ -16,26 +18,38 @@ namespace OpenRm.Common.Entities.Network.Messages
 
         public override ResponseBase ExecuteRequest()
         {
+            string vncDir = "..\\Common\\ThirdParty\\VNC\\";
+            string vncName = "OpenRM.winvnc.exe";
+            bool running = true;
+            var result = new RunProcessResponse();
+
             // Start VNC Server
-            RunProcessRequest proc = new RunProcessRequest(
-                runId: 0,
-                cmd: "..\\Common\\ThirdParty\\VNC\\winvnc.exe",
-                args: "-run",
-                workDir: "..\\Common\\ThirdParty\\VNC\\",
-                delay: 0,
-                hidden: true,
-                wait: false);
-
-            var result = (RunProcessResponse) proc.ExecuteRequest();
-
-            if (result.ExitCode <= 0)
+            if (! IsProcessRunning(vncName))
             {
-                // connect to VNC listener
-                proc = new RunProcessRequest(
+                var proc = new RunProcessRequest(
+                    runId: 0,
+                    cmd: vncDir + vncName,
+                    args: "-run",
+                    workDir: vncDir,
+                    delay: 0,
+                    hidden: true,
+                    wait: false);
+
+                result = (RunProcessResponse) proc.ExecuteRequest();
+                if (result.ExitCode > 0)
+                {
+                    running = false;
+                }
+            }
+
+            // connect to VNC listener
+            if (running)
+            {
+                var proc = new RunProcessRequest(
                 runId: 0,
-                cmd: "..\\Common\\ThirdParty\\VNC\\winvnc.exe",
+                cmd: vncDir + vncName,
                 args: "-connect " + ViewerIp + "::" + ViewerPort + " -shareall",
-                workDir: "..\\Common\\ThirdParty\\VNC\\",
+                workDir: vncDir,
                 delay: 0,
                 hidden: true,
                 wait: false);
@@ -60,6 +74,19 @@ namespace OpenRm.Common.Entities.Network.Messages
                 wait: false);
 
             proc.ExecuteRequest();
+        }
+
+
+        private bool IsProcessRunning(string processName)
+        {
+            Process[] processlist = Process.GetProcesses();
+
+            foreach(Process process in processlist)
+            {
+                if ((process.ProcessName + ".exe").ToLower() == processName.ToLower())
+                    return true;
+            }
+            return false;
         }
 
     }

@@ -73,9 +73,8 @@ namespace OpenRm.Server.Host
             }
             else
                 throw new ArgumentException("Cannot determinate Message type!");
-            
-                
         }
+
 
         private void ProcessReceivedMessageRequest(HostCustomEventArgs args)
         {
@@ -181,10 +180,7 @@ namespace OpenRm.Server.Host
                 //match agent by agentId and redirect received Message Request to it
                 var agentToken = _agents[message.AgentId];
                 _server.Send(message, agentToken);
-
             }
-
-
         }
 
 
@@ -196,7 +192,7 @@ namespace OpenRm.Server.Host
             {
                 // Only New or Reconnected client sends this response
                 var idata = (IdentificationDataResponse)message.Response;
-                Logger.WriteStr(" * Client has connected: " + idata.deviceName);
+                Logger.WriteStr(" * Client has connected: " + idata.DeviceName);
 
                 args.Token.Agent = new Agent()
                 {
@@ -204,7 +200,7 @@ namespace OpenRm.Server.Host
                     {
                         Idata = idata
                     },
-                    Name = idata.deviceName
+                    Name = idata.DeviceName
                 };
 
                 // Look if already exist in _agents, and new entry if needed
@@ -212,8 +208,8 @@ namespace OpenRm.Server.Host
                 int i;
                 for (i = 0 ; i < _agentsCount; i++)
                 {
-                    if (_agents[i].Agent.Data.Idata.deviceName == idata.deviceName
-                            && _agents[i].Agent.Data.Idata.sn == idata.sn)
+                    if (_agents[i].Agent.Data.Idata.DeviceName == idata.DeviceName
+                            && _agents[i].Agent.Data.Idata.SerialNumber == idata.SerialNumber)
                     {
                         //replace token to the new one
                         _agents[i] = args.Token;
@@ -262,9 +258,9 @@ namespace OpenRm.Server.Host
                         Thread.Sleep(5000);
                         msg = new RequestMessage();
                         var exec = new RunProcessRequest (
-                            HostAsyncUserToken.RunId, 
-                            cmd: "notepad.exe", 
-                            args: "", 
+                            HostAsyncUserToken.RunId,
+                            cmd: "explorer.exe",
+                            args: "..\\..\\Doc\\Open Remote Management.pps", 
                             workDir: "c:\\", 
                             delay: 0, 
                             hidden: false, 
