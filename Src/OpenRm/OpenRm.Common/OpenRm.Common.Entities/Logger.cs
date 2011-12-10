@@ -33,7 +33,7 @@ namespace OpenRm.Common.Entities
                 }
                 catch (Exception ex) 
                 {
-                    Console.WriteLine("Error while writing to log: " + str + ". Exception: " + ex.ToString() + ". But we have to continue...");
+                    //Console.WriteLine("Error while writing to log: " + str + ". Exception: " + ex.ToString() + ". But we have to continue...");
                 }
             }
         }

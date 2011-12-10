@@ -16,7 +16,8 @@ namespace OpenRm.Agent
     public partial class App : Application
     {
         public static bool agentStarted = false;            // flag that indicates current status of agent. can be changed by pressing "Stop Agent" control
-        private IPEndPoint _endPoint;
+        private IPEndPoint _serverEndPoint;             //got from configuration file
+        private IPEndPoint _newServerEndPoint = null;          //got from GUI
         private string _logFilenamePattern;
         private static Thread starterThread;
         private IMessageClient _client;
@@ -43,6 +44,7 @@ namespace OpenRm.Agent
             _notifyIconComponent = new NotifyIconWrapper();
             _notifyIconComponent.StartAgentClick += StartAgentThread;
             _notifyIconComponent.StopAgentClick += StopAgentThread;
+            _notifyIconComponent.SettingsAgentChanged += UpdateServerIpEndpoint;
         }
 
         // called from Notification Icon
@@ -56,6 +58,9 @@ namespace OpenRm.Agent
         {
             if (!ReadConfigFile()) return; //TODO: close application? notify user?
 
+            if (_newServerEndPoint != null)
+                _serverEndPoint = _newServerEndPoint;       //override configuration file
+
             Logger.CreateLogFile("logs", _logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
             Logger.WriteStr("+++ Starting Agent by user request... +++");
 
@@ -65,7 +70,7 @@ namespace OpenRm.Agent
             while (true)  // always reconnect untill canceled
             {
                 _client = new GeneralSocketClient();
-                _client.Connect(_endPoint, OnConnectToServerCompleted);
+                _client.Connect(_serverEndPoint, OnConnectToServerCompleted);
 
                 // pause here untill disconnected from server
                 _clientDisconnected.Reset();
@@ -176,6 +181,15 @@ namespace OpenRm.Agent
         }
 
 
+        private void UpdateServerIpEndpoint(object sender, EventArgs e)
+        {
+            if (e is AgentEventArgs)
+            {
+                _newServerEndPoint = ((AgentEventArgs) e).ServerEP;
+            }
+
+        }
+
         // read configuration from config file
         private bool ReadConfigFile()
         {
@@ -183,7 +197,7 @@ namespace OpenRm.Agent
             {
                 var ip = ConfigurationManager.AppSettings["ServerIP"];
                 var port = Int32.Parse(ConfigurationManager.AppSettings["ServerPort"]);
-                _endPoint = new IPEndPoint(IPAddress.Parse(ip), port);
+                _serverEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
                 _logFilenamePattern = ConfigurationManager.AppSettings["LogFilePattern"];
             }
             catch (Exception ex)
