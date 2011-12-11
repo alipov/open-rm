@@ -200,6 +200,9 @@
     <Resource Include="Views\Images\Restart_256x256.png" />
     <Resource Include="Views\Images\Shutdown_256x256.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\RemoteControl_32x32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
