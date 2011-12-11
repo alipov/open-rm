@@ -31,6 +31,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             LockSessionCommand = new DelegateCommand(LockSession);
             RestartCommand = new DelegateCommand(Restart);
             ShutDownCommand = new DelegateCommand(ShutDown);
+            RemoteControlCommand = new DelegateCommand(RemoteControl);
         }
 
         private AgentWrapper _currentEntity;
@@ -53,6 +54,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         public ICommand LockSessionCommand { get; private set; }
         public ICommand RestartCommand { get; private set; }
         public ICommand ShutDownCommand { get; private set; }
+        public ICommand RemoteControlCommand { get; private set; }
 
         private bool _isConnectEnabled;
         public bool IsConnectEnabled
@@ -147,14 +149,14 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void Restart()
         {
-            var lockSessionMessage = new RequestMessage()
+            var restartMessage = new RequestMessage()
             {
                 Request = new RestartRequest(),
                 AgentId = CurrentEntity.ID
             };
 
             var proxy = _container.Resolve<IMessageProxyInstance>();
-            proxy.Send(lockSessionMessage, OnRestartCompleted);
+            proxy.Send(restartMessage, OnRestartCompleted);
         }
 
         private void OnRestartCompleted(CustomEventArgs args)
@@ -170,14 +172,14 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void ShutDown()
         {
-            var lockSessionMessage = new RequestMessage()
+            var shutdownMessage = new RequestMessage()
             {
                 Request = new ShutdownRequest(),
                 AgentId = CurrentEntity.ID
             };
 
             var proxy = _container.Resolve<IMessageProxyInstance>();
-            proxy.Send(lockSessionMessage, OnShutDownCompleted);
+            proxy.Send(shutdownMessage, OnShutDownCompleted);
         }
 
         private void OnShutDownCompleted(CustomEventArgs args)
@@ -190,6 +192,39 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 CurrentEntity.Log.Add(response.ToString());
             }
         }
+
+
+        private void RemoteControl()
+        {
+            string consoleIp = "";  //TODO:  !!!!!!
+            var scRequest = new RemoteControlRequest(consoleIp, 5555);
+
+            //launch VNC viewer on local computer
+            scRequest.StartVncListerner();
+
+            var remoteControlMessage = new RequestMessage()
+            {
+                Request = scRequest,
+                AgentId = CurrentEntity.ID
+            };
+
+            var proxy = _container.Resolve<IMessageProxyInstance>();
+            proxy.Send(remoteControlMessage, OnRestartCompleted);
+        }
+
+        private void OnRemoteControlCompleted(CustomEventArgs args)
+        {
+            if (args.Status == SocketError.Success)
+            {
+                var message = (ResponseMessage)args.Result;
+                var response = (RemoteControlResponse)message.Response;
+                if (response.ErrorMessage != "")
+                    CurrentEntity.Log.Add(response.ErrorMessage);
+                else
+                    CurrentEntity.Log.Add("Successfully launched Remote Contol on remote computer.");
+            }
+        }
+
 
         private List<AgentWrapper> WrapAgents(IEnumerable<Agent> agents)
         {

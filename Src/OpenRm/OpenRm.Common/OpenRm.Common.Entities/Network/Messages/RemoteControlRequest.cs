@@ -64,16 +64,23 @@ namespace OpenRm.Common.Entities.Network.Messages
         // used by Console: starts VNC viewer on Console's computer
         public void StartVncListerner()
         {
-            var proc = new RunProcessRequest(
+            string vncViewName = "OpenRM.vncview.exe";
+
+            if (!IsProcessRunning(vncViewName))
+            {
+                var proc = new RunProcessRequest(
                 runId: 0,
-                cmd: "..\\Common\\ThirdParty\\VNC\\vncview.exe",
+                cmd: "..\\Common\\ThirdParty\\VNC\\" + vncViewName,
                 args: "/listen " + ViewerPort,
                 workDir: "..\\Common\\ThirdParty\\VNC\\",
                 delay: 0,
                 hidden: false,
                 wait: false);
 
-            proc.ExecuteRequest();
+                proc.ExecuteRequest();    
+            }
+
+            
         }
 
 
