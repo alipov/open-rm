@@ -18,6 +18,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
     {
         private readonly IAgentDataService _dataService;
         private readonly IUnityContainer _container;
+        private string sourceIP = "";
         
         public AgentsRibbonTabViewModel(IUnityContainer container, IAgentDataService dataService)
         {
@@ -74,7 +75,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         {
             var messageClient = _container.Resolve<IMessageClient>();
             messageClient.Connect(
-                new IPEndPoint(IPAddress.Loopback, 3777),  OnConnectToServerCompleted);
+                new IPEndPoint(IPAddress.Loopback, 3777),  OnConnectToServerCompleted);     //TODO:  why Loopback???
         }
 
         private void ListInstalledPrograms()
@@ -103,6 +104,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         private void OnConnectToServerCompleted(CustomEventArgs args)
         {
             IsConnectEnabled = false;
+            sourceIP = args.LocalEndPoint.Address.ToString();
         }
 
         private void RefreshAgentsList()
@@ -120,7 +122,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         {
             var message = (ResponseMessage) args.Result;
             var response = (ListAgentsResponse) message.Response;
-
+            
             _dataService.SetAgents(WrapAgents(response.Agents));
         }
 
@@ -196,7 +198,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void RemoteControl()
         {
-            string consoleIp = "";  //TODO:  !!!!!!
+            string consoleIp = sourceIP;
             var scRequest = new RemoteControlRequest(consoleIp, 5555);
 
             //launch VNC viewer on local computer
@@ -209,7 +211,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             };
 
             var proxy = _container.Resolve<IMessageProxyInstance>();
-            proxy.Send(remoteControlMessage, OnRestartCompleted);
+            proxy.Send(remoteControlMessage, OnRemoteControlCompleted);
         }
 
         private void OnRemoteControlCompleted(CustomEventArgs args)

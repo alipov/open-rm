@@ -16,7 +16,7 @@
                                         Converter={x:Static Converters:StaticConverters.InvertBoolConverter}}"/>
     </ribbon:RibbonGroup>
     <ribbon:RibbonGroup Header="Commands">
-        <ribbon:RibbonButton LargeImageSource="Images\AddRemovePrograms_125x125.jpg"  
+        <ribbon:RibbonButton LargeImageSource="Images\software_64x64.png"  
                              Label="Installed Programs"
                              Command="{Binding InstalledProgramsCommand}"
                              IsEnabled="{Binding CurrentEntity, 
@@ -25,23 +25,23 @@
                              Command="{Binding LockSessionCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\Restart_256x256.png" Label="Restart" 
+        <ribbon:RibbonButton LargeImageSource="Images\Restart_64x64.png" Label="Restart" 
                              Command="{Binding RestartCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\Shutdown_256x256.png" Label="Shut Down" 
+        <ribbon:RibbonButton LargeImageSource="Images\Shutdown_64x64.png" Label="Shut Down" 
                              Command="{Binding ShutDownCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Remote Control" 
+        <ribbon:RibbonButton LargeImageSource="Images\RemoteControl_32x32.png" Label="Remote Control" 
+                             Command="{Binding RemoteControlCommand}"
+                             IsEnabled="{Binding CurrentEntity, 
+                                        Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\wol_64x64.png" Label="Wake on Lan" 
                              Command="{Binding RefreshAgentsCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Wake on Lan" 
-                             Command="{Binding RefreshAgentsCommand}"
-                             IsEnabled="{Binding CurrentEntity, 
-                                        Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\RefreshArrow_32x32.png" Label="Performance Monitor" 
+        <ribbon:RibbonButton LargeImageSource="Images\perfmon_64x64.png" Label="Performance Monitor" 
                              Command="{Binding RefreshAgentsCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
