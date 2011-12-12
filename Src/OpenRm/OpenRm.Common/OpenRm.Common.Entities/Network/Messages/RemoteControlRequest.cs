@@ -1,4 +1,6 @@
+using System;
 using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace OpenRm.Common.Entities.Network.Messages
 {
@@ -20,26 +22,39 @@ namespace OpenRm.Common.Entities.Network.Messages
         {
             string vncDir = "..\\Common\\ThirdParty\\VNC\\";
             string vncName = "OpenRM.winvnc.exe";
-            bool running = true;
+            bool running = false;
             var result = new RunProcessResponse();
 
             // Start VNC Server
             if (!IsProcessRunning(vncName))
             {
-                var proc = new RunProcessRequest(
-                    runId: 0,
-                    cmd: vncDir + vncName,
-                    args: "-run",
-                    workDir: vncDir,
-                    delay: 0,
-                    hidden: true,
-                    wait: false);
-
-                result = (RunProcessResponse)proc.ExecuteRequest();
-                if (result.ExitCode > 0)
+                //add registry settings
+                byte[] pass = {1, 2, 3, 4, 5, 6, 7, 8};
+                try
                 {
-                    running = false;
+                    Registry.SetValue("HKEY_CURRENT_USER\\Software\\ORL\\WinVNC3", "Password", pass,
+                                      RegistryValueKind.Binary);
+
+                    var proc = new RunProcessRequest(
+                        runId: 0,
+                        cmd: vncDir + vncName,
+                        args: "-run",
+                        workDir: vncDir,
+                        delay: 0,
+                        hidden: true,
+                        wait: false);
+
+                    result = (RunProcessResponse) proc.ExecuteRequest();
+                    if (result.ExitCode == 0)
+                    {
+                        running = true;
+                    }
                 }
+                catch (Exception ex)
+                {
+                    Logger.WriteStr(" Cannot start VNC server due to error: " + ex.Message);
+                }
+
             }
 
             // connect to VNC listener
