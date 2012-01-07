@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
@@ -32,6 +33,9 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             LockSessionCommand = new DelegateCommand(LockSession);
             RestartCommand = new DelegateCommand(Restart);
             ShutDownCommand = new DelegateCommand(ShutDown);
+            CommonCommand = new DelegateCommand(CommonExecute);
+            SelectedComboBoxValue = "Ping";
+            CommonCommandParameter = "tt";
             RemoteControlCommand = new DelegateCommand(RemoteControl);
         }
 
@@ -55,6 +59,35 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         public ICommand LockSessionCommand { get; private set; }
         public ICommand RestartCommand { get; private set; }
         public ICommand ShutDownCommand { get; private set; }
+        public ICommand CommonCommand { get; private set; }
+
+        private string _selectedComboBoxValue;
+        public string SelectedComboBoxValue
+        {
+            get { return _selectedComboBoxValue; }
+            set
+            {
+                if (value != _selectedComboBoxValue)
+                {
+                    _selectedComboBoxValue = value;
+                    NotifyPropertyChanged("SelectedComboBoxValue");
+                }
+            }
+        }
+
+        private string _commonCommandParameter;
+        public string CommonCommandParameter
+        {
+            get { return _commonCommandParameter; }
+            set
+            {
+                if (value != _commonCommandParameter)
+                {
+                    _commonCommandParameter = value;
+                    NotifyPropertyChanged("CommonCommandParameter");
+                }
+            }
+        }
         public ICommand RemoteControlCommand { get; private set; }
 
         private bool _isConnectEnabled;
@@ -194,6 +227,36 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 CurrentEntity.Log.Add(response.ToString());
             }
         }
+
+        private void CommonExecute()
+        {
+            var message = new RequestMessage()
+                                  {
+                                      AgentId = CurrentEntity.ID
+                                  };
+            
+            if (SelectedComboBoxValue == "Ping")
+                message.Request = new PingRequest(0, CommonCommandParameter);
+            else if(SelectedComboBoxValue == "TraceRoute")
+                message.Request = new TraceRouteRequest(0, CommonCommandParameter);
+            else
+              throw new Exception();
+            
+            var proxy = _container.Resolve<IMessageProxyInstance>();
+            proxy.Send(message, OnCommonExecuteCompleted);
+        }
+
+        private void OnCommonExecuteCompleted(CustomEventArgs args)
+        {
+            if (args.Status == SocketError.Success)
+            {
+                var message = (ResponseMessage)args.Result;
+                var response = (RunCommonResponse)message.Response;
+
+                CurrentEntity.Log.Add(response.ToString());
+            }
+        }
+
 
 
         private void RemoteControl()

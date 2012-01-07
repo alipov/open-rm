@@ -38,50 +38,50 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Views
 
 
 
-        const int N = 1000;         //maximum length
-        private double[] xData;
-        private double[] yData;
-        private LineGraph graph;
-        EnumerableDataSource<double> animatedDataSource = null;
+        //const int N = 1000;         //maximum length
+        //private double[] xData;
+        //private double[] yData;
+        //private LineGraph graph;
+        //EnumerableDataSource<double> animatedDataSource = null;
 
-        public void AddCpuUageValue(int cpuValue)
-        {
-            double[] xDataPrev = xData;
-            double[] yDataPrev = yData;
-            xData = new double[xDataPrev.Length + 1];
-            yData = new double[xDataPrev.Length + 1];
-            Array.Copy(xDataPrev, xData, xDataPrev.Length);
-            Array.Copy(yDataPrev, yData, yDataPrev.Length);
+        //public void AddCpuUageValue(int cpuValue)
+        //{
+        //    double[] xDataPrev = xData;
+        //    double[] yDataPrev = yData;
+        //    xData = new double[xDataPrev.Length + 1];
+        //    yData = new double[xDataPrev.Length + 1];
+        //    Array.Copy(xDataPrev, xData, xDataPrev.Length);
+        //    Array.Copy(yDataPrev, yData, yDataPrev.Length);
 
-            //add new values
-            xData[xData.Length - 1] = xData[xData.Length - 2] + 1;  //add 1 to last value
-            yData[yData.Length - 1] = cpuValue;
+        //    //add new values
+        //    xData[xData.Length - 1] = xData[xData.Length - 2] + 1;  //add 1 to last value
+        //    yData[yData.Length - 1] = cpuValue;
 
-            graph.Description = new PenDescription(String.Format("CPU - {0}%", cpuValue));
-
-
-            // update graph
-            animatedDataSource.RaiseDataChanged();
-        }
+        //    graph.Description = new PenDescription(String.Format("CPU - {0}%", cpuValue));
 
 
-        void AgentCpuUageView_Loaded(object sender, RoutedEventArgs e)
-        {
-            //xData = new double[1];
-            //yData = new double[1];
+        //    // update graph
+        //    animatedDataSource.RaiseDataChanged();
+        //}
 
-            var xSrc = new EnumerableDataSource<double>(xData);
-            xSrc.SetXMapping(x => x);
-            animatedDataSource = new EnumerableDataSource<double>(yData);
-            animatedDataSource.SetYMapping(y => y);
 
-            //// Adding graph to plotter
-            //graph = CpuPlotter.AddLineGraph(new CompositeDataSource(xSrc, animatedDataSource),
-            //    new Pen(Brushes.Goldenrod, 2),
-            //    new PenDescription("cpu %"));
+        //void AgentCpuUageView_Loaded(object sender, RoutedEventArgs e)
+        //{
+        //    //xData = new double[1];
+        //    //yData = new double[1];
 
-            //// Force evertyhing plotted to be visible
-            //CpuPlotter.FitToView();
-        }
+        //    var xSrc = new EnumerableDataSource<double>(xData);
+        //    xSrc.SetXMapping(x => x);
+        //    animatedDataSource = new EnumerableDataSource<double>(yData);
+        //    animatedDataSource.SetYMapping(y => y);
+
+        //    // Adding graph to plotter
+        //    graph = CpuPlotter.AddLineGraph(new CompositeDataSource(xSrc, animatedDataSource),
+        //        new Pen(Brushes.Goldenrod, 2),
+        //        new PenDescription("cpu %"));
+
+        //    // Force evertyhing plotted to be visible
+        //    CpuPlotter.FitToView();
+        //}
     }
 }

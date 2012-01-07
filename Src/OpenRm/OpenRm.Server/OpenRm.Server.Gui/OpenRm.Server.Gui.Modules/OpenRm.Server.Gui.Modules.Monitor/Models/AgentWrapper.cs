@@ -76,12 +76,71 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Models
             }
         }
 
+        private ObservableCollection<IntDateTimeObject> _performanceCpu;
+        public ObservableCollection<IntDateTimeObject> PerformanceCpu
+        {
+            get { return _performanceCpu; }
+            set
+            {
+                if (value != _performanceCpu)
+                {
+                    _performanceCpu = value;
+                    NotifyPropertyChanged("PerformanceCpu");
+                }
+            }
+        }
+
+        private ObservableCollection<IntDateTimeObject> _performanceRam;
+        public ObservableCollection<IntDateTimeObject> PerformanceRam
+        {
+            get { return _performanceRam; }
+            set
+            {
+                if (value != _performanceRam)
+                {
+                    _performanceRam = value;
+                    NotifyPropertyChanged("PerformanceRam");
+                }
+            }
+        }
+
+        private ObservableCollection<IntDateTimeObject> _performanceFreeDisc;
+        public ObservableCollection<IntDateTimeObject> PerformanceFreeDisc
+        {
+            get { return _performanceFreeDisc; }
+            set
+            {
+                if (value != _performanceFreeDisc)
+                {
+                    _performanceFreeDisc = value;
+                    NotifyPropertyChanged("PerformanceFreeDisc");
+                }
+            }
+        }
+
+        private ObservableCollection<IntDateTimeObject> _performanceDiscQueue;
+        public ObservableCollection<IntDateTimeObject> PerformanceDiscQueue
+        {
+            get { return _performanceDiscQueue; }
+            set
+            {
+                if (value != _performanceDiscQueue)
+                {
+                    _performanceDiscQueue = value;
+                    NotifyPropertyChanged("PerformanceDiscQueue");
+                }
+            }
+        }
 
         public AgentWrapper()
         {
             //TODO: maybe initialize all variables?
             Data = new ClientData();
             Log = new ObservableCollection<string>();
+            PerformanceCpu = new ObservableCollection<IntDateTimeObject>();
+            PerformanceDiscQueue = new ObservableCollection<IntDateTimeObject>();
+            PerformanceFreeDisc = new ObservableCollection<IntDateTimeObject>();
+            PerformanceRam = new ObservableCollection<IntDateTimeObject>();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
