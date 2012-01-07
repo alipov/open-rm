@@ -54,6 +54,10 @@
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\WpfRibbon_v4\RibbonControlsLibrary.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="StockTraderRI.ChartControls">
+      <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\StockTraderRI.ChartControls.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -90,12 +94,14 @@
     <Compile Include="Api\Views\IAgentSummaryView.cs" />
     <Compile Include="Controllers\AgentRibbonRegionController.cs" />
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
+    <Compile Include="Converters\DummyValueConverter.cs" />
     <Compile Include="Converters\InstanceToBooleanConverter.cs" />
     <Compile Include="Converters\InvertBoolConverter.cs" />
     <Compile Include="Converters\StaticConverters.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
     <Compile Include="EventAggregatorMessages\AgentsListUpdated.cs" />
     <Compile Include="Models\AgentWrapper.cs" />
+    <Compile Include="Models\IntDateTimeObject.cs" />
     <Compile Include="MonitorModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

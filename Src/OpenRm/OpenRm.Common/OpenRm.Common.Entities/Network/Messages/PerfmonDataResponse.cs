@@ -5,6 +5,6 @@
         public int CPUuse;              // in %
         public int RAMfree;             // in Mb
         public int DiskFree;            // in Mb
-        public float DiskQueue;         // Averege disk queue length
+        public int DiskQueue;         // Averege disk queue length
     }
 }

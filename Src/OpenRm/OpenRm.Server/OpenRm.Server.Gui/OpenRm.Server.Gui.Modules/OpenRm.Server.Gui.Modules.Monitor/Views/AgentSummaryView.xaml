@@ -94,6 +94,7 @@
         <TabControl Grid.Row="1" Margin="8"
                         prism:RegionManager.RegionName="TabRegion"
                         prism:RegionManager.RegionContext="{Binding CurrentEntity}"
+                        SelectedIndex="{Binding SelectedTabIndex, Mode=OneWayToSource}"
                         Width="Auto" Height="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TabControl.ItemContainerStyle>
                 <Style TargetType="{x:Type TabItem}">

@@ -16,8 +16,8 @@ namespace OpenRm.Common.Entities.Network.Messages
             pf.RAMfree = Int32.Parse(WmiQuery.GetWMIdata("Win32_PerfFormattedData_PerfOS_Memory", "AvailableMBytes"));
             string[] properties = new string[] { "FreeMegabytes", "AvgDiskQueueLength" };
             Dictionary<string, string> values = WmiQuery.GetWMIdata("Win32_PerfFormattedData_PerfDisk_LogicalDisk", properties, "Name", DriveName);
-            pf.DiskFree = Int32.Parse(values["FreeMegabytes"]);
-            pf.DiskQueue = Int32.Parse(values["AvgDiskQueueLength"]);
+            //pf.DiskFree = Int32.Parse(values["FreeMegabytes"]);
+            //pf.DiskQueue = Int32.Parse(values["AvgDiskQueueLength"]);
 
             return pf;
         }
