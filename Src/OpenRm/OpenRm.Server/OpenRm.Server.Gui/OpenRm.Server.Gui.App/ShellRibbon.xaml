@@ -6,7 +6,7 @@
         xmlns:prism="http://www.codeplex.com/prism"
         xmlns:loc="clr-namespace:OpenRm.Server.Gui.Inf;assembly=OpenRm.Server.Gui.Inf"
         Title="OpenRM Host Console"
-        Width="640" Height="480">
+        Width="800" Height="600">
     <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

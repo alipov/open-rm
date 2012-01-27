@@ -12,5 +12,12 @@ namespace OpenRm.Common.Entities.Network.Messages
             Succeeded = success;
             RunId = runId;
         }
+
+        public override string ToString()
+        {
+            if (Succeeded)
+                return "Wake on LAN succeeded.";
+            return "Wake on LAN failed.";
+        }
     }
 }
