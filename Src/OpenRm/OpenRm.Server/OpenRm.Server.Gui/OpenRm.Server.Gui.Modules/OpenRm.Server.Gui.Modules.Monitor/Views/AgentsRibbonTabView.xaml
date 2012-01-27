@@ -39,13 +39,13 @@
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
         <ribbon:RibbonButton LargeImageSource="Images\wol_64x64.png" Label="Wake on Lan" 
-                             Command="{Binding RefreshAgentsCommand}"
+                             Command="{Binding WakeOnLanCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\perfmon_64x64.png" Label="Performance Monitor" 
+        <!--<ribbon:RibbonButton LargeImageSource="Images\perfmon_64x64.png" Label="Performance Monitor" 
                              Command="{Binding RefreshAgentsCommand}"
                              IsEnabled="{Binding CurrentEntity, 
-                                        Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
+                                        Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>-->
 
 
         <!--Converter={x:Static Converters:StaticConverters.DummyValueConverter}-->

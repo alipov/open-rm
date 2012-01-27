@@ -35,8 +35,9 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             ShutDownCommand = new DelegateCommand(ShutDown);
             CommonCommand = new DelegateCommand(CommonExecute);
             SelectedComboBoxValue = "Ping";
-            CommonCommandParameter = "tt";
+            CommonCommandParameter = string.Empty;
             RemoteControlCommand = new DelegateCommand(RemoteControl);
+            WakeOnLanCommand = new DelegateCommand(WakeOnLan);
         }
 
         private AgentWrapper _currentEntity;
@@ -60,6 +61,8 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         public ICommand RestartCommand { get; private set; }
         public ICommand ShutDownCommand { get; private set; }
         public ICommand CommonCommand { get; private set; }
+        public ICommand RemoteControlCommand { get; private set; }
+        public ICommand WakeOnLanCommand { get; private set; }
 
         private string _selectedComboBoxValue;
         public string SelectedComboBoxValue
@@ -88,7 +91,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 }
             }
         }
-        public ICommand RemoteControlCommand { get; private set; }
+        
 
         private bool _isConnectEnabled;
         public bool IsConnectEnabled
@@ -252,6 +255,29 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             {
                 var message = (ResponseMessage)args.Result;
                 var response = (RunCommonResponse)message.Response;
+
+                CurrentEntity.Log.Add(response.ToString());
+            }
+        }
+
+        private void WakeOnLan()
+        {
+            var wakeOnLanMessage = new RequestMessage()
+            {
+                Request = new WakeOnLanRequest(),
+                AgentId = CurrentEntity.ID
+            };
+
+            var proxy = _container.Resolve<IMessageProxyInstance>();
+            proxy.Send(wakeOnLanMessage, OnWakeOnLanCompleted);
+        }
+
+        private void OnWakeOnLanCompleted(CustomEventArgs args)
+        {
+            if (args.Status == SocketError.Success)
+            {
+                var message = (ResponseMessage)args.Result;
+                var response = (WakeOnLanResponse)message.Response;
 
                 CurrentEntity.Log.Add(response.ToString());
             }
