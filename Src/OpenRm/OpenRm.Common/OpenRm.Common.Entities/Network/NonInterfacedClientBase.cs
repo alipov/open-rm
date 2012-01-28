@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Text;
 using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network
@@ -14,7 +15,12 @@ namespace OpenRm.Common.Entities.Network
         {
             var token = (AsyncUserTokenBase)e.UserToken;
 
-            Message message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData);
+            // decrypt message data
+            var decryptedMsgData = EncryptionAdapter.Decrypt(token.RecievedMsgData);
+            Logger.WriteStr(" The message (xml): " + utf8.GetString(decryptedMsgData));
+
+            // deserialize to object
+            Message message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData);
 
             if (message is RequestMessage)
                 ProcessReceivedMessageRequest(e, (RequestMessage)message);

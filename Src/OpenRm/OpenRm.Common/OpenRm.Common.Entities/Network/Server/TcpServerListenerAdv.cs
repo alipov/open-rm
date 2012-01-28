@@ -26,6 +26,7 @@ namespace OpenRm.Common.Entities.Network.Server
 
         private readonly int _port;
 
+
         public TcpServerListenerAdv(int port, int maxNumConnections, int receiveBufferSize)
             : base(receiveBufferSize)
         {
@@ -169,13 +170,13 @@ namespace OpenRm.Common.Entities.Network.Server
                 }
                 else
                 {
-                    Logger.WriteStr("There is no more SocketAsyncEventArgs available in write pool! Cannot continue. Close connection.");
+                    Logger.WriteStr("WARNING: There is no more SocketAsyncEventArgs available in write pool! Cannot continue. Close connection.");
                     CloseConnection(args);
                 }
             }
             else
             {
-                Logger.WriteStr("There is no more SocketAsyncEventArgs available in read pool! Cannot continue. Close connection.");
+                Logger.WriteStr("WARNING: There is no more SocketAsyncEventArgs available in read pool! Cannot continue. Close connection.");
                 // increase maxNumberConnectedClients simaphore back because it has been decreased in StartAccept
                 _maxNumberConnectedClients.Release();
             }
@@ -209,7 +210,13 @@ namespace OpenRm.Common.Entities.Network.Server
         {
             var token = (HostAsyncUserToken)e.UserToken;
 
-            var message = WoxalizerAdapter.DeserializeFromXml(token.RecievedMsgData);
+            // decrypt message data
+            var decryptedMsgData = EncryptionAdapter.Decrypt(token.RecievedMsgData);
+            Logger.WriteStr(" Dectypted message: " + utf8.GetString(decryptedMsgData));
+
+            // deserialize to object
+            var message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData);
+
             var args = new HostCustomEventArgs(e.SocketError, message)
             {
                 Token = token
@@ -222,9 +229,13 @@ namespace OpenRm.Common.Entities.Network.Server
         // Start sending single message to client which token belongs to.
         public void Send(Message message, HostAsyncUserToken token)
         {
-            var messageToSend = WoxalizerAdapter.SerializeToXml(message);
+            byte[] messageToSend = WoxalizerAdapter.SerializeToXml(message);
+            Logger.WriteStr(" The message to be send: " + utf8.GetString(messageToSend));
 
-            SendMessage(token, messageToSend);
+            // encrypt message
+            byte[] encryptedMsgData = EncryptionAdapter.Encrypt(messageToSend);
+
+            SendMessage(token, encryptedMsgData);
 
         }
 

@@ -17,14 +17,17 @@ namespace OpenRm.Server.Host
 
         // these variables will be read from app.config
         private int _listenPort;
-        private int _maxNumConnections;     //maximum number of connections
-        private string _logFilenamePattern;
+        private int _maxNumConnections;         //maximum number of connections
+        private string _logFilenamePattern;                 // Log filename (got from configuration file)
+        private string _secretKey;                          // Secret key for encryption (got from configuration file)
 
         // local "database": contains all known agents (conneted and disconnected / online and offline)
         // holds only static client's inventory
         //  notes: we do NOT delete any agents from this "database"! (only add or update)
         private Dictionary<int, HostAsyncUserToken> _agents;
-        private int _agentsCount;   //last index
+        private const string AgentsFile = "agents.xml";
+
+        //TODO: remove: private int _agentsCount;   //last index
 
         private HostAsyncUserToken _console;    //console's token (null if not connected)
         private IMessageServer _server;
@@ -37,7 +40,11 @@ namespace OpenRm.Server.Host
                 Logger.CreateLogFile("logs", _logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
                 Logger.WriteStr("Started");
 
-                _agents = new Dictionary<int, HostAsyncUserToken>();
+                EncryptionAdapter.SetEncryption(_secretKey);
+
+                _agents = new Dictionary<int, HostAsyncUserToken>();  
+                // Try to load agents database from xml file
+                LoadAgentsList();
 
                 _server = new TcpServerListenerAdv(_listenPort, _maxNumConnections, ReceiveBufferSize);
                 _server.Start(OnReceiveCompleted);
@@ -95,14 +102,6 @@ namespace OpenRm.Server.Host
 
                 for (var i = 0; i < _agents.Count; i++)
                 {
-                    //var thisAgent = new Agent()
-                    //    {
-                    //        ID = i,
-                    //        Name = _agents[i].Agent.Data.Idata.deviceName,
-                    //        Status = _agents[i].Agent.Status
-                    //    };
-
-                    //agentsResponse.Agents.Add(thisAgent);
                     agentsResponse.Agents.Add(_agents[i].Agent);
                 }
 
@@ -120,7 +119,7 @@ namespace OpenRm.Server.Host
                 string targetIp = targetAgent.Data.IpConfig.IpAddress;
                 string targetMask = targetAgent.Data.IpConfig.NetMask;
 
-                bool _notFound = true;
+                bool notFound = true;
 
                 //look for client on the same subnet with target, which has Online status
                 for (var i = 0; i < _agents.Count; i++)
@@ -132,12 +131,12 @@ namespace OpenRm.Server.Host
                     {
                         // send original message with MAC address to the found agent
                         _server.Send(message, agentToken);
-                        _notFound = false;
+                        notFound = false;
                         // exit loop
                         break;
                     }
                 }
-                if (_notFound)  // there is no agent in the same subnet with target agent 
+                if (notFound)  // there is no agent in the same subnet with target agent 
                 {
                     // send unsuccessfull message back to console
                     var response = new WakeOnLanResponse(false, ((WakeOnLanRequest) message.Request).RunId);
@@ -184,6 +183,7 @@ namespace OpenRm.Server.Host
         }
 
 
+
         private void ProcessReceivedMessageResponse(HostCustomEventArgs args)
         {
             var message = (ResponseMessage) args.Result;
@@ -192,7 +192,7 @@ namespace OpenRm.Server.Host
             {
                 // Only New or Reconnected client sends this response
                 var idata = (IdentificationDataResponse)message.Response;
-                Logger.WriteStr(" * Client has connected: " + idata.DeviceName);
+                Logger.WriteStr("*** Client has connected: " + idata.DeviceName);
 
                 args.Token.Agent = new Agent()
                 {
@@ -207,7 +207,7 @@ namespace OpenRm.Server.Host
                 // Look if already exist in _agents, and new entry if needed
                 bool agentFound = false;
                 int i;
-                for (i = 0 ; i < _agentsCount; i++)
+                for (i = 0 ; i < _agents.Count; i++)
                 {
                     if (_agents[i].Agent.Data.Idata.DeviceName == idata.DeviceName
                             && _agents[i].Agent.Data.Idata.SerialNumber == idata.SerialNumber)
@@ -216,34 +216,40 @@ namespace OpenRm.Server.Host
                         _agents[i] = args.Token;
                         args.Token.Agent.ID = i;
                         agentFound = true;
+                        Logger.WriteStr(" Connected Agent < #" + _agents[i].Agent.ID + ": " + args.Token.Agent.Name + " > was already in db, so just been updated.");
                         break;
                     }
                 }
                 if (!agentFound)
                 {
                     // add new agent to the "database"
-                    
-                    var key = _agentsCount;
+                    var key = _agents.Count;
                     args.Token.Agent.ID = key;
                     _agents.Add(key, args.Token);
-                    Interlocked.Increment(ref _agentsCount);
+
+                    //Interlocked.Increment(ref _agentsCount);
+
+                    Logger.WriteStr(" New agent has been added to db: < #" + key + ": " + args.Token.Agent.Name + " >");
+
+                    //save database do disk
+                    SaveAgentsList();
                 }
 
 
-                //if (_agents.All(a => a.Value.Agent.Data.Idata.deviceName != idata.deviceName))
-                //{
-                //    args.Token.Agent = new Agent()
-                //                           {
-                //                               Data = new ClientData()
-                //                                          {
-                //                                              Idata = idata
-                //                                          }
-                //                           };
-                //    var key = Interlocked.Increment(ref _agentsCount);
-                //    _agents.Add(key, args.Token);
-                //    args.Token.Agent.ID = key;
-                //    args.Token.Agent.Name = args.Token.Agent.Data.Idata.deviceName;
-                //}
+                ////if (_agents.All(a => a.Value.Agent.Data.Idata.deviceName != idata.deviceName))
+                ////{
+                ////    args.Token.Agent = new Agent()
+                ////                           {
+                ////                               Data = new ClientData()
+                ////                                          {
+                ////                                              Idata = idata
+                ////                                          }
+                ////                           };
+                ////    var key = Interlocked.Increment(ref _agentsCount);
+                ////    _agents.Add(key, args.Token);
+                ////    args.Token.Agent.ID = key;
+                ////    args.Token.Agent.Name = args.Token.Agent.Data.Idata.deviceName;
+                ////}
 
                 // Request agent's IP and OS info:
                 // ( we have to update info of reconnected clients because it can have been changed 
@@ -291,22 +297,6 @@ namespace OpenRm.Server.Host
                 //store in local "database" only (do not send directly to Console)
                 args.Token.Agent.Data.OS = osInfo;       
 
-
-
-                //TODO: move to another place
-                //var msg = new RequestMessage { OpCode = (int)EOpCode.RunProcess };
-                //var exec = new RunProcessRequest
-                //{
-                //    RunId = HostAsyncUserToken.RunId,
-                //    Cmd = "notepad.exe",
-                //    Args = "",
-                //    WorkDir = "c:\\",
-                //    TimeOut = 180000,        //ms
-                //    Hidden = true
-                //};
-
-                //msg.Request = exec;
-                //_server.Send(msg, args.Token);
             }
             else
             {
@@ -316,54 +306,6 @@ namespace OpenRm.Server.Host
                     _server.Send(message, _console);
                 }
             }
-
-
-
-
-            //TODO:  Move to GUI:
-            //else if (message.Response is RunProcessResponse)
-            //{
-            //    var status = (RunProcessResponse)message.Response;
-            //        
-            //        if (status.ExitCode == 0)
-            //        {
-            //            Logger.WriteStr("Remote successfully executed");
-            //        }
-            //        else if (status.ExitCode > 0)
-            //        {
-            //            Logger.WriteStr("Remote program executed with exit code: " + status.ExitCode +
-            //                            "and error message: \"" + status.ErrorMessage + "\"");
-            //        }
-            //        else
-            //        {
-            //            throw new ArgumentException("Invalid exit code of remote execution (" + status.ExitCode + ") / Remote process has not been executed");
-            //        }
-            //}
-
-                ////TODO: for testing only:
-                //var msg = new RequestMessage { OpCode = (int)EOpCode.InstalledPrograms };
-                //_server.Send(msg, args.Token);
-
-            //else if (message.Response is InstalledProgramsResponse)
-            //{
-            //    var progsList = (InstalledProgramsResponse)message.Response;
-            //    foreach (string s in progsList.Progs)
-            //    {
-            //        Console.WriteLine(s);
-            //    }
-            //
-            //    //}
-            //    //else if (message.Response is )
-            //    //{
-            //    //............................
-            //    //
-            //    //...
-            //}
-            //else
-            //{
-            //    Logger.WriteStr(string.Format("WARNING: Recieved unkown response from {0}!", 
-            //                                                    args.Token.Socket.RemoteEndPoint));
-            //}
 
         }
 
@@ -375,6 +317,7 @@ namespace OpenRm.Server.Host
                 _listenPort = Int32.Parse(ConfigurationManager.AppSettings["ListenOnPort"]);
                 _maxNumConnections = Int32.Parse(ConfigurationManager.AppSettings["MaxConnections"]);
                 _logFilenamePattern = ConfigurationManager.AppSettings["LogFilePattern"];
+                _secretKey = ConfigurationManager.AppSettings["Secret"];
             }
             catch (Exception ex) 
             {
@@ -384,5 +327,44 @@ namespace OpenRm.Server.Host
 
             return true;   
         }
+
+
+        // Saves all agents db to file on disk
+        private void SaveAgentsList()
+        {
+            var agentlist = new List<Agent>();
+
+            for (var i = 0; i < _agents.Count; i++)
+            {
+                agentlist.Add(_agents[i].Agent);
+            }
+
+            WoxalizerAdapter.SaveToFile(agentlist, AgentsFile);
+        }
+
+
+        private void LoadAgentsList()
+        {
+            var agentlist = (List<Agent>)WoxalizerAdapter.LoadFromFile(AgentsFile);
+            if (agentlist != null)
+            {
+                Logger.WriteStr("Loaded known agents:");
+                foreach(Agent agent in agentlist)
+                {
+                    // change status to Offline
+                    agent.Status = (int)EAgentStatus.Offline;
+
+                    //add to List
+                    var token = new HostAsyncUserToken();
+                    token.Agent = agent;
+                    _agents.Add(agent.ID, token);
+                    Logger.WriteStr(" < #" + agent.ID + ": " + agent.Name + " >");
+
+                    //_agentsCount++;
+                }
+            }
+        }
+
+
     }
 }

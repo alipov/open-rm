@@ -20,6 +20,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         private readonly IAgentDataService _dataService;
         private readonly IUnityContainer _container;
         private string sourceIP = "";
+
         
         public AgentsRibbonTabViewModel(IUnityContainer container, IAgentDataService dataService)
         {
@@ -109,9 +110,16 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void ConnectToServer()
         {
+            // Read configuration from file
+            if (!SettingsManager.ReadConfigFile()) return;      //TODO: add some message box?
+
+            // Initialize some global settings
+            Logger.CreateLogFile("logs", SettingsManager.LogFilenamePattern);
+            EncryptionAdapter.SetEncryption(SettingsManager.SecretKey);
+
+            // Process to connect
             var messageClient = _container.Resolve<IMessageClient>();
-            messageClient.Connect(
-                new IPEndPoint(IPAddress.Loopback, 3777),  OnConnectToServerCompleted);     //TODO:  why Loopback???
+            messageClient.Connect(SettingsManager.ServerEndPoint,  OnConnectToServerCompleted);
         }
 
         private void ListInstalledPrograms()
@@ -139,8 +147,12 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void OnConnectToServerCompleted(CustomEventArgs args)
         {
-            IsConnectEnabled = false;
-            sourceIP = args.LocalEndPoint.Address.ToString();
+            if (args.LocalEndPoint != null)
+            {
+                IsConnectEnabled = false;
+                sourceIP = args.LocalEndPoint.Address.ToString();    
+            }
+            //TODO: else - add some message box?
         }
 
         private void RefreshAgentsList()

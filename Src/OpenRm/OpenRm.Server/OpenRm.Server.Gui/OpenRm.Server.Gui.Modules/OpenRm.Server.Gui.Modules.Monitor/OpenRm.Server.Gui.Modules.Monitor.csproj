@@ -121,6 +121,7 @@
     <Compile Include="Services\AgentDataService.cs" />
     <Compile Include="Services\MessageProxyInstance.cs" />
     <Compile Include="Services\MessageProxyService.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="ViewModels\AgentDetailsViewModel.cs" />
     <Compile Include="ViewModels\AgentLogViewModel.cs" />
     <Compile Include="ViewModels\AgentPerformanceViewModel.cs" />

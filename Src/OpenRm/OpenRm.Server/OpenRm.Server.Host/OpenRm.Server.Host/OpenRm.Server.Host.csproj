@@ -69,11 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TypeResolving.cs" />
-    <Compile Include="MicrosoftExample\AsyncUserToken.cs" />
-    <Compile Include="MicrosoftExample\BufferManager.cs" />
-    <Compile Include="MicrosoftExample\Program.cs" />
-    <Compile Include="MicrosoftExample\Server.cs" />
-    <Compile Include="MicrosoftExample\SocketAsyncEventArgPool.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />

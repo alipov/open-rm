@@ -31,7 +31,7 @@ namespace OpenRm.Common.Entities
                         log.WriteLine(DateTime.Now.ToString("dd.MM HH:mm:ss") + " | " + str);
                     }
                 }
-                catch (Exception ex) 
+                catch (Exception) 
                 {
                     //Console.WriteLine("Error while writing to log: " + str + ". Exception: " + ex.ToString() + ". But we have to continue...");
                 }

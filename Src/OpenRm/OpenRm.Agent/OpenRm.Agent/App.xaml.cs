@@ -4,7 +4,6 @@ using System.Threading;
 using System.Windows;
 using OpenRm.Agent.CustomControls;
 using OpenRm.Common.Entities;
-using System.Configuration;
 using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
 
@@ -13,13 +12,11 @@ namespace OpenRm.Agent
     /// <summary>
     /// Interaction logic for Agent
     /// </summary>
-    public partial class App : Application
+    public partial class App
     {
-        public static bool agentStarted = false;            // flag that indicates current status of agent. can be changed by pressing "Stop Agent" control
-        private IPEndPoint _serverEndPoint;             //got from configuration file
+        public static bool AgentStarted = false;            // flag that indicates current status of agent. can be changed by pressing "Stop Agent" control
         private IPEndPoint _newServerEndPoint = null;          //got from GUI
-        private string _logFilenamePattern;
-        private static Thread starterThread;
+        private static Thread _starterThread;
         private IMessageClient _client;
         private IPEndPoint _localEndPoint;
         private NotifyIconWrapper _notifyIconComponent;
@@ -50,34 +47,37 @@ namespace OpenRm.Agent
         // called from Notification Icon
         private void StartAgentThread(object sender, EventArgs e)
         {
-            starterThread = new Thread(AgentStarterThread);
-            starterThread.Start();
+            _starterThread = new Thread(AgentStarterThread);
+            _starterThread.Start();
         }
 
         private void AgentStarterThread()
         {
-            if (!ReadConfigFile()) return; //TODO: close application? notify user?
+            // Read configuration from file
+            if (!SettingsManager.ReadConfigFile()) return;  //TODO: close application? notify user?
 
             if (_newServerEndPoint != null)
-                _serverEndPoint = _newServerEndPoint;       //override configuration file
+                SettingsManager.ServerEndPoint = _newServerEndPoint;       //override configuration file
 
-            Logger.CreateLogFile("logs", _logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
+            EncryptionAdapter.SetEncryption(SettingsManager.SecretKey);
+
+            Logger.CreateLogFile("logs", SettingsManager.LogFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
             Logger.WriteStr("+++ Starting Agent by user request... +++");
 
-            agentStarted = true;
+            AgentStarted = true;
             _retryIntervalCurrent = RetryIntervalInitial;            //set to initial value  
 
             while (true)  // always reconnect untill canceled
             {
                 _client = new GeneralSocketClient();
-                _client.Connect(_serverEndPoint, OnConnectToServerCompleted);
+                _client.Connect(SettingsManager.ServerEndPoint, OnConnectToServerCompleted);
 
                 // pause here untill disconnected from server
                 _clientDisconnected.Reset();
                 _clientDisconnected.WaitOne();
                 
 
-                if (agentStarted)
+                if (AgentStarted)
                 {
                     Logger.WriteStr("Should be running so will try to reconnect to server in " + _retryIntervalCurrent + "seconds...");
                     _notifyIconComponent.ShowNotifiction("Will reconnect in " + _retryIntervalCurrent + "sec...");
@@ -158,15 +158,15 @@ namespace OpenRm.Agent
 
         private void CloseAgent()
         {
-            if (starterThread != null)
+            if (_starterThread != null)
             {
-                agentStarted = false;
+                AgentStarted = false;
                 if (_client.IsConnected)
                 {
                     _client.Disconnect(null);
                 }
-                starterThread.Abort();
-                starterThread = null;
+                _starterThread.Abort();
+                _starterThread = null;
             }
         }
 
@@ -190,23 +190,6 @@ namespace OpenRm.Agent
 
         }
 
-        // read configuration from config file
-        private bool ReadConfigFile()
-        {
-            try
-            {
-                var ip = ConfigurationManager.AppSettings["ServerIP"];
-                var port = Int32.Parse(ConfigurationManager.AppSettings["ServerPort"]);
-                _serverEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
-                _logFilenamePattern = ConfigurationManager.AppSettings["LogFilePattern"];
-            }
-            catch (Exception ex)
-            {
-                Logger.CriticalToEventLog("Error while reading config file. Error: " + ex.Message);
-                return false;
-            }
-
-            return true;   
-        }
+        
     }
 }
