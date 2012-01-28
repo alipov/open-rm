@@ -26,6 +26,7 @@ namespace OpenRm.Common.Entities.Network
         public SocketAsyncEventArgs readEventArgs { get; set; }
 
         public Semaphore writeSemaphore;
+        public Semaphore readSemaphore;
 
         public System.Timers.Timer KeepAliveTimer { get; set; }
 
@@ -43,7 +44,7 @@ namespace OpenRm.Common.Entities.Network
             RecievedMsgPartLength = 0;
             writeEventArgs = null;
             readEventArgs = null;
-            //readSemaphore = new Semaphore(1, 1);
+            readSemaphore = new Semaphore(1, 1);
             writeSemaphore = new Semaphore(1, 1);
         }
 

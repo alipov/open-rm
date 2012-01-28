@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
+using System.Text;
 using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network
@@ -79,19 +79,6 @@ namespace OpenRm.Common.Entities.Network
             _userToken.writeEventArgs.SetBuffer(_sendBuffer, 0, _sendBuffer.Length);
             _userToken.readEventArgs.SetBuffer(_receiveBuffer, 0, _receiveBuffer.Length);
 
-
-            //_socket = new Socket(_endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            
-            //var sockArgs = new SocketAsyncEventArgs
-            //                   {
-            //                       RemoteEndPoint = _endPoint,
-            //                       //UserToken = new GeneralUserToken(socket),
-            //                       //AcceptSocket = socket
-            //                   };
-            //sockArgs.Completed += CommonCallback;
-
-            //_userToken = new GeneralUserToken(null, callback);
-
             _socket.ConnectAsync(writeArgs);
             
         }
@@ -149,7 +136,7 @@ namespace OpenRm.Common.Entities.Network
                     var ex = args.SocketError;
 
                     Logger.WriteStr(string.Format
-                        ("Cannot connect to server {0}. (Exception: {1})", args.RemoteEndPoint, (int)ex));
+                        ("Cannot connect to server {0}. (Exception: {1})", args.RemoteEndPoint, ex.ToString()));
 
                     //erase error
                     args.SocketError = 0;
@@ -206,7 +193,13 @@ namespace OpenRm.Common.Entities.Network
 
         protected override void ProcessReceivedMessage(SocketAsyncEventArgs e)
         {
-            Message message = WoxalizerAdapter.DeserializeFromXml(_userToken.RecievedMsgData, null);
+            // decrypt message
+            byte[] decryptedMsgData = EncryptionAdapter.Decrypt(_userToken.RecievedMsgData);
+            Logger.WriteStr(" Recieved message was decrypted as xml: " + utf8.GetString(decryptedMsgData));
+
+            // deserialize to object
+            Message message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData, null);
+
             if (_userToken.Callback != null)
             {
                 _userToken.Callback.Invoke(new CustomEventArgs(e.SocketError, message));
@@ -222,9 +215,13 @@ namespace OpenRm.Common.Entities.Network
 
             _userToken.Callback = callback;
 
-            var messageToSend = WoxalizerAdapter.SerializeToXml(message);
+            byte[] messageToSend = WoxalizerAdapter.SerializeToXml(message);
+            Logger.WriteStr(" The message (xml) to be sent: " + utf8.GetString(messageToSend));
 
-            SendMessage(_userToken, messageToSend);
+            // encrypt message
+            byte[] encryptedMsgData = EncryptionAdapter.Encrypt(messageToSend);
+
+            SendMessage(_userToken, encryptedMsgData);
 
         }
 
@@ -258,22 +255,6 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        ////protected override void ProcessReceiveFailure(SocketAsyncEventArgs e)
-        ////{
-        ////    if (_userToken.Callback != null)
-        ////    {
-        ////        _userToken.Callback.Invoke(new CustomEventArgs(SocketError.Fault, null));
-        ////    }
-        ////}
-
-
-        ////protected override void ProcessSendFailure(SocketAsyncEventArgs args)
-        ////{
-        ////    if (_userToken.Callback != null)
-        ////    {
-        ////        _userToken.Callback.Invoke(new CustomEventArgs(args.SocketError, null));
-        ////    }
-        ////}
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {

@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -9,7 +10,8 @@ namespace OpenRm.Common.Entities.Network
     {
         protected const int MsgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
         protected int ReceiveBufferSize;
-        //private readonly Func<object, ResolveEventArgs, Assembly> _assemblyResolveHandler;
+
+        protected static Encoding utf8 = new UTF8Encoding(false);    //False means there is NO "Byte Order Mark" (three bytes appended at beginning of byte array)
 
         protected TcpBase(int bufferSize)
         {
@@ -21,8 +23,8 @@ namespace OpenRm.Common.Entities.Network
         protected virtual void WaitForReceiveMessage(SocketAsyncEventArgs readEventArgs)
         {
             //TODO: remove these lines
-            //var token = (AsyncUserTokenBase)readEventArgs.UserToken;
-            //token.readSemaphore.WaitOne();
+            var token = (AsyncUserTokenBase)readEventArgs.UserToken;
+            token.readSemaphore.WaitOne();
 
             Logger.WriteStr(" Waiting for new data to arrive...");
             StartReceive(readEventArgs);
@@ -42,6 +44,8 @@ namespace OpenRm.Common.Entities.Network
         }
 
 
+        // Invoked when an asycnhronous receive operation completes.  
+        // If the remote host closed the connection, then the socket is closed.
         protected virtual void ProcessReceive(SocketAsyncEventArgs args)
         {
             var token = (AsyncUserTokenBase)args.UserToken;
@@ -51,7 +55,7 @@ namespace OpenRm.Common.Entities.Network
             if (args.BytesTransferred > 0 && args.SocketError == SocketError.Success)
             {
                 // got message. need to handle it
-                Logger.WriteStr("Recieved data (" + args.BytesTransferred + " bytes)");
+                Logger.WriteStr("   Recieved data (" + args.BytesTransferred + " bytes)");
 
                 // now we need to check if we have complete message in our recieved data.
                 // if yes - process it
@@ -64,9 +68,10 @@ namespace OpenRm.Common.Entities.Network
                 {
                     // Determine how many bytes we want to transfer to the buffer and transfer them 
                     int bytesAvailable = args.BytesTransferred - i;
-                    if (token.RecievedMsgData == null)
+                    //if (token.RecievedMsgData == null && )
+                    if (token.RecievedPrefixPartLength < MsgPrefixLength)
                     {
-                        // token.msgData is empty so we a dealing with Prefix.
+                        // We are dealing with Prefix.
                         // Copy the incoming bytes into token's prefix's buffer
                         // All incoming data is in e.Buffer, at e.Offset position
                         int bytesRequested = MsgPrefixLength - token.RecievedPrefixPartLength;
@@ -79,7 +84,7 @@ namespace OpenRm.Common.Entities.Network
                         if (token.RecievedPrefixPartLength != MsgPrefixLength)
                         {
                             // We haven't gotten all the prefix buffer yet: call Receive again.
-                            Logger.WriteStr("We've got just a part of prefix. Waiting for more data to arrive...");
+                            Logger.WriteStr(" We've got just a part of prefix. Waiting for more data to arrive...");
                             StartReceive(args);
                             return;
                         }
@@ -90,13 +95,13 @@ namespace OpenRm.Common.Entities.Network
 
                         if (length == 0)
                         {
-                            Logger.WriteStr("We've got keep-alive message");
+                            Logger.WriteStr(" We've got keep-alive message");
                             // we don't process such messages
                             break;  //exit while
                         }
 
                         if (length < 0)
-                            throw new ProtocolViolationException("Invalid message prefix");
+                            throw new ProtocolViolationException(" Invalid message prefix");
 
                         // Save prefix value into token
                         token.MessageLength = length;
@@ -104,9 +109,16 @@ namespace OpenRm.Common.Entities.Network
                         // Create the data buffer and start reading into it 
                         token.RecievedMsgData = new byte[length];
 
-                        //TODO: remove:
-                        ////// zero prefix counter
-                        ////token.RecievedPrefixPartLength = 0;
+                        // We got full prefix, but no have data yet.
+                        // If there is no more available data in out token's buffer, so we have to request more data from OS
+                        // (our "while" loop will not process this case, so we should call Recieve explicitly)
+                        if (i == args.BytesTransferred)         
+                        {
+                            Logger.WriteStr("   We've got a full prefix. Waiting for data to arrive...");
+                            StartReceive(args);
+                            return;
+                        }
+
                     }
                     else
                     {
@@ -114,7 +126,7 @@ namespace OpenRm.Common.Entities.Network
                         int bytesRequested = token.MessageLength - token.RecievedMsgPartLength;
                         int bytesTransferred = Math.Min(bytesRequested, bytesAvailable);
                         Array.Copy(args.Buffer, args.Offset + i, token.RecievedMsgData, token.RecievedMsgPartLength, bytesTransferred);
-                        //Logger.WriteStr("message till now: " + Encoding.UTF8.GetString(token.RecievedMsgData));
+                        //Logger.WriteStr("message till now: " + utf8.GetString(token.RecievedMsgData));
                         i += bytesTransferred;
 
                         token.RecievedMsgPartLength += bytesTransferred;
@@ -126,17 +138,17 @@ namespace OpenRm.Common.Entities.Network
                         }
 
                         // we've gotten an entire packet
-                        Logger.WriteStr("Got complete message from " + token.Socket.RemoteEndPoint + ": " + Encoding.UTF8.GetString(token.RecievedMsgData));
+                        Logger.WriteStr("   Got complete message from " + token.Socket.RemoteEndPoint + " with length=" + token.RecievedMsgData.Length + ".");
 
                         ProcessReceivedMessage(args);
 
-                        //Check if something left in the buffer: maybe there is a start of next message
+                        // Check if something left in the buffer: maybe there is a start of next message
                         int bytesLeft = bytesAvailable - bytesTransferred;
                         if (bytesLeft > 0)
                         {
-                            Logger.WriteStr( bytesLeft + " bytes left in int the byffer. It should be a part of next message. (DEBUG: i=" + i + ")");
+                            Logger.WriteStr( "   " + bytesLeft + " bytes left in the byffer. It should be a part of next message. (DEBUG: i=" + i + ")");
 
-                            // Clean token's recieve buffer for next message that left in OUR buffer
+                            // Clean token's recieve buffer for next message that should be waiting in the buffer
                             token.CleanForRecieve();
 
                             // continue in "while" loop
@@ -155,37 +167,25 @@ namespace OpenRm.Common.Entities.Network
                 token.CleanForRecieve();
 
                 //// we've proceeded a whole message so release the lock
-                //token.readSemaphore.Release();
+                token.readSemaphore.Release();
 
                 // start waiting for next message
                 WaitForReceiveMessage(args);
             }
             else
             {
-                Logger.WriteStr("ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint + 
+                Logger.WriteStr(" ERROR: Failed to get data on socket " + token.Socket.LocalEndPoint + 
                     " due to exception:\n" + new SocketException((int)args.SocketError));
-                //CloseConnection(args);
+
                 ProcessReceiveFailure(args);
             }
         }
 
-        // Invoked when an asycnhronous receive operation completes.  
-        // If the remote host closed the connection, then the socket is closed.
-        //  "e" represents "readArgs"
-        //protected abstract void ProcessReceive(SocketAsyncEventArgs e);
-
         protected abstract void ProcessReceiveFailure(SocketAsyncEventArgs e);
-        //{
-        //    var token = (AsyncUserTokenBase)e.UserToken;
-
-        //    ProcessReceive(e, token);
-        //}
-
         
 
         // Prepares data to be sent and calls sending method. 
         // It can process large messages by cutting them into small ones.
-        // The method issues another receive on the socket to read client's answer.
         public void SendMessage(AsyncUserTokenBase token, Byte[] msgToSend)
         {
             // do not let sending simultaniously using the same Args object 
@@ -194,13 +194,10 @@ namespace OpenRm.Common.Entities.Network
             // pause keep-alive messages (will resume after sending)
             token.KeepAliveTimer.Stop();
 
-            string msgText;
             if (msgToSend.Length == 0)
-                msgText = " keep-alive message";
+                Logger.WriteStr(" Going to send keep-alive message.");
             else
-                msgText = Encoding.UTF8.GetString(msgToSend);
-
-            Logger.WriteStr("Going to send message: " + msgText);
+                Logger.WriteStr(" Going to send message with length=" + msgToSend.Length + ".");
 
             // prepare data to send: add prefix that holds length of message
             Byte[] prefixToAdd = BitConverter.GetBytes(msgToSend.Length);
@@ -241,7 +238,7 @@ namespace OpenRm.Common.Entities.Network
                 if (token.SendingMsgBytesSent < token.SendingMsg.Length)
                 {
                     // Not all message has been sent, so send next part
-                    Logger.WriteStr(token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
+                    Logger.WriteStr("   " + token.SendingMsgBytesSent + " of " + token.SendingMsg.Length + " have been sent. Calling additional Send...");
                     StartSend(args);
                     return;
                 }
@@ -259,7 +256,7 @@ namespace OpenRm.Common.Entities.Network
             }
             else
             {
-                Logger.WriteStr(" Message has failed to be sent.");
+                Logger.WriteStr(" ERROR: Message has failed to be sent.");
                 ProcessSendFailure(args);
             }
         }
@@ -271,7 +268,6 @@ namespace OpenRm.Common.Entities.Network
             SendMessage(token, new byte[0]);
         }
 
-        //protected abstract void Send(SocketAsyncEventArgs writeEventArgs, byte[] bytes);
 
         protected abstract void ProcessSendFailure(SocketAsyncEventArgs args);
         protected abstract void ProcessReceivedMessage(SocketAsyncEventArgs e);
