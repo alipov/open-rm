@@ -99,6 +99,7 @@
     <Compile Include="Converters\InstanceToBooleanConverter.cs" />
     <Compile Include="Converters\InvertBoolConverter.cs" />
     <Compile Include="Converters\StaticConverters.cs" />
+    <Compile Include="Converters\StatusToBrushConverter.cs" />
     <Compile Include="EventAggregatorMessages\AgentSelectedEvent.cs" />
     <Compile Include="EventAggregatorMessages\AgentsListUpdated.cs" />
     <Compile Include="Models\AgentWrapper.cs" />
