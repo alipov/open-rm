@@ -2,7 +2,7 @@
 {
     public enum EAgentStatus
     {
-        Online, 
-        Offline
+        Offline,
+        Online
     }
 }

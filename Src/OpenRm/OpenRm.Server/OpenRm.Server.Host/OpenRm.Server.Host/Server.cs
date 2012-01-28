@@ -200,7 +200,8 @@ namespace OpenRm.Server.Host
                     {
                         Idata = idata
                     },
-                    Name = idata.DeviceName
+                    Name = idata.DeviceName,
+                    Status = (int)EAgentStatus.Online
                 };
 
                 // Look if already exist in _agents, and new entry if needed
