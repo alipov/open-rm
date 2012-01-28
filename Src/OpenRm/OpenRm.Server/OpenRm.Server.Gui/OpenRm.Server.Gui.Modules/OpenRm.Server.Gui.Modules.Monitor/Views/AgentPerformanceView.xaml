@@ -37,13 +37,21 @@
             <d3:HorizontalAxisTitle TextBlock.FontSize="10">Time</d3:HorizontalAxisTitle>
         </d3:ChartPlotter>-->
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time"
-                    ItemsSource="{Binding CurrentEntity.PerformanceCpu}" />
+                    ItemsSource="{Binding CurrentEntity.PerformanceCpu}" 
+                    ValueAxisTitle="%" LabelAxisTitle="Time" Title="CPU Performance" 
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time" Grid.Column="2"
-                    ItemsSource="{Binding CurrentEntity.PerformanceRam}" />
+                    ItemsSource="{Binding CurrentEntity.PerformanceRam}" 
+                    ValueAxisTitle="Mb" LabelAxisTitle="Time" Title="RAM Usage" 
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time"
-                    ItemsSource="{Binding CurrentEntity.PerformanceFreeDisc}" Grid.Row="2"/>
+                    ItemsSource="{Binding CurrentEntity.PerformanceFreeDisc}" Grid.Row="2"
+                    ValueAxisTitle="Mb" LabelAxisTitle="Time" Title="Free Disc" 
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time" Grid.Column="2"
-                    ItemsSource="{Binding CurrentEntity.PerformanceDiscQueue}" Grid.Row="2"/>
+                    ItemsSource="{Binding CurrentEntity.PerformanceDiscQueue}" Grid.Row="2"
+                    ValueAxisTitle="" LabelAxisTitle="Time" Title="Disc Queue" 
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
     </Grid>
 </UserControl>
 

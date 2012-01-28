@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net.Sockets;
 using System.Windows.Threading;
@@ -83,26 +84,26 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 var message = (ResponseMessage)args.Result;
                 var response = (PerfmonDataResponse)message.Response;
 
-                CurrentEntity.PerformanceCpu.Add(new IntDateTimeObject()
-                                            {
-                                                Time = DateTime.Now,
-                                                Value = response.CPUuse
-                                            });
-                CurrentEntity.PerformanceDiscQueue.Add(new IntDateTimeObject()
-                                            {
-                                                Time = DateTime.Now,
-                                                Value = (int)response.DiskQueue
-                                            });
-                CurrentEntity.PerformanceFreeDisc.Add(new IntDateTimeObject()
-                                            {
-                                                Time = DateTime.Now,
-                                                Value = response.DiskFree
-                                            });
-                CurrentEntity.PerformanceRam.Add(new IntDateTimeObject()
-                                            {
-                                                Time = DateTime.Now,
-                                                Value = response.RAMfree
-                                            });
+                CurrentEntity.AppendPerformanceCpu(new IntDateTimeObject()
+                                                       {
+                                                           Time = DateTime.Now,
+                                                           Value = response.CPUuse
+                                                       });
+                CurrentEntity.AppendPerformanceDiscQueue(new IntDateTimeObject()
+                                                             {
+                                                                 Time = DateTime.Now,
+                                                                 Value = response.DiskQueue
+                                                             });
+                CurrentEntity.AppendPerformanceFreeDisc(new IntDateTimeObject()
+                                                            {
+                                                                Time = DateTime.Now,
+                                                                Value = response.DiskFree
+                                                            });
+                CurrentEntity.AppendPerformanceRam(new IntDateTimeObject()
+                                                       {
+                                                           Time = DateTime.Now,
+                                                           Value = response.RAMfree
+                                                       });
             }
         }
 
