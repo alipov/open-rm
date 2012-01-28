@@ -54,7 +54,8 @@
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\WpfRibbon_v4\RibbonControlsLibrary.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="StockTraderRI.ChartControls">
+    <Reference Include="StockTraderRI.ChartControls, Version=1.0.4362.39237, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\StockTraderRI.ChartControls.dll</HintPath>
       <Private>False</Private>
     </Reference>

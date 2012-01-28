@@ -254,26 +254,26 @@ namespace OpenRm.Server.Host
                 _server.Send(msg, args.Token);
 
 #if DEBUG
-                        //TODO: for testing only:
-                        Thread.Sleep(5000);
-                        msg = new RequestMessage();
-                        var exec = new RunProcessRequest (
-                            HostAsyncUserToken.RunId,
-                            cmd: "explorer.exe",
-                            args: "..\\..\\Doc\\Open Remote Management.pps", 
-                            workDir: "c:\\", 
-                            delay: 0, 
-                            hidden: false, 
-                            wait: false
-                        );
-                        msg.Request = exec;
-                        _server.Send(msg, args.Token);
+                        ////TODO: for testing only:
+                        //Thread.Sleep(5000);
+                        //msg = new RequestMessage();
+                        //var exec = new RunProcessRequest (
+                        //    HostAsyncUserToken.RunId,
+                        //    cmd: "explorer.exe",
+                        //    args: "..\\..\\Doc\\Open Remote Management.pps", 
+                        //    workDir: "c:\\", 
+                        //    delay: 0, 
+                        //    hidden: false, 
+                        //    wait: false
+                        //);
+                        //msg.Request = exec;
+                        //_server.Send(msg, args.Token);
 
 
-                        Thread.Sleep(1000);
-                        var exec2 = new RemoteControlRequest("10.10.10.2", 5555);
-                        msg.Request = exec2;
-                        _server.Send(msg, args.Token);
+                        //Thread.Sleep(1000);
+                        //var exec2 = new RemoteControlRequest("10.10.10.2", 5555);
+                        //msg.Request = exec2;
+                        //_server.Send(msg, args.Token);
 #endif
 
             }
