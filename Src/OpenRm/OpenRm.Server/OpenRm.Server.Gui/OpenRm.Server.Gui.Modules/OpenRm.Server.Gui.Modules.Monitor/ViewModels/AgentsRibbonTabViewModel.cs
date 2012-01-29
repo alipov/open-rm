@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
+using System.Windows;
 using System.Windows.Input;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
@@ -12,6 +13,7 @@ using OpenRm.Common.Entities.Network.Messages;
 using OpenRm.Server.Gui.Modules.Monitor.Api.Services;
 using OpenRm.Server.Gui.Modules.Monitor.Api.ViewModels;
 using OpenRm.Server.Gui.Modules.Monitor.Models;
+using OpenRm.Server.Gui.Modules.Monitor.Views;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 {
@@ -108,6 +110,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             }
         }
 
+
         private void ConnectToServer()
         {
             // Read configuration from file
@@ -121,6 +124,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             var messageClient = _container.Resolve<IMessageClient>();
             messageClient.Connect(SettingsManager.ServerEndPoint,  OnConnectToServerCompleted);
         }
+
 
         private void ListInstalledPrograms()
         {
@@ -152,7 +156,10 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 IsConnectEnabled = false;
                 sourceIP = args.LocalEndPoint.Address.ToString();    
             }
-            //TODO: else - add some message box?
+            else
+            {
+                MessageBox.Show("Cannot connect server. Please make shure the server is running.", "Oops", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void RefreshAgentsList()
@@ -243,6 +250,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             }
         }
 
+
         private void CommonExecute()
         {
             var message = new RequestMessage()
@@ -254,9 +262,23 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 message.Request = new PingRequest(0, CommonCommandParameter);
             else if(SelectedComboBoxValue == "TraceRoute")
                 message.Request = new TraceRouteRequest(0, CommonCommandParameter);
+            else if(SelectedComboBoxValue == "RunCommand")
+            {
+                RemoteCommandDialogView prompt = new RemoteCommandDialogView();
+                //prompt.Owner = this;
+                //prompt.DocumentMargin = this.documentTextBox.Margin;
+                // Open the dialog box
+                prompt.ShowDialog();
+
+                return;
+            }
             else
-              throw new Exception();
-            
+            {
+                MessageBox.Show("Please choose valid option from drop-down list", "Oops", MessageBoxButton.OK,
+                                MessageBoxImage.Exclamation);
+                return;
+            }
+              
             var proxy = _container.Resolve<IMessageProxyInstance>();
             proxy.Send(message, OnCommonExecuteCompleted);
         }
@@ -271,6 +293,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 CurrentEntity.Log.Add(response.ToString());
             }
         }
+
 
         private void WakeOnLan()
         {
