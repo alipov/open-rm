@@ -68,6 +68,7 @@
     <Compile Include="Network\KeepAliveTimer.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Network\Messages\AgentStatusUpdate.cs" />
     <Compile Include="Network\Messages\BulkStaticRequest.cs" />
     <Compile Include="Network\Messages\RemoteControlResponse.cs" />
     <Compile Include="Network\Messages\RemoteControlRequest.cs" />

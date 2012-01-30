@@ -82,29 +82,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ActionExecutor.cs" />
-    <Compile Include="Actions\IdRetriever.cs" />
-    <Compile Include="Actions\InstalledProgramsRetriever.cs" />
-    <Compile Include="Actions\IpConfigDataRetriever.cs" />
-    <Compile Include="Actions\LockSessionExecutor.cs" />
-    <Compile Include="Actions\OsInfoRetriever.cs" />
-    <Compile Include="Actions\PerfmonDataRetriever.cs" />
-    <Compile Include="Actions\PingExecutor.cs" />
-    <Compile Include="Actions\ProcessExecutor.cs" />
-    <Compile Include="Actions\RemoteControlExecutor.cs" />
-    <Compile Include="Actions\RestartExecutor.cs" />
-    <Compile Include="Actions\ShutdownExecutor.cs" />
-    <Compile Include="Actions\TraceRouteExecutor.cs" />
-    <Compile Include="Actions\WakeOnLanExecutor.cs" />
-    <Compile Include="Actions\WmiQuery.cs" />
     <Compile Include="AgentAsyncUserToken.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OpProcessor.cs" />
-    <Compile Include="OpShutdown.cs" />
-    <Compile Include="TcpClient.cs" />
     <Compile Include="TypeResolving.cs" />
   </ItemGroup>
   <ItemGroup>
