@@ -8,6 +8,7 @@ using OpenRm.Common.Entities.Enums;
 using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
 using OpenRm.Common.Entities.Network.Server;
+using Timer = System.Timers.Timer;
 
 namespace OpenRm.Server.Host
 {
@@ -26,11 +27,13 @@ namespace OpenRm.Server.Host
         //  notes: we do NOT delete any agents from this "database"! (only add or update)
         private Dictionary<int, HostAsyncUserToken> _agents;
         private const string AgentsFile = "agents.xml";
-
-        //TODO: remove: private int _agentsCount;   //last index
+        private static readonly object AgentListLock = new object();     // for handeling '_agents' list from many threads
 
         private HostAsyncUserToken _console;    //console's token (null if not connected)
         private IMessageServer _server;
+
+        private Thread _asyncAgentsAutoSaver;
+        private static readonly object AutoSaveLock = new object();     // for handeling "agent list autosave" from different threads
 
 
         public void Run()
@@ -42,8 +45,8 @@ namespace OpenRm.Server.Host
 
                 EncryptionAdapter.SetEncryption(_secretKey);
 
-                _agents = new Dictionary<int, HostAsyncUserToken>();  
-                // Try to load agents database from xml file
+                _agents = new Dictionary<int, HostAsyncUserToken>();
+                // Try to load agents database (xml file)
                 LoadAgentsList();
 
                 _server = new TcpServerListenerAdv(_listenPort, _maxNumConnections, ReceiveBufferSize);
@@ -74,12 +77,26 @@ namespace OpenRm.Server.Host
                 {
                     Logger.WriteStr("- " + args.Token.Agent.Name + " disconnected.");
                     // mark it offline
-                    _agents[args.Token.Agent.ID].Agent.Status = (int)EAgentStatus.Offline;
-                    //TODO: can send update to console?
+                    lock(AgentListLock)
+                    {
+                        _agents[args.Token.Agent.ID].Agent.Status = (int)EAgentStatus.Offline;    
+                    }
+                    
+                    if (_console != null)
+                    {
+                        //Console is connected so we should send update
+                        var update = new AgentStatusUpdate {status = (int)EAgentStatus.Offline};
+                        var updateMessage = new ResponseMessage()
+                        {
+                            Response = update,
+                            AgentId = args.Token.Agent.ID
+                        };
+                        _server.Send(updateMessage, _console);
+                    }
                 }
             }
             else
-                throw new ArgumentException("Cannot determinate Message type!");
+                Logger.WriteStr(" ERROR:  Cannot determinate Message type!");
         }
 
 
@@ -120,22 +137,25 @@ namespace OpenRm.Server.Host
                 string targetMask = targetAgent.Data.IpConfig.NetMask;
 
                 bool notFound = true;
-
-                //look for client on the same subnet with target, which has Online status
-                for (var i = 0; i < _agents.Count; i++)
+                lock(AgentListLock)
                 {
-                    var agentToken = _agents[i];
-                    if (NetworkHelper.IsOnSameNetwork(agentToken.Agent.Data.IpConfig.IpAddress,
-                            agentToken.Agent.Data.IpConfig.NetMask, targetIp, targetMask)
-                        && agentToken.Agent.Status == (int)EAgentStatus.Online)
+                    //look for client on the same subnet with target, which has Online status
+                    for (var i = 0; i < _agents.Count; i++)
                     {
-                        // send original message with MAC address to the found agent
-                        _server.Send(message, agentToken);
-                        notFound = false;
-                        // exit loop
-                        break;
+                        var agentToken = _agents[i];
+                        if (NetworkHelper.IsOnSameNetwork(agentToken.Agent.Data.IpConfig.IpAddress,
+                                agentToken.Agent.Data.IpConfig.NetMask, targetIp, targetMask)
+                            && agentToken.Agent.Status == (int)EAgentStatus.Online)
+                        {
+                            // send original message with MAC address to the found agent
+                            _server.Send(message, agentToken);
+                            notFound = false;
+                            // exit loop
+                            break;
+                        }
                     }
                 }
+
                 if (notFound)  // there is no agent in the same subnet with target agent 
                 {
                     // send unsuccessfull message back to console
@@ -205,53 +225,36 @@ namespace OpenRm.Server.Host
                 };
 
                 // Look if already exist in _agents, and new entry if needed
-                bool agentFound = false;
-                int i;
-                for (i = 0 ; i < _agents.Count; i++)
+                lock(AgentListLock)
                 {
-                    if (_agents[i].Agent.Data.Idata.DeviceName == idata.DeviceName
-                            && _agents[i].Agent.Data.Idata.SerialNumber == idata.SerialNumber)
+                    bool agentFound = false;
+                    int i;
+                    for (i = 0; i < _agents.Count; i++)
                     {
-                        //replace token to the new one
-                        _agents[i] = args.Token;
-                        args.Token.Agent.ID = i;
-                        agentFound = true;
-                        Logger.WriteStr(" Connected Agent < #" + _agents[i].Agent.ID + ": " + args.Token.Agent.Name + " > was already in db, so just been updated.");
-                        break;
+                        if (_agents[i].Agent.Data.Idata.DeviceName == idata.DeviceName
+                                && _agents[i].Agent.Data.Idata.SerialNumber == idata.SerialNumber)
+                        {
+                            //replace token to the new one
+                            _agents[i] = args.Token;
+                            args.Token.Agent.ID = i;
+                            agentFound = true;
+                            Logger.WriteStr(" Connected Agent < #" + _agents[i].Agent.ID + ": " + args.Token.Agent.Name + " > was already in db, so just been updated.");
+                            break;
+                        }
+                    }    
+                
+                    if (!agentFound)
+                    {
+                        // add new agent to the "database"
+                        var key = _agents.Count;
+                        args.Token.Agent.ID = key;
+                        _agents.Add(key, args.Token);
+
+                        Logger.WriteStr(" New agent has been added to db: < #" + key + ": " + args.Token.Agent.Name + " >");
                     }
                 }
-                if (!agentFound)
-                {
-                    // add new agent to the "database"
-                    var key = _agents.Count;
-                    args.Token.Agent.ID = key;
-                    _agents.Add(key, args.Token);
 
-                    //Interlocked.Increment(ref _agentsCount);
-
-                    Logger.WriteStr(" New agent has been added to db: < #" + key + ": " + args.Token.Agent.Name + " >");
-
-                    //save database do disk
-                    SaveAgentsList();
-                }
-
-
-                ////if (_agents.All(a => a.Value.Agent.Data.Idata.deviceName != idata.deviceName))
-                ////{
-                ////    args.Token.Agent = new Agent()
-                ////                           {
-                ////                               Data = new ClientData()
-                ////                                          {
-                ////                                              Idata = idata
-                ////                                          }
-                ////                           };
-                ////    var key = Interlocked.Increment(ref _agentsCount);
-                ////    _agents.Add(key, args.Token);
-                ////    args.Token.Agent.ID = key;
-                ////    args.Token.Agent.Name = args.Token.Agent.Data.Idata.deviceName;
-                ////}
-
-                // Request agent's IP and OS info:
+                // As sson as client connects, request agent's IP and OS info:
                 // ( we have to update info of reconnected clients because it can have been changed 
                 //  since previous sesion )
                 var msg = new RequestMessage { Request = new IpConfigRequest() };
@@ -259,6 +262,25 @@ namespace OpenRm.Server.Host
 
                 msg = new RequestMessage { Request = new OsInfoRequest() };
                 _server.Send(msg, args.Token);
+
+                // save database to disk with some delay. This delay lets server to recieve Network and OS info from client
+                // save in separate thread because it can be long operation
+                _asyncAgentsAutoSaver = new Thread(SaveAgentsListThread);
+                _asyncAgentsAutoSaver.Start();
+
+                if (_console != null)
+                {
+                    //Console is connected so we should send update about new/online agent
+                    var update = new AgentStatusUpdate { status = (int)EAgentStatus.Online };
+                    var updateMessage = new ResponseMessage()
+                    {
+                        Response = update,
+                        AgentId = args.Token.Agent.ID
+                    };
+                    _server.Send(updateMessage, _console);    
+                }
+                
+
 
 #if DEBUG
                         ////TODO: for testing only:
@@ -330,16 +352,25 @@ namespace OpenRm.Server.Host
 
 
         // Saves all agents db to file on disk
-        private void SaveAgentsList()
+        private void SaveAgentsListThread()
         {
-            var agentlist = new List<Agent>();
+            //wait few seconds to let agent send all it's base data to the server
+            Thread.Sleep(5000);
 
-            for (var i = 0; i < _agents.Count; i++)
+            lock(AutoSaveLock)
             {
-                agentlist.Add(_agents[i].Agent);
-            }
+                var agentlist = new List<Agent>();
 
-            WoxalizerAdapter.SaveToFile(agentlist, AgentsFile);
+                lock(AgentListLock)
+                {
+                    for (var i = 0; i < _agents.Count; i++)
+                    {
+                        agentlist.Add(_agents[i].Agent);
+                    }    
+                }
+
+                WoxalizerAdapter.SaveToFile(agentlist, AgentsFile);    
+            }
         }
 
 
@@ -359,8 +390,6 @@ namespace OpenRm.Server.Host
                     token.Agent = agent;
                     _agents.Add(agent.ID, token);
                     Logger.WriteStr(" < #" + agent.ID + ": " + agent.Name + " >");
-
-                    //_agentsCount++;
                 }
             }
         }
