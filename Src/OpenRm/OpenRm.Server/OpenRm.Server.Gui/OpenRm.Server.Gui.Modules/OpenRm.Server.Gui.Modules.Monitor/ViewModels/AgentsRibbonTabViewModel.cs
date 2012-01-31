@@ -38,9 +38,10 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             ShutDownCommand = new DelegateCommand(ShutDown);
             CommonCommand = new DelegateCommand(CommonExecute);
             SelectedComboBoxValue = "Ping";
-            CommonCommandParameter = string.Empty;
+            CommonCommandParameter = "gmail.com";
             RemoteControlCommand = new DelegateCommand(RemoteControl);
             WakeOnLanCommand = new DelegateCommand(WakeOnLan);
+            RunProcessCommand = new DelegateCommand(RunProcess);
         }
 
         private AgentWrapper _currentEntity;
@@ -66,6 +67,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         public ICommand CommonCommand { get; private set; }
         public ICommand RemoteControlCommand { get; private set; }
         public ICommand WakeOnLanCommand { get; private set; }
+        public ICommand RunProcessCommand { get; private set; }
 
         private string _selectedComboBoxValue;
         public string SelectedComboBoxValue
@@ -158,7 +160,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             }
             else
             {
-                MessageBox.Show("Cannot connect server. Please make shure the server is running.", "Oops", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Cannot connect server. Please make sure the server is running.", "Oops", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -262,16 +264,6 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                 message.Request = new PingRequest(0, CommonCommandParameter);
             else if(SelectedComboBoxValue == "TraceRoute")
                 message.Request = new TraceRouteRequest(0, CommonCommandParameter);
-            else if(SelectedComboBoxValue == "RunCommand")
-            {
-                RemoteCommandDialogView prompt = new RemoteCommandDialogView();
-                //prompt.Owner = this;
-                //prompt.DocumentMargin = this.documentTextBox.Margin;
-                // Open the dialog box
-                prompt.ShowDialog();
-
-                return;
-            }
             else
             {
                 MessageBox.Show("Please choose valid option from drop-down list", "Oops", MessageBoxButton.OK,
@@ -348,6 +340,31 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
                     CurrentEntity.Log.Add(response.ErrorMessage);
                 else
                     CurrentEntity.Log.Add("Successfully launched Remote Contol on remote computer.");
+            }
+        }
+
+
+        private void RunProcess()
+        {
+            var prompt = new RemoteCommandDialogView(OnRunProcessCompleted);
+            //prompt.Owner = this;
+            //prompt.DocumentMargin = this.documentTextBox.Margin;
+            // Open the dialog box
+            prompt.ShowDialog();
+
+        }
+
+
+        private void OnRunProcessCompleted(CustomEventArgs args)
+        {
+            if (args.Status == SocketError.Success)
+            {
+                var message = (ResponseMessage)args.Result;
+                var response = (RunProcessResponse)message.Response;
+                if (response.ErrorMessage != "")
+                    CurrentEntity.Log.Add(response.ErrorMessage);
+                else
+                    CurrentEntity.Log.Add("Remote process was successfully executed on remote computer.");
             }
         }
 
