@@ -28,7 +28,7 @@ namespace OpenRm.Common.Entities.Network.Messages
             // Start VNC Server
             if (!IsProcessRunning(vncName))
             {
-                //add registry settings
+                //add registry settings to let silent application start
                 byte[] pass = {1, 2, 3, 4, 5, 6, 7, 8};
                 try
                 {

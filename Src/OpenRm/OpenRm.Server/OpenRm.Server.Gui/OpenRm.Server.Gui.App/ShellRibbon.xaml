@@ -6,7 +6,7 @@
         xmlns:prism="http://www.codeplex.com/prism"
         xmlns:loc="clr-namespace:OpenRm.Server.Gui.Inf;assembly=OpenRm.Server.Gui.Inf"
         Title="OpenRM Host Console"
-        Width="800" Height="600">
+        Width="900" Height="600">
     <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -20,6 +20,11 @@
                 Background="Transparent"  
                 prism:RegionManager.RegionName="{x:Static loc:RegionNames.RibbonRegion}" >
 
+            <!-- Hide Application Menu Button-->
+            <ribbon:Ribbon.ApplicationMenu>
+                <ribbon:RibbonApplicationMenu Visibility="Collapsed"></ribbon:RibbonApplicationMenu>
+            </ribbon:Ribbon.ApplicationMenu>
+            
             <!-- Home Tab (defined here) -->
             <!--<ribbon:RibbonTab x:Name="HomeTab"  Header="Home">
                 <ribbon:RibbonGroup Header="Connection">
@@ -35,10 +40,10 @@
             </Border>-->
             <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" MinWidth="100" 
                 Margin="8,2,2,8" DockPanel.Dock="Left">
-                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.LeftContentRegion}" />
+                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.LeftContentRegion}" Width="117" />
             </Border>
             <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" Margin="2,2,8,8">
-                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.RightContentRegion}" />
+                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.RightContentRegion}" Width="736" />
             </Border>
         </DockPanel>
     </Grid>

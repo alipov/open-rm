@@ -7,6 +7,7 @@
                   xmlns:Converters="clr-namespace:OpenRm.Server.Gui.Modules.Monitor.Converters"
                   mc:Ignorable="d" 
                   Header="Agents">
+
     <ribbon:RibbonGroup Header="Connection">
         <ribbon:RibbonButton LargeImageSource="Images\ConnectionManager_48x48.png"  Label="Connect"
                              Command="{Binding ConnectCommand}" x:Name="ConnectButton"
@@ -16,6 +17,7 @@
                              IsEnabled="{Binding IsConnectEnabled, 
                                         Converter={x:Static Converters:StaticConverters.InvertBoolConverter}}"/>
     </ribbon:RibbonGroup>
+    
     <ribbon:RibbonGroup Header="Commands">
         <ribbon:RibbonButton LargeImageSource="Images\software_64x64.png"  
                              Label="Installed Programs"
@@ -38,6 +40,10 @@
                              Command="{Binding RemoteControlCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
+        <ribbon:RibbonButton LargeImageSource="Images\Run_48x48.png" Label="Run Process" 
+                             Command="{Binding RunProcessCommand}"
+                             IsEnabled="{Binding CurrentEntity, 
+                                        Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
         <ribbon:RibbonButton LargeImageSource="Images\wol_64x64.png" Label="Wake on Lan" 
                              Command="{Binding WakeOnLanCommand}"
                              IsEnabled="{Binding CurrentEntity, 
@@ -46,12 +52,14 @@
                              Command="{Binding RefreshAgentsCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>-->
+    </ribbon:RibbonGroup>
 
-
+    <ribbon:RibbonGroup Header="Network Utilities">
         <!--Converter={x:Static Converters:StaticConverters.DummyValueConverter}-->
-        <ribbon:RibbonTextBox  Text="{Binding Path=CommonCommandParameter, Mode=TwoWay, 
+        <ribbon:RibbonTextBox Text="{Binding Path=CommonCommandParameter, Mode=TwoWay, 
                                       TargetNullValue='', FallbackValue='', 
-                                      UpdateSourceTrigger=PropertyChanged}"/>
+                                      UpdateSourceTrigger=PropertyChanged}"
+                              TextBoxWidth="90"/>
         <!--<TextBox Text="{Binding CommonCommandParameter, Mode=TwoWay, TargetNullValue='', FallbackValue=''}" d:DataContext="{d:DesignInstance Type=ViewModels:AgentsRibbonTabViewModel}" 
                  AcceptsReturn="True" AcceptsTab="True"/>-->
         <ribbon:RibbonComboBox IsEditable="True">
@@ -64,13 +72,10 @@
                 </ribbon:RibbonGalleryCategory>
             </ribbon:RibbonGallery>
         </ribbon:RibbonComboBox>
-        <ribbon:RibbonButton LargeImageSource="Images\ConnectionManager_48x48.png"  Label="Execute"
+        <ribbon:RibbonButton LargeImageSource="Images\Browser_64x64.png"  Label="Execute"
                             Command="{Binding CommonCommand}"
                             IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
     </ribbon:RibbonGroup>
-    <!--<ribbon:RibbonGroup Header="Common">
-        
-        
-    </ribbon:RibbonGroup>-->
+    
 </ribbon:RibbonTab >

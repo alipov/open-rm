@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using OpenRm.Common.Entities;
 
 namespace OpenRm.Server.Gui.Modules.Monitor.Views
 {
@@ -18,9 +19,13 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Views
     /// </summary>
     public partial class RemoteCommandDialogView : Window
     {
-        public RemoteCommandDialogView()
+        private Action<CustomEventArgs> _clientCallback;
+
+        public RemoteCommandDialogView(Action<CustomEventArgs> callback)
         {
             InitializeComponent();
+
+            _clientCallback = callback;
         }
 
 

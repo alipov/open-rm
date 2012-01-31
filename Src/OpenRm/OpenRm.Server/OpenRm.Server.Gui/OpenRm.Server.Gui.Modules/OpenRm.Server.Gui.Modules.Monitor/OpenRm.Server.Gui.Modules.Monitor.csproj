@@ -229,6 +229,12 @@
   <ItemGroup>
     <Resource Include="Views\Images\perfmon_64x64.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\Run_48x48.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\Browser_64x64.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
