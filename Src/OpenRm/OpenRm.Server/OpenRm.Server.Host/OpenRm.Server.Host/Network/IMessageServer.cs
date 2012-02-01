@@ -1,7 +1,9 @@
-﻿using System;
+using System;
+using OpenRm.Common.Entities;
+using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
 
-namespace OpenRm.Common.Entities.Network.Server
+namespace OpenRm.Server.Host.Network
 {
     public interface IMessageServer
     {

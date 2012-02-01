@@ -38,6 +38,9 @@ namespace OpenRm.Agent
             TypeResolving.RegisterTypeResolving();
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += ExceptionHandler;
+
             _notifyIconComponent = new NotifyIconWrapper();
             _notifyIconComponent.StartAgentClick += StartAgentThread;
             _notifyIconComponent.StopAgentClick += StopAgentThread;
@@ -180,6 +183,14 @@ namespace OpenRm.Agent
             _notifyIconComponent.Dispose();
         }
 
+
+        private void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            var e = (Exception)args.ExceptionObject;
+            _notifyIconComponent.ShowNotifiction("Error occured: " + e.Message + 
+                "\nPlease review log and restart agent if nesessary.");
+        }
+        
 
         private void UpdateServerIpEndpoint(object sender, EventArgs e)
         {

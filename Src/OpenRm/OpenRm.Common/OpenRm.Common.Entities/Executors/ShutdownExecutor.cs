@@ -45,24 +45,6 @@ namespace OpenRm.Common.Entities.Executors
             uint dwReason);
 
 
-        // Shutdown system
-        //public static ResponseBase Run(ShutdownRequest request)
-        //{
-        //    var res = new ShutdownResponse(request.RunId, "Shutdown process started");
-        //    try
-        //    {
-        //        PerformShutdown("Shutdown", false);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        string err = "Error occured while trying to perform shutdown: " + ex.Message;
-        //        Logger.WriteStr(err);
-        //        res.Answer = err;
-        //    }
-        //    return res;
-        //}
-
-
         public static void PerformShutdown(string lpMessage, bool bRebootAfterShutdown)
         {
             ElevatePrivileges();

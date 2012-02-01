@@ -11,16 +11,16 @@ namespace OpenRm.Common.Entities.Network
         protected const int MsgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
         protected int ReceiveBufferSize;
 
-        protected static Encoding utf8 = new UTF8Encoding(false);    //False means there is NO "Byte Order Mark" (three bytes appended at beginning of byte array)
+        public static Encoding utf8 = new UTF8Encoding(false);    //False means there is NO "Byte Order Mark" (three bytes appended at beginning of byte array)
 
-        protected TcpBase(int bufferSize)
+        public TcpBase(int bufferSize)
         {
             //_assemblyResolveHandler = assemblyResolveHandler;
             ReceiveBufferSize = bufferSize;
         }
 
 
-        protected virtual void WaitForReceiveMessage(SocketAsyncEventArgs readEventArgs)
+        public virtual void WaitForReceiveMessage(SocketAsyncEventArgs readEventArgs)
         {
             //TODO: remove these lines
             var token = (AsyncUserTokenBase)readEventArgs.UserToken;
@@ -46,7 +46,7 @@ namespace OpenRm.Common.Entities.Network
 
         // Invoked when an asycnhronous receive operation completes.  
         // If the remote host closed the connection, then the socket is closed.
-        protected virtual void ProcessReceive(SocketAsyncEventArgs args)
+        public virtual void ProcessReceive(SocketAsyncEventArgs args)
         {
             var token = (AsyncUserTokenBase)args.UserToken;
 
@@ -228,7 +228,7 @@ namespace OpenRm.Common.Entities.Network
 
 
         // This method is invoked when an asynchronous send operation completes.
-        protected virtual void ProcessSend(SocketAsyncEventArgs args)
+        public virtual void ProcessSend(SocketAsyncEventArgs args)
         {
             var token = (AsyncUserTokenBase)args.UserToken;
 

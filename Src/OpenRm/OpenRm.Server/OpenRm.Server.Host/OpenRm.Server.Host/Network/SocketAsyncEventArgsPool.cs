@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace OpenRm.Common.Entities.Network.Server
+namespace OpenRm.Server.Host.Network
 {
     // Represents a collection of resusable SocketAsyncEventArgs objects.  
     class SocketAsyncEventArgsPool

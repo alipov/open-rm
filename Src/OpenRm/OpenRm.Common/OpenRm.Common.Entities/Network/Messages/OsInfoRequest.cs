@@ -1,6 +1,6 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
+using OpenRm.Common.Entities.Executors;
 
 namespace OpenRm.Common.Entities.Network.Messages
 {
