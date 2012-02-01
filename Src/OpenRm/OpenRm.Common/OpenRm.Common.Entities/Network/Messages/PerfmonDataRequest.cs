@@ -1,12 +1,10 @@
-﻿
-using System;
-using System.Collections.Generic;
+﻿using System;
+using OpenRm.Common.Entities.Executors;
 
 namespace OpenRm.Common.Entities.Network.Messages
 {
     public class PerfmonDataRequest : RequestBase
     {
-        //public string DriveName { get; set; }
 
         public override ResponseBase ExecuteRequest()
         {

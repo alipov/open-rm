@@ -8,7 +8,7 @@ namespace OpenRm.Common.Entities.Network
     // TCP uses ACKs to ensure that another side has recieved it's data. Thus, broken connections can be detected by sending 
     //  out data. So we'll use Timer to send empty messages each "Interval" of seconds.
 
-    class KeepAliveTimer : Timer
+    public class KeepAliveTimer : Timer
     {
         public AsyncUserTokenBase Token { get; set; }
 

@@ -1,13 +1,12 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Timers;
+using OpenRm.Common.Entities;
+using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
-using Timer = System.Timers.Timer;
 
-namespace OpenRm.Common.Entities.Network.Server
+namespace OpenRm.Server.Host.Network
 {
     public class TcpServerListenerAdv : TcpBase, IMessageServer
     {

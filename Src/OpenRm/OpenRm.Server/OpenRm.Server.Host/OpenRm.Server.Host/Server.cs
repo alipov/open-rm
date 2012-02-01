@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using OpenRm.Common.Entities;
 using System.Configuration;
 using OpenRm.Common.Entities.Enums;
 using OpenRm.Common.Entities.Network;
 using OpenRm.Common.Entities.Network.Messages;
-using OpenRm.Common.Entities.Network.Server;
-using Timer = System.Timers.Timer;
+using OpenRm.Server.Host.Network;
+
 
 namespace OpenRm.Server.Host
 {
+
+    // Main server class
+
     internal class Server
     {
         private const int ReceiveBufferSize = 64;       //recieve buffer size for tcp connection
@@ -42,6 +44,9 @@ namespace OpenRm.Server.Host
             {
                 Logger.CreateLogFile("logs", _logFilenamePattern);       // creates "logs" directory in binaries folder and set log filename
                 Logger.WriteStr("Started");
+
+                AppDomain currentDomain = AppDomain.CurrentDomain;
+                currentDomain.UnhandledException += ExceptionHandler;
 
                 EncryptionAdapter.SetEncryption(_secretKey);
 
@@ -392,6 +397,16 @@ namespace OpenRm.Server.Host
                     Logger.WriteStr(" < #" + agent.ID + ": " + agent.Name + " >");
                 }
             }
+        }
+
+
+        private void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            var e = (Exception)args.ExceptionObject;
+            string errMsg = "Error occured: " + e.Message +
+                            "\nPlease review log and restart the server if nesessary.";
+            Logger.WriteStr(errMsg);
+            Console.WriteLine(errMsg);
         }
 
 

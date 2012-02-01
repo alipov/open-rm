@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
 using System.Net;
-using System.Text;
 
 namespace OpenRm.Common.Entities
 {
+
+    // Load settings on client startup
     public static class SettingsManager
     {
 

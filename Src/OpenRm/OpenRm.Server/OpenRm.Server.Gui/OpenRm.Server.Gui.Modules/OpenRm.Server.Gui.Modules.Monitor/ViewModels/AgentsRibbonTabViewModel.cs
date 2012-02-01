@@ -26,6 +26,9 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         
         public AgentsRibbonTabViewModel(IUnityContainer container, IAgentDataService dataService)
         {
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += ExceptionHandler;
+
             _container = container;
             _dataService = dataService;
 
@@ -42,6 +45,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             RemoteControlCommand = new DelegateCommand(RemoteControl);
             WakeOnLanCommand = new DelegateCommand(WakeOnLan);
             RunProcessCommand = new DelegateCommand(RunProcess);
+
         }
 
         private AgentWrapper _currentEntity;
@@ -386,6 +390,17 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
             return agentWrappers;
         }
+
+
+        private void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            var e = (Exception)args.ExceptionObject;
+            string errMsg = "Error occured: " + e.Message +
+                            "\nPlease review log and restart Console if nesessary.";
+            Logger.WriteStr(errMsg);
+            MessageBox.Show(errMsg, "Oops", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
 
         #region INotifyPropertyChanged Members
 

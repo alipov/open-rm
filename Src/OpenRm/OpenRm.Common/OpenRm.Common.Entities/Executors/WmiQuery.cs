@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Management;
 
-namespace OpenRm.Common.Entities
+namespace OpenRm.Common.Entities.Executors
 {
     public static class WmiQuery
     {
@@ -57,8 +57,8 @@ namespace OpenRm.Common.Entities
             }
             catch (Exception ex)
             {
-                //TODO:  throw new ArgumentException ?
                 Logger.WriteStr(" ERROR: Cannot retrieve data from WMI key " + key + ". (Error: " + ex.Message + ")");
+                throw new ArgumentException("Cannot retrieve required WMI data.");
             }
 
             return values;
