@@ -41,10 +41,10 @@
             </Border>-->
             <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" MinWidth="100" 
                 Margin="8,2,2,8" DockPanel.Dock="Left">
-                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.LeftContentRegion}" Width="117" />
+                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.LeftContentRegion}" Width="120" />
             </Border>
             <Border BorderBrush="Black" BorderThickness="1" CornerRadius="4" Margin="2,2,8,8">
-                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.RightContentRegion}" Width="736" />
+                <ContentControl prism:RegionManager.RegionName="{x:Static loc:RegionNames.RightContentRegion}" Width="Auto" />
             </Border>
         </DockPanel>
     </Grid>
