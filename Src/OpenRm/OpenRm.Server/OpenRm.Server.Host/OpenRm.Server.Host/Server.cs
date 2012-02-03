@@ -201,9 +201,29 @@ namespace OpenRm.Server.Host
             }
             else
             {
-                //match agent by agentId and redirect received Message Request to it
+                //match agent by agentId and redirect received Message Request to it, if it still is connected
                 var agentToken = _agents[message.AgentId];
-                _server.Send(message, agentToken);
+                if (agentToken.Socket.Connected)
+                {
+                    // redirect to agent
+                    _server.Send(message, agentToken);    
+                }
+                else
+                {
+                    // Agent is not connected so send update to console
+                    if (_console != null)
+                    {
+                        var update = new AgentStatusUpdate { status = (int)EAgentStatus.Offline };
+                        var updateMessage = new ResponseMessage()
+                        {
+                            Response = update,
+                            AgentId = message.AgentId
+                        };
+                        _server.Send(updateMessage, _console);
+                        //TODO:  recieve it in Console:  update status and notify to user!!!!!!!!!!!!!!!!!!!!!!
+                    }
+                }
+                
             }
         }
 

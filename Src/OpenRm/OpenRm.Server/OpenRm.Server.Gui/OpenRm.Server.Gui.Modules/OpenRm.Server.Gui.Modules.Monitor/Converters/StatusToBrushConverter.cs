@@ -25,7 +25,6 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Converters
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("value should be Online or Offline");
-                    break;
             }
 
             return brush;

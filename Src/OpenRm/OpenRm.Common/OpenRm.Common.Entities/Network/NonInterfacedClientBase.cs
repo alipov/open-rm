@@ -17,10 +17,19 @@ namespace OpenRm.Common.Entities.Network
 
             // decrypt message data
             var decryptedMsgData = EncryptionAdapter.Decrypt(token.RecievedMsgData);
-            Logger.WriteStr(" The message (xml): " + utf8.GetString(decryptedMsgData));
+            Logger.WriteStr(" Recieved message was decrypted as xml: " + utf8.GetString(decryptedMsgData));
 
             // deserialize to object
-            Message message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData);
+            Message message = null;
+            try
+            {
+                message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData);
+            }
+            catch(Exception ex)
+            {
+                Logger.WriteStr("ERROR: Cannot deserialize recieved message (" + ex.Message + "). Aborting connection.");
+                CloseConnection(e);
+            }
 
             if (message is RequestMessage)
                 ProcessReceivedMessageRequest(e, (RequestMessage)message);

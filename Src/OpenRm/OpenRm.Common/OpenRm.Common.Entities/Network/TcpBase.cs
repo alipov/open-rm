@@ -10,6 +10,7 @@ namespace OpenRm.Common.Entities.Network
     {
         protected const int MsgPrefixLength = 4;            // message prefix length (4 bytes). Prefix added to each message: it holds sent message's length
         protected int ReceiveBufferSize;
+        protected const int MaxMessageLength = 1024000;     // Limit max message to eleminate DoS attack / huge buffers
 
         public static Encoding utf8 = new UTF8Encoding(false);    //False means there is NO "Byte Order Mark" (three bytes appended at beginning of byte array)
 
@@ -22,7 +23,6 @@ namespace OpenRm.Common.Entities.Network
 
         public virtual void WaitForReceiveMessage(SocketAsyncEventArgs readEventArgs)
         {
-            //TODO: remove these lines
             var token = (AsyncUserTokenBase)readEventArgs.UserToken;
             token.readSemaphore.WaitOne();
 
@@ -100,8 +100,12 @@ namespace OpenRm.Common.Entities.Network
                             break;  //exit while
                         }
 
-                        if (length < 0)
-                            throw new ProtocolViolationException(" Invalid message prefix");
+                        if (length < 0 || length > MaxMessageLength)    // we received garbage
+                        {
+                            Logger.WriteStr(" Invalid message prefix (" + length + "). Aborting connection.");
+                            ProcessReceiveFailure(args);
+                            return;
+                        }
 
                         // Save prefix value into token
                         token.MessageLength = length;
@@ -140,7 +144,12 @@ namespace OpenRm.Common.Entities.Network
                         // we've gotten an entire packet
                         Logger.WriteStr("   Got complete message from " + token.Socket.RemoteEndPoint + " with length=" + token.RecievedMsgData.Length + ".");
 
+                        // Process complete message
                         ProcessReceivedMessage(args);
+
+                        // check if we still connected (because ProcessReceivedMessage can close connection)
+                        if (!token.Socket.Connected)
+                            return;
 
                         // Check if something left in the buffer: maybe there is a start of next message
                         int bytesLeft = bytesAvailable - bytesTransferred;
