@@ -198,7 +198,16 @@ namespace OpenRm.Common.Entities.Network
             Logger.WriteStr(" Recieved message was decrypted as xml: " + utf8.GetString(decryptedMsgData));
 
             // deserialize to object
-            Message message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData, null);
+            Message message = null;
+            try
+            {
+                message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData);
+            }
+            catch(Exception ex)
+            {
+                Logger.WriteStr("ERROR: Cannot deserialize recieved message (" + ex.Message + "). Aborting connection.");
+                CloseConnection(e);
+            }
 
             if (_userToken.Callback != null)
             {
@@ -258,6 +267,8 @@ namespace OpenRm.Common.Entities.Network
 
         protected override void CloseConnection(SocketAsyncEventArgs e)
         {
+            _isConnected = false;
+
             try
             {
                 //maybe timer has been stopped already

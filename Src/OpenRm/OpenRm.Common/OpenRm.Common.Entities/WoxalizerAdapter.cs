@@ -49,37 +49,12 @@ namespace OpenRm.Common.Entities
 
             using (var woxalizer = new WoxalizerUtil())
             {
-                try
-                {
-                    message = (Message)woxalizer.Load(reader);
-                }
-                catch (Exception)
-                {
-                    Logger.WriteStr("ERROR: Cannot deserilize recieved object!");
-                }
+                // can throw exception
+                message = (Message)woxalizer.Load(reader);
             }
             return message;
         }
 
-        public static Message DeserializeFromXml(Byte[] msg, Func<object, ResolveEventArgs, Assembly> assemblyResolveHandler)
-        {
-            Message message = null;
-            var mem = new MemoryStream(msg);
-            var reader = XmlReader.Create(mem);
-
-            using (var woxalizer = new WoxalizerUtil())
-            {
-                try
-                {
-                    message = (Message)woxalizer.Load(reader);
-                }
-                catch(Exception)
-                {
-                    Logger.WriteStr("ERROR: Cannot deserilize recieved object!");
-                }
-            }
-            return message;
-        }
 
         private static readonly object lck = new object();     // for handeling Writes from many threads
 

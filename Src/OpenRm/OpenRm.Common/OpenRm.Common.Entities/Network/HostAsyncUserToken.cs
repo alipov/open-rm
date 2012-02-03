@@ -6,12 +6,6 @@ namespace OpenRm.Common.Entities.Network
     {
         public HostAsyncUserToken() : base(null) { }
 
-        //public HostAsyncUserToken(Socket socket, ClientData data, int msgPrefixLength = 4)
-        //    : base(socket, data, msgPrefixLength)
-        //{
-
-        //}
-
         static HostAsyncUserToken()
         {
             _runId = 1;
@@ -28,9 +22,8 @@ namespace OpenRm.Common.Entities.Network
             }
         }
 
-        //public IdentificationDataResponse ClientData { get; set; }
         public Agent Agent { get; set; }
-        //public ClientData AgentInventory { get; set; }
+
         public Action<HostCustomEventArgs> Callback { get; set; }
     }
 }

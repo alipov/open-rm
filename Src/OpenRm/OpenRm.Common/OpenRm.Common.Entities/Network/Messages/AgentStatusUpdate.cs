@@ -1,6 +1,4 @@
-﻿using OpenRm.Common.Entities.Enums;
-
-namespace OpenRm.Common.Entities.Network.Messages
+﻿namespace OpenRm.Common.Entities.Network.Messages
 {
     public class AgentStatusUpdate: ResponseBase
     {

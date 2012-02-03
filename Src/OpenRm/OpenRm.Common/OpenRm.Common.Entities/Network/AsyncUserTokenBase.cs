@@ -34,7 +34,6 @@ namespace OpenRm.Common.Entities.Network
 
         protected readonly int _msgPrefixLength;
 
-        //TODO: recheck/cleanup arguments:
         protected AsyncUserTokenBase(Socket socket, int msgPrefixLength = 4)
         {
             _msgPrefixLength = msgPrefixLength;

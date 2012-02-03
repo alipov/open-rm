@@ -214,7 +214,18 @@ namespace OpenRm.Server.Host.Network
             Logger.WriteStr(" Dectypted message: " + utf8.GetString(decryptedMsgData));
 
             // deserialize to object
-            var message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData);
+            Message message = null;
+            try
+            {
+                message = WoxalizerAdapter.DeserializeFromXml(decryptedMsgData);
+            }
+            catch (Exception ex)
+            {
+                // it can be garbage or DoS attack, so better to close connection
+                Logger.WriteStr("ERROR: Cannot deserialize recieved message (" + ex.Message + "). Aborting connection.");
+                CloseConnection(e);
+                return;
+            }
 
             var args = new HostCustomEventArgs(e.SocketError, message)
             {

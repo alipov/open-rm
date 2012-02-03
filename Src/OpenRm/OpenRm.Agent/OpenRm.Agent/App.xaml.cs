@@ -57,7 +57,10 @@ namespace OpenRm.Agent
         private void AgentStarterThread()
         {
             // Read configuration from file
-            if (!SettingsManager.ReadConfigFile()) return;  //TODO: close application? notify user?
+            if (!SettingsManager.ReadConfigFile()) {
+                _notifyIconComponent.ShowNotifiction("Error while reading configuration file.");
+                return;  
+            }
 
             if (_newServerEndPoint != null)
                 SettingsManager.ServerEndPoint = _newServerEndPoint;       //override configuration file
@@ -120,6 +123,7 @@ namespace OpenRm.Agent
                               Response = idRequest.ExecuteRequest()
                           };
             _client.Send(message, OnReceivingCompleted);
+
         }
 
 
