@@ -73,7 +73,7 @@
                        VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding CurrentEntity.Data.OS.OsArchitecture}" 
                        Grid.Column="11" Grid.Row="2" VerticalAlignment="Center"/>
-                <TextBlock Text="RAM Size:" Grid.Column="1" Grid.Row="3"
+                <TextBlock Text="RAM Size (Mb):" Grid.Column="1" Grid.Row="3"
                        VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding CurrentEntity.Data.OS.RamSize}" 
                        Grid.Column="3" Grid.Row="3" VerticalAlignment="Center"/>
@@ -81,7 +81,7 @@
                        VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding CurrentEntity.Data.OS.SystemDrive}" 
                        Grid.Column="7" Grid.Row="3" VerticalAlignment="Center"/>
-                <TextBlock Text="System Drive Size (in GB):" Grid.Column="9" Grid.Row="3"
+                <TextBlock Text="System Drive Size (Gb):" Grid.Column="9" Grid.Row="3"
                        VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding CurrentEntity.Data.OS.SystemDriveSize}" 
                        Grid.Column="11" Grid.Row="3" VerticalAlignment="Center"/>
