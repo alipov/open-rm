@@ -28,11 +28,11 @@
                              Command="{Binding LockSessionCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\Restart_64x64.png" Label="Restart" 
+        <ribbon:RibbonButton LargeImageSource="Images\Restart_32x32.png" Label="Restart" 
                              Command="{Binding RestartCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
-        <ribbon:RibbonButton LargeImageSource="Images\Shutdown_64x64.png" Label="Shut Down" 
+        <ribbon:RibbonButton LargeImageSource="Images\Shutdown_32x32.png" Label="Shut Down" 
                              Command="{Binding ShutDownCommand}"
                              IsEnabled="{Binding CurrentEntity, 
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
@@ -46,8 +46,7 @@
                                         Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
         <ribbon:RibbonButton LargeImageSource="Images\wol_64x64.png" Label="Wake on Lan" 
                              Command="{Binding WakeOnLanCommand}"
-                             IsEnabled="{Binding CurrentEntity, 
-                                        Converter={x:Static Converters:StaticConverters.InstanceToBooleanConverter}}"/>
+                             IsEnabled="True"/>
         <!--<ribbon:RibbonButton LargeImageSource="Images\perfmon_64x64.png" Label="Performance Monitor" 
                              Command="{Binding RefreshAgentsCommand}"
                              IsEnabled="{Binding CurrentEntity, 

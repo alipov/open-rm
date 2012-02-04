@@ -19,7 +19,7 @@ namespace OpenRm.Common.Entities.Network.Messages
                 os.OsArchitecture = values["OSArchitecture"];
             else
                 os.OsArchitecture = "32 bit";   //old 32-bit systems has no OSArchitecture property  
-            os.RamSize = Int32.Parse(values["TotalVisibleMemorySize"]);
+            os.RamSize = Int32.Parse(values["TotalVisibleMemorySize"])/1024;    //in Mb
             os.SystemDrive = values["SystemDrive"];
             os.SystemDriveSize = (int)(Double.Parse(WmiQuery.GetWMIdata("Win32_LogicalDisk", "Size", "Caption", os.SystemDrive))/(1024*1024*1024)); //Gb
 

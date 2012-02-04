@@ -200,9 +200,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Views\Images\AddRemovePrograms_125x125.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Views\Images\ConnectionManager_48x48.png" />
   </ItemGroup>
   <ItemGroup>
@@ -213,12 +210,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Views\Images\RemoteControl_32x32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Views\Images\Restart_64x64.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Views\Images\Shutdown_64x64.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Views\Images\software_64x64.png" />
@@ -234,6 +225,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Views\Images\Browser_64x64.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\Restart_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\Images\Shutdown_32x32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
