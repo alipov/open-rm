@@ -142,11 +142,15 @@ namespace OpenRm.Server.Host
                 string targetIp = targetAgent.Data.IpConfig.IpAddress;
                 string targetMask = targetAgent.Data.IpConfig.NetMask;
 
+                Logger.WriteStr("Recieved command to wake up agent " + targetAgent.Name);
+
                 bool notFound = true;
-                lock(AgentListLock)
+
+                //look for client on the same subnet with target, which has Online status
+                for (var i = 0; i < _agents.Count; i++)
                 {
-                    //look for client on the same subnet with target, which has Online status
-                    for (var i = 0; i < _agents.Count; i++)
+                    //exclude itself
+                    if (message.AgentId != i)
                     {
                         var agentToken = _agents[i];
                         if (NetworkHelper.IsOnSameNetwork(agentToken.Agent.Data.IpConfig.IpAddress,
@@ -164,6 +168,7 @@ namespace OpenRm.Server.Host
 
                 if (notFound)  // there is no agent in the same subnet with target agent 
                 {
+                    Logger.WriteStr("Cannot wake up " + targetAgent.Name + " because there is no agent in the same subnet.");
                     // send unsuccessfull message back to console
                     var response = new WakeOnLanResponse(false, ((WakeOnLanRequest) message.Request).RunId);
                     var responseMessage = new ResponseMessage()
@@ -171,7 +176,7 @@ namespace OpenRm.Server.Host
                                                   Response = response,
                                                   AgentId = message.AgentId
                                               };
-                    _server.Send(responseMessage, args.Token);
+                    _server.Send(responseMessage, _console);
                 }
 
             }

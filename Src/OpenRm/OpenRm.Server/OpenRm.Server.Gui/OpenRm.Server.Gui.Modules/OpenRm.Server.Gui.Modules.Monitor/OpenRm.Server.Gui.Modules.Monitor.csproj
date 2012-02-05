@@ -97,6 +97,7 @@
     <Compile Include="Controllers\AgentSummaryRegionController.cs" />
     <Compile Include="Converters\DummyValueConverter.cs" />
     <Compile Include="Converters\InstanceToBooleanConverter.cs" />
+    <Compile Include="Converters\InstanceToBooleanInverseConverter.cs" />
     <Compile Include="Converters\InvertBoolConverter.cs" />
     <Compile Include="Converters\StaticConverters.cs" />
     <Compile Include="Converters\StatusToBrushConverter.cs" />
