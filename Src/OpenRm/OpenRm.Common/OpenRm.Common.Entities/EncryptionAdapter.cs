@@ -27,8 +27,6 @@ namespace OpenRm.Common.Entities
             {
                 keyBytes = utf8.GetBytes(key);
                 ivBytes = utf8.GetBytes(iv);
-
-                
             }
         }
 
