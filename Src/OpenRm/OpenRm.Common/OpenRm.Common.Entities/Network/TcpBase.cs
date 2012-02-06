@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 
 namespace OpenRm.Common.Entities.Network
 {
@@ -164,7 +162,6 @@ namespace OpenRm.Common.Entities.Network
                         }
                         else
                         {
-                            //TODO: remove?
                             break;  //break while
                         }
 
