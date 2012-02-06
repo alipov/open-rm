@@ -9,27 +9,39 @@
         ResizeMode="CanResizeWithGrip"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" 
-        FocusManager.FocusedElement="{Binding ElementName=leftMarginTextBox}">
+        FocusManager.FocusedElement="{Binding ElementName=Executable}">
 
      <Grid Height="251" Width="525">
         
         <Label Content="Executable path:" Height="26" HorizontalAlignment="Left" Margin="22,25,0,0" Name="label1" VerticalAlignment="Top" Width="106" />
-        <TextBox Height="23" HorizontalAlignment="Right" Margin="0,25,39,0" Name="Executable" VerticalAlignment="Top" Width="337" />
+        <TextBox Height="23" HorizontalAlignment="Right" Margin="0,25,39,0" Name="Executable" 
+                 VerticalAlignment="Top" Width="337" 
+                 Text="{Binding RunProcessCommand}"/>
 
         <Label Content="Arguments:" Height="26" HorizontalAlignment="Left" Margin="22,62,0,0" Name="label2" VerticalAlignment="Top" Width="96" />
-        <TextBox Height="23" HorizontalAlignment="Left" Margin="149,62,0,0" Name="Arguments" VerticalAlignment="Top" Width="337" />
+        <TextBox Height="23" HorizontalAlignment="Left" Margin="149,62,0,0" Name="Arguments" 
+                 VerticalAlignment="Top" Width="337" 
+                 Text="{Binding RunProcessArgs}"/>
 
         <Label Content="Working directory:" Height="26" HorizontalAlignment="Left" Margin="22,99,0,0" Name="label3" VerticalAlignment="Top" Width="121" />
-        <TextBox Height="23" HorizontalAlignment="Left" Margin="149,99,0,0" Name="WorkDir" VerticalAlignment="Top" Width="337" />
+        <TextBox Height="23" HorizontalAlignment="Left" Margin="149,99,0,0" Name="WorkDir" 
+                 VerticalAlignment="Top" Width="337" 
+                 Text="{Binding RunProcessWorkingDir}"/>
 
         <Label Content="Start Delay (sec):" Height="26" HorizontalAlignment="Left" Margin="22,136,0,0" Name="label4" VerticalAlignment="Top" Width="96" />
-        <TextBox Height="23" HorizontalAlignment="Left" Margin="149,138,0,0" Name="Delay" VerticalAlignment="Top" Width="68" />
+        <TextBox Height="23" HorizontalAlignment="Left" Margin="149,138,0,0" Name="Delay" 
+                 VerticalAlignment="Top" Width="68" 
+                 Text="{Binding RunProcessDelay}"/>
 
-        <CheckBox Content=" Hidden" Height="26" HorizontalAlignment="Left" Margin="300,144,0,81" Name="Hidden" VerticalAlignment="Center" Width="79" />
-        <CheckBox Content=" Wait" Height="16" HorizontalAlignment="Left" Margin="424,143,0,92" Name="Wait" VerticalAlignment="Center" />
+        <CheckBox Content=" Hidden" Height="26" HorizontalAlignment="Left" Margin="300,144,0,81" 
+                  Name="Hidden" VerticalAlignment="Center" Width="79" 
+                  IsChecked="{Binding RunProcessIsHidden}"/>
+        <CheckBox Content=" Wait" Height="16" HorizontalAlignment="Left" Margin="424,143,0,92" 
+                  Name="Wait" VerticalAlignment="Center" 
+                  IsChecked="{Binding RunProcessIsWait}"/>
 
         <!-- Accept or Cancel -->
-        <Button Name="cancelButton" IsCancel="True" Width="102" Margin="314,191,109,0" Height="27" VerticalAlignment="Top">Cancel</Button>
+        <Button Name="cancelButton" Click="cancelButton_Click" IsCancel="True" Width="102" Margin="314,191,109,0" Height="27" VerticalAlignment="Top">Cancel</Button>
         <Button Name="okButton" Click="okButton_Click" IsDefault="True" Width="101" Margin="132,191,292,33">Run</Button>
         
     </Grid >

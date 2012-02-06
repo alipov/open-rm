@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\IController.cs" />
+    <Compile Include="Api\IModalWindow.cs" />
     <Compile Include="Api\IService.cs" />
     <Compile Include="Api\Mvvm\IView.cs" />
     <Compile Include="Api\Mvvm\IViewModel.cs" />

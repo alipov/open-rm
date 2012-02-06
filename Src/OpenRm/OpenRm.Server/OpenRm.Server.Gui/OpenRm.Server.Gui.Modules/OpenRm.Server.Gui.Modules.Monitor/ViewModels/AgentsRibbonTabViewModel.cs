@@ -350,12 +350,32 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
 
         private void RunProcess()
         {
-            var prompt = new RemoteCommandDialogView(OnRunProcessCompleted);
+            var prompt = new RemoteCommandDialogView();
+            prompt.DataContext = CurrentEntity;
             //prompt.Owner = this;
             //prompt.DocumentMargin = this.documentTextBox.Margin;
             // Open the dialog box
             prompt.ShowDialog();
 
+            if (prompt.DialogResult.HasValue && prompt.DialogResult.Value)
+            {
+                var wakeOnLanMessage = new RequestMessage()
+                {
+                    Request = new RunProcessRequest()
+                                  {
+                                      Args = CurrentEntity.RunProcessArgs,
+                                      Cmd = CurrentEntity.RunProcessCommand,
+                                      Delay = CurrentEntity.RunProcessDelay,
+                                      Hidden = CurrentEntity.RunProcessIsHidden,
+                                      WaitForCompletion = CurrentEntity.RunProcessIsWait,
+                                      WorkDir = CurrentEntity.RunProcessWorkingDir
+                                  },
+                    AgentId = CurrentEntity.ID
+                };
+
+                var proxy = _container.Resolve<IMessageProxyInstance>();
+                proxy.Send(wakeOnLanMessage, OnRunProcessCompleted);
+            }
         }
 
 
