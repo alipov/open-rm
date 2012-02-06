@@ -246,65 +246,6 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Models
             //TODO: maybe initialize all variables?
             Data = new ClientData();
             Log = new ObservableCollection<string>();
-
-            // have to initialize to minimum of two instances, because otherwise
-            // exception will be raised by LineChartPanel control.
-            //var performanceCpu = new ObservableCollection<IntDateTimeObject>()
-            //                         {
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 },
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 }
-            //                         };
-            //var performanceDiscQueue = new ObservableCollection<IntDateTimeObject>()
-            //                         {
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 },
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 }
-            //                         };
-            //var performanceFreeDisc = new ObservableCollection<IntDateTimeObject>()
-            //                         {
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 },
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 }
-            //                         };
-            //var performanceRam = new ObservableCollection<IntDateTimeObject>()
-            //                         {
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 },
-            //                             new IntDateTimeObject()
-            //                                 {
-            //                                     Time = DateTime.Now,
-            //                                     Value = 0
-            //                                 }
-            //                         };
-            //PerformanceCpu = performanceCpu;
-            //PerformanceDiscQueue = performanceDiscQueue;
-            //PerformanceFreeDisc = performanceFreeDisc;
-            //PerformanceRam = performanceRam;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -314,6 +255,90 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Models
             if (this.PropertyChanged != null)
             {
                 this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        private string _runProcessCommand;
+        public string RunProcessCommand
+        {
+            get { return _runProcessCommand; }
+            set
+            {
+                if (value != _runProcessCommand)
+                {
+                    _runProcessCommand = value;
+                    NotifyPropertyChanged("RunProcessCommand");
+                }
+            }
+        }
+
+        private string _runProcessArgs;
+        public string RunProcessArgs
+        {
+            get { return _runProcessArgs; }
+            set
+            {
+                if (value != _runProcessArgs)
+                {
+                    _runProcessArgs = value;
+                    NotifyPropertyChanged("RunProcessArgs");
+                }
+            }
+        }
+
+        private string _runProcessWorkingDir;
+        public string RunProcessWorkingDir
+        {
+            get { return _runProcessWorkingDir; }
+            set
+            {
+                if (value != _runProcessWorkingDir)
+                {
+                    _runProcessWorkingDir = value;
+                    NotifyPropertyChanged("RunProcessWorkingDir");
+                }
+            }
+        }
+
+        private int _runProcessDelay;
+        public int RunProcessDelay
+        {
+            get { return _runProcessDelay; }
+            set
+            {
+                if (value != _runProcessDelay)
+                {
+                    _runProcessDelay = value;
+                    NotifyPropertyChanged("RunProcessDelay");
+                }
+            }
+        }
+
+        private bool _runProcessIsHidden;
+        public bool RunProcessIsHidden
+        {
+            get { return _runProcessIsHidden; }
+            set
+            {
+                if (value != _runProcessIsHidden)
+                {
+                    _runProcessIsHidden = value;
+                    NotifyPropertyChanged("RunProcessIsHidden");
+                }
+            }
+        }
+
+        private bool _runProcessIsWait;
+        public bool RunProcessIsWait
+        {
+            get { return _runProcessIsWait; }
+            set
+            {
+                if (value != _runProcessIsWait)
+                {
+                    _runProcessIsWait = value;
+                    NotifyPropertyChanged("RunProcessIsWait");
+                }
             }
         }
     }
