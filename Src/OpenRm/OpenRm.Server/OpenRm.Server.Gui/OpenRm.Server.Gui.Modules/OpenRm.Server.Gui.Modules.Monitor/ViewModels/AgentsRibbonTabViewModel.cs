@@ -164,7 +164,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
             }
             else
             {
-                MessageBox.Show("Cannot connect server. Please make sure the server is running.", "Oops", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Cannot connect to server " + SettingsManager.ServerEndPoint +". Please make sure the server is running.", "Oops", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -295,7 +295,11 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         {
             var wakeOnLanMessage = new RequestMessage()
             {
-                Request = new WakeOnLanRequest(),
+                Request = new WakeOnLanRequest()
+                              {
+                                  Mac = CurrentEntity.Data.IpConfig.MAC, 
+                                  RunId = CurrentEntity.ID
+                              },
                 AgentId = CurrentEntity.ID
             };
 
@@ -319,19 +323,27 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         private void RemoteControl()
         {
             string consoleIp = sourceIP;
-            var scRequest = new RemoteControlRequest(consoleIp, 5555);
-
-            //launch VNC viewer on local computer
-            scRequest.StartVncListerner();
-
-            var remoteControlMessage = new RequestMessage()
+            if (consoleIp != "127.0.0.1")
             {
-                Request = scRequest,
-                AgentId = CurrentEntity.ID
-            };
+                var scRequest = new RemoteControlRequest(consoleIp, 5555);
 
-            var proxy = _container.Resolve<IMessageProxyInstance>();
-            proxy.Send(remoteControlMessage, OnRemoteControlCompleted);
+                //launch VNC viewer on local computer
+                scRequest.StartVncListerner();
+
+                var remoteControlMessage = new RequestMessage()
+                {
+                    Request = scRequest,
+                    AgentId = CurrentEntity.ID
+                };
+
+                var proxy = _container.Resolve<IMessageProxyInstance>();
+                proxy.Send(remoteControlMessage, OnRemoteControlCompleted);    
+            }
+            else
+            {
+                MessageBox.Show("Cannot run Remote Control while connected through loopback interface (127.0.0.1)",
+                    "Oops", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
         }
 
         private void OnRemoteControlCompleted(CustomEventArgs args)
@@ -352,8 +364,7 @@ namespace OpenRm.Server.Gui.Modules.Monitor.ViewModels
         {
             var prompt = new RemoteCommandDialogView();
             prompt.DataContext = CurrentEntity;
-            //prompt.Owner = this;
-            //prompt.DocumentMargin = this.documentTextBox.Margin;
+
             // Open the dialog box
             prompt.ShowDialog();
 

@@ -32,8 +32,15 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Services
             _stateObject = stateObject;
 
             var service = _container.Resolve<MessageProxyService>();
-
-            service.Send(this);
+            try
+            {
+                service.Send(this);    
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteStr(ex.ToString());
+            }
+            
         }
 
         private void OnProxyReceiveCompleted(CustomEventArgs args)

@@ -22,7 +22,6 @@ namespace OpenRm.Common.Entities.Network.Messages
         {
             string vncDir = "..\\Common\\ThirdParty\\VNC\\";
             string vncName = "OpenRM.winvnc.exe";
-            bool running = false;
             var result = new RunProcessResponse();
 
             // Start VNC Server
@@ -45,25 +44,23 @@ namespace OpenRm.Common.Entities.Network.Messages
                         wait: false);
 
                     result = (RunProcessResponse) proc.ExecuteRequest();
-                    if (result.ExitCode == 0)
-                    {
-                        running = true;
-                    }
                 }
                 catch (Exception ex)
                 {
                     Logger.WriteStr(" Cannot start VNC server due to error: " + ex.Message);
                 }
-
             }
 
             // connect to VNC listener
-            if (running)
+            if (IsProcessRunning(vncName))
             {
+                string arguments = "-connect " + ViewerIp + "::" + ViewerPort + " -shareall";
+                Logger.WriteStr("Going to launch VNC server with parameters: " + arguments);
+
                 var proc = new RunProcessRequest(
                 runId: 0,
                 cmd: vncDir + vncName,
-                args: "-connect " + ViewerIp + "::" + ViewerPort + " -shareall",
+                args: arguments,
                 workDir: vncDir,
                 delay: 0,
                 hidden: true,

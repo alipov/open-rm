@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Practices.Unity;
+using Microsoft.Windows.Controls;
 using OpenRm.Common.Entities;
 using OpenRm.Common.Entities.Network;
 
@@ -31,7 +32,9 @@ namespace OpenRm.Server.Gui.Modules.Monitor.Services
                 var messageClient = _container.Resolve<IMessageClient>();
                 
                 if(messageClient.IsConnected == false)
+                {
                     throw new InvalidOperationException("Client is disconnected from the host.");
+                }
 
                 messageClient.Send(instance.Message, ProxyCallback);
             }
