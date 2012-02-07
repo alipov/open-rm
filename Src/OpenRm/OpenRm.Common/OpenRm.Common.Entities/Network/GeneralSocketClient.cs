@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using OpenRm.Common.Entities.Network.Messages;
 
 namespace OpenRm.Common.Entities.Network

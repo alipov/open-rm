@@ -191,6 +191,7 @@ namespace OpenRm.Agent
         private void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var e = (Exception)args.ExceptionObject;
+            Logger.WriteStr("Unhandled Exception: " + e);
             _notifyIconComponent.ShowNotifiction("Error occured: " + e.Message + 
                 "\nPlease review log and restart agent if nesessary.");
         }

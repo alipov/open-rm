@@ -209,7 +209,7 @@ namespace OpenRm.Server.Host
             {
                 //match agent by agentId and redirect received Message Request to it, if it still is connected
                 var agentToken = _agents[message.AgentId];
-                if (agentToken.Socket.Connected)
+                if (agentToken.Socket != null)
                 {
                     // redirect to agent
                     _server.Send(message, agentToken);    

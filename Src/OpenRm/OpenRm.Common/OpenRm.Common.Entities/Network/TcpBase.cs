@@ -146,7 +146,7 @@ namespace OpenRm.Common.Entities.Network
                         ProcessReceivedMessage(args);
 
                         // check if we still connected (because ProcessReceivedMessage can close connection)
-                        if (!token.Socket.Connected)
+                        if (token.Socket == null)
                             return;
 
                         // Check if something left in the buffer: maybe there is a start of next message
