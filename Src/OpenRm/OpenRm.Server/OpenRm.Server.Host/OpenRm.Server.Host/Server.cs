@@ -226,7 +226,6 @@ namespace OpenRm.Server.Host
                             AgentId = message.AgentId
                         };
                         _server.Send(updateMessage, _console);
-                        //TODO:  recieve it in Console:  update status and notify to user!!!!!!!!!!!!!!!!!!!!!!
                     }
                 }
                 

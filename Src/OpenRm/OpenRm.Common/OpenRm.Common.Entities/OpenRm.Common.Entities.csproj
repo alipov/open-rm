@@ -113,7 +113,6 @@
     <Compile Include="Network\Messages\WakeOnLanResponse.cs" />
     <Compile Include="Network\NetworkHelper.cs" />
     <Compile Include="Network\NonInterfacedClientBase.cs" />
-    <Compile Include="Network\SockAdvClient.cs" />
     <Compile Include="Network\TcpBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingsManager.cs" />
