@@ -39,19 +39,35 @@
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time"
                     ItemsSource="{Binding CurrentEntity.PerformanceCpu}" 
                     ValueAxisTitle="%" LabelAxisTitle="Time" Title="CPU Performance" 
-                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False" Background="#FFC7E8E8">
+            <chartControls:LineChart.LinePen>
+                <Pen Brush="Red" Thickness="2" />
+            </chartControls:LineChart.LinePen>
+        </chartControls:LineChart>
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time" Grid.Column="2"
                     ItemsSource="{Binding CurrentEntity.PerformanceRam}" 
                     ValueAxisTitle="Mb" LabelAxisTitle="Time" Title="RAM Usage" 
-                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False" Background="#FFC7E8E8">
+        <chartControls:LineChart.LinePen>
+            <Pen Brush="Red" Thickness="2" />
+            </chartControls:LineChart.LinePen>
+        </chartControls:LineChart>
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time"
                     ItemsSource="{Binding CurrentEntity.PerformanceFreeDisc}" Grid.Row="2"
                     ValueAxisTitle="Mb" LabelAxisTitle="Time" Title="Free Disc" 
-                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False" Background="#FFC7E8E8">
+            <chartControls:LineChart.LinePen>
+                <Pen Brush="Red" Thickness="2" />
+            </chartControls:LineChart.LinePen>
+        </chartControls:LineChart>
         <chartControls:LineChart Margin="0,20,0,0" ValuePath="Value" LabelPath="Time" Grid.Column="2"
                     ItemsSource="{Binding CurrentEntity.PerformanceDiscQueue}" Grid.Row="2"
                     ValueAxisTitle="" LabelAxisTitle="Time" Title="Disc Queue" 
-                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False"/>
+                    ShowValueAxisTicks="False" ShowLabelAxisTicks="False" Background="#FFC7E8E8">
+            <chartControls:LineChart.LinePen>
+                <Pen Brush="Red" Thickness="2" />
+            </chartControls:LineChart.LinePen>
+        </chartControls:LineChart>
     </Grid>
 </UserControl>
 

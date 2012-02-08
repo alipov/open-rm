@@ -5,7 +5,8 @@ namespace OpenRm.Common.Entities.Network.Messages
 {
     public class PerfmonDataRequest : RequestBase
     {
-
+        private static int? realDiskFreeValue;
+        private static int? realDiskQueueValue;
         public override ResponseBase ExecuteRequest()
         {
             var pf = new PerfmonDataResponse();
@@ -17,6 +18,19 @@ namespace OpenRm.Common.Entities.Network.Messages
 
             pf.DiskFree = Int32.Parse(values["FreeMegabytes"]);
             pf.DiskQueue = Int32.Parse(values["AvgDiskQueueLength"]);
+
+            #region Workaround for showing the graph in UI
+            if (!realDiskFreeValue.HasValue)
+            {
+                pf.DiskFree -= 1;
+                realDiskFreeValue = pf.DiskFree;
+            }
+            if (!realDiskQueueValue.HasValue)
+            {
+                pf.DiskQueue += 1;
+                realDiskQueueValue = pf.DiskQueue;
+            }
+            #endregion
 
             return pf;
         }
