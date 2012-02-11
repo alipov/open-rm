@@ -38,10 +38,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DynamicDataDisplay">
-      <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\DynamicDataDisplay_v0.3\DynamicDataDisplay.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Microsoft.Practices.Prism">
       <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\Prism_v4\Microsoft.Practices.Prism.dll</HintPath>
       <Private>False</Private>
@@ -72,10 +68,6 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="WPFToolkit.Extended">
-      <HintPath>..\..\..\..\..\..\Bin\Common\ThirdParty\ExtToolkit_1.5.0\WPFToolkit.Extended.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\Controllers\IAgentRibbonRegionController.cs" />

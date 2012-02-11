@@ -55,6 +55,7 @@
     </Reference>
     <Reference Include="WPFToolkit.Extended">
       <HintPath>..\..\..\..\Bin\Common\ThirdParty\ExtToolkit_1.5.0\WPFToolkit.Extended.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
