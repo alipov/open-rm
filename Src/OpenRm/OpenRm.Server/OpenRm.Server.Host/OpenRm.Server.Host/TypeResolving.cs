@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,60 +14,64 @@ namespace OpenRm.Server.Host
             AppDomain.CurrentDomain.TypeResolve += TypeResolveHandler;
         }
 
-        // took from http://www.chilkatsoft.com/p/p_502.asp
         public static Assembly AssemblyResolveHandler(object sender, ResolveEventArgs args)
         {
-            //This handler is called only when the common language runtime tries to bind to the assembly and fails.
+            if (string.IsNullOrWhiteSpace(args.Name)) return null;
 
-            //Retrieve the list of referenced assemblies in an array of AssemblyName.
-            //var assemblyPath = string.Empty;
+            string requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
+            return LoadAssembly(requestedAssembly);
+        }
 
-            //Assembly objExecutingAssemblies = Assembly.GetExecutingAssembly();
-            //AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
+        public static Assembly TypeResolveHandler(object sender, ResolveEventArgs args)
+        {
+            if (args.Name.StartsWith("OpenRm.Common.Entities"))
+                return LoadAssembly("OpenRm.Common.Entities");
+            return null;
 
-            // Note: no need to check whether or not the assembly is referenced
-            ////Loop through the array of referenced assembly names.
-            //foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
+            //return DefaultResolveHandler(args.Name);
+
+            //string assemblyPath = string.Empty;
+
+            //if (args.Name.StartsWith("OpenRm.Common.Entities"))
             //{
-            //    var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
-
-            //    //Check for the assembly names that have raised the "AssemblyResolve" event.
-            //    if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == requestedAssembly)
-            //    {
-            //        //Build the path of the assembly from where it has to be loaded.
-            //        var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
-            //        assemblyPath = Directory.GetFiles
-            //                        (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).Single();
-            //        break;
-            //        //assemblyPath = Path.Combine(rootDirecotory.FullName, "Common", requestedAssembly + ".dll");
-            //    }
+            //    DirectoryInfo rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
+            //    assemblyPath = Directory.GetFiles
+            //                    (rootDirecotory.FullName, "OpenRm.Common.Entities" + ".dll", SearchOption.AllDirectories).Single();
             //}
 
+            ////Load the assembly from the specified path.
+            //Assembly myAssembly = null;
 
+            //if (!string.IsNullOrWhiteSpace(assemblyPath))
+            //    myAssembly = Assembly.LoadFrom(assemblyPath);
 
-            var requestedAssembly = args.Name.Substring(0, args.Name.IndexOf(","));
+            ////Return the loaded assembly.
+            //return myAssembly;
+        }
 
-            if (requestedAssembly.EndsWith("resources")) return null;
+        // took from http://www.chilkatsoft.com/p/p_502.asp
+        //This handler is called only when the common language runtime tries to bind to the assembly and fails.
+        private static Assembly LoadAssembly(string requestedAssembly)
+        {
+            DirectoryInfo rootDirectory = GetOpenRmRootDirectory(requestedAssembly);
+            if (rootDirectory == null) return null;
 
-            var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
-            var assemblyPaths = Directory.GetFiles
-                (rootDirecotory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).ToList();
+            List<string> assemblyPaths = Directory.GetFiles
+                (rootDirectory.FullName, requestedAssembly + ".dll", SearchOption.AllDirectories).ToList();
 
             if (assemblyPaths.Count > 1)
             {
                 throw new TypeLoadException(string.Format
-                    ("Found more that one '{0}' file in the following root directory: '{1}'",
-                                                requestedAssembly, rootDirecotory));
+                    ("Found more that one '{0}' file in the following root directory: '{1}'", requestedAssembly, rootDirectory));
             }
 
             if (assemblyPaths.Count == 0)
             {
                 throw new DllNotFoundException(string.Format
-                    ("Not found the '{0}' file in the following root directory: '{1}'",
-                                                requestedAssembly, rootDirecotory));
+                    ("Not found the '{0}' file in the following root directory: '{1}'", requestedAssembly, rootDirectory));
             }
 
-            var assemblyPath = assemblyPaths.Single();
+            string assemblyPath = assemblyPaths.Single();
 
             //Load the assembly from the specified path.
             Assembly myAssembly = null;
@@ -80,25 +85,17 @@ namespace OpenRm.Server.Host
             return myAssembly;
         }
 
-        public static Assembly TypeResolveHandler(object sender, ResolveEventArgs args)
+        private static DirectoryInfo GetOpenRmRootDirectory(string requestedAssembly)
         {
-            var assemblyPath = string.Empty;
+            if (requestedAssembly.EndsWith("resources")) return null;
 
-            if (args.Name.StartsWith("OpenRm.Common.Entities"))
-            {
-                var rootDirecotory = Directory.GetParent(Directory.GetCurrentDirectory());
-                assemblyPath = Directory.GetFiles
-                                (rootDirecotory.FullName, "OpenRm.Common.Entities" + ".dll", SearchOption.AllDirectories).Single();
-            }
+            string entryAssemblyPath = Assembly.GetEntryAssembly().Location;
+            string entryAssemblyDirectoryName = Path.GetDirectoryName(entryAssemblyPath);
 
-            //Load the assembly from the specified path.
-            Assembly myAssembly = null;
+            if (string.IsNullOrEmpty(entryAssemblyDirectoryName)) return null;
 
-            if (!string.IsNullOrWhiteSpace(assemblyPath))
-                myAssembly = Assembly.LoadFrom(assemblyPath);
-
-            //Return the loaded assembly.
-            return myAssembly;
+            DirectoryInfo rootDirectory = Directory.GetParent(entryAssemblyDirectoryName);
+            return rootDirectory;
         }
     }
 }
