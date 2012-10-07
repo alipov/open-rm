@@ -30,9 +30,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRm.Server.Gui.App", "Op
 		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2} = {EC7ED0D0-9682-493B-BDEF-2F3086A897F2}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenRm.Installer", "OpenRm.Installer", "{B4E1664A-8DD1-4201-8D21-8707D72D21FE}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "OpenRm.Installer", "OpenRm.Installer\OpenRm.Installer\OpenRm.Installer.vdproj", "{417256C2-12DF-4235-8292-1AAF478864FC}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 8
+		SccNumberOfProjects = 9
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
 		SccLocalPath0 = .
@@ -64,6 +68,10 @@ Global
 		SccProjectTopLevelParentUniqueName7 = OpenRm.sln
 		SccProjectName7 = OpenRm.Server/OpenRm.Server.Gui/OpenRm.Server.Gui.App
 		SccLocalPath7 = OpenRm.Server\\OpenRm.Server.Gui\\OpenRm.Server.Gui.App
+		SccProjectUniqueName8 = OpenRm.Installer\\OpenRm.Installer\\OpenRm.Installer.vdproj
+		SccProjectTopLevelParentUniqueName8 = OpenRm.sln
+		SccProjectName8 = OpenRm.Installer/OpenRm.Installer
+		SccLocalPath8 = OpenRm.Installer\\OpenRm.Installer
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = OpenRm.vsmdi
@@ -123,6 +131,10 @@ Global
 		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Release|Any CPU.Build.0 = Release|Any CPU
 		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Release|x86.ActiveCfg = Release|x86
 		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322}.Release|x86.Build.0 = Release|x86
+		{417256C2-12DF-4235-8292-1AAF478864FC}.Debug|Any CPU.ActiveCfg = Debug
+		{417256C2-12DF-4235-8292-1AAF478864FC}.Debug|x86.ActiveCfg = Debug
+		{417256C2-12DF-4235-8292-1AAF478864FC}.Release|Any CPU.ActiveCfg = Release
+		{417256C2-12DF-4235-8292-1AAF478864FC}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -138,5 +150,6 @@ Global
 		{33A5A6CD-1EFC-4FF9-BF40-4ABC669EC322} = {A92A264C-5DD6-415F-8027-8C98806BC7A4}
 		{7C83633E-2CB4-4A69-AC58-06170FEAD7D5} = {5EAE69D7-58A2-4A0D-9D77-982AC812ECED}
 		{EC7ED0D0-9682-493B-BDEF-2F3086A897F2} = {6EB3D892-7EFE-4530-8D34-9AA2F49AACE2}
+		{417256C2-12DF-4235-8292-1AAF478864FC} = {B4E1664A-8DD1-4201-8D21-8707D72D21FE}
 	EndGlobalSection
 EndGlobal
